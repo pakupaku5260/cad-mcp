@@ -26,6 +26,7 @@ once public tags are cut.
 - Compatibility shims for the pre-rename package name (`backend/base.py`,
   `com_backend.py`, `fake_backend.py`, `compat/`). See [docs/naming.md](docs/naming.md).
 
-## [0.1.0] — TBD
+## [0.1.0] — 2026-11-10
 
-First public source release (GitHub). PyPI packaging is deferred.
+First public release on GitHub and PyPI (`pip install pycadmcp`;
+import/CLI remain `cadmcp`).
