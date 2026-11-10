@@ -11,6 +11,7 @@ CAD MCP サーバー：単一プロセス、専用 STA 実行器、オフライ�
 > その子会社の商標です。本プロジェクトは独立したコミュニティ向け MCP サーバーです。
 
 [![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 必要条件
@@ -24,7 +25,11 @@ CAD MCP サーバー：単一プロセス、専用 STA 実行器、オフライ�
 
 ## インストール
 
-当面はソースからのインストールのみ（PyPI は後回し）：
+```bash
+pip install pycadmcp
+```
+
+開発用（editable + テスト依存）：
 
 ```bash
 git clone https://github.com/shiyang19822000/cad-mcp.git
