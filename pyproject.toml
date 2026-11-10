@@ -1,5 +1,5 @@
 [project]
-name = "cadmcp"
+name = "pycadmcp"
 version = "0.1.0"
 description = "CAD MCP server: one process, dedicated STA executor, offline-testable (SolidWorks backend first)"
 readme = "README.md"
@@ -8,6 +8,19 @@ license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
     { name = "shiyang19822000", email = "shiyang19822000@gmail.com" },
+]
+keywords = ["mcp", "cad", "solidworks", "sta", "com"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
 ]
 urls = { Homepage = "https://github.com/shiyang19822000/cad-mcp", Repository = "https://github.com/shiyang19822000/cad-mcp.git", Issues = "https://github.com/shiyang19822000/cad-mcp/issues" }
 dependencies = [
