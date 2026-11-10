@@ -53,7 +53,7 @@ fake  ⊥  solidworks
 
 Do not casually rename public tools, change default arguments, reorder COM
 API sequences, or alter OpResult / error envelopes. Compatibility shims for
-the old `swmcp` package name were removed; see [docs/naming.md](docs/naming.md).
+the pre-rename package name were removed; see [docs/naming.md](docs/naming.md).
 
 ## Skills and resources
 

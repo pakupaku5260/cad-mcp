@@ -1,8 +1,10 @@
 """S1 gate: migration records valid + coverage calculation correct."""
+import os
 import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,8 +55,19 @@ def test_coverage_calculation():
 
 
 def test_verify_migration_script_passes():
-    """Stage A: verify_migration script (with _resolve fixes) runs cleanly."""
+    """Stage A: verify_migration script (with _resolve fixes) runs cleanly.
+
+    Public whitelist exports omit internal-evidence/; skip there so GitHub CI
+    stays green without shipping private migration evidence.
+    """
+    if not (ROOT / "internal-evidence").is_dir():
+        pytest.skip("internal-evidence/ not present (public export)")
     script = Path(__file__).resolve().parents[2] / "scripts" / "verify_migration.py"
-    r = subprocess.run([sys.executable, str(script)], capture_output=True)
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run(
+        [sys.executable, str(script)],
+        capture_output=True,
+        env=env,
+    )
     out = (r.stdout + r.stderr).decode("utf-8", errors="replace")
     assert r.returncode == 0, out

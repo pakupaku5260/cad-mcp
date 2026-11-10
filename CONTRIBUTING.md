@@ -39,7 +39,8 @@ python scripts/tool_inventory.py --check
   intentional breaking change.
 - SolidWorks COM must stay on the STA path — see [ARCHITECTURE.md](ARCHITECTURE.md).
 - Prefer asserting `error.code` over brittle message substrings.
-- Do not add compatibility aliases for the removed `swmcp` name.
+- Do not add compatibility aliases for removed legacy package names
+  (see [docs/naming.md](docs/naming.md)).
 
 ## Pull requests
 

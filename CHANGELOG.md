@@ -23,8 +23,8 @@ once public tags are cut.
 
 ### Removed
 
-- Compatibility shims for the former `swmcp` package name (`backend/base.py`,
-  `com_backend.py`, `fake_backend.py`, `compat/`).
+- Compatibility shims for the pre-rename package name (`backend/base.py`,
+  `com_backend.py`, `fake_backend.py`, `compat/`). See [docs/naming.md](docs/naming.md).
 
 ## [0.1.0] — TBD
 
