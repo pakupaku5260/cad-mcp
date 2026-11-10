@@ -9,6 +9,7 @@ CAD MCP 服务器：单进程、专用 STA 执行器、可离线测试的 Fake �
 > **与达索系统无附属关系。** SolidWorks® 为达索系统或其子公司商标。本项目为独立社区 MCP 服务器。
 
 [![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 环境要求
@@ -22,7 +23,11 @@ CAD MCP 服务器：单进程、专用 STA 执行器、可离线测试的 Fake �
 
 ## 安装
 
-目前仅源码安装（PyPI 延后）：
+```bash
+pip install pycadmcp
+```
+
+开发安装（可编辑 + 测试依赖）：
 
 ```bash
 git clone https://github.com/shiyang19822000/cad-mcp.git
