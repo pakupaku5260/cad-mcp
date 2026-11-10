@@ -1,0 +1,8 @@
+{
+  "files": {
+    "api_baseline_s0.json": "5a57dda51cffb9d16f02e8b00e7d321a48356cf6e2926f77a3dcbe132c52842a",
+    "migration_scope.yaml": "a39dcc722ec2e18701ffb0302a9c6ecfc07c49ef000c64ba67e938110a5d4b3d",
+    "com_sequence_baseline.yaml": "5fbb1daf29f3b01e67094599c3b8c8a8e01754794a267958490e13ada4439bf0",
+    "com_objects_whitelist.yaml": "807649a39676911ddb32945dc1cb758cc14fbd50391da0ba6bf1d2c1b83ab6c4"
+  }
+}

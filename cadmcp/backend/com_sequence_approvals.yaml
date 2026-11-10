@@ -1,0 +1,14 @@
+# COM 调用序列差异的人工批准记录（v1.2.2 §12.5）
+#
+# 每条批准绑定差异指纹；序列再次变化会生成新指纹并重新报警。
+# 指纹由 `python scripts/snapshot_com_sequence.py --compare` 打印。
+version: 1
+approved:
+  - method: ComBackend.extrude_surface
+    status: changed
+    diff_sha256: a6d6a57602290d46ae41af2814f69b09031497572076c15f990026a3f60eebe8
+    reason: >-
+      S5 拆分：_SURFACE_EXTRU_TAIL 从 ComBackend 私有类属性迁移为
+      com/_constants.py 模块常量。FeatureExtruRefSurface3 的参数值、顺序、数量均不变
+      （仅 self. 前缀消失），运行时等价。
+    approved_by: 项目负责人（2026-11-07 会话内确认）

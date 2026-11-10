@@ -1,0 +1,54 @@
+# Environment
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Test / tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Runtime artifacts (workspace hygiene)
+logs/
+*.log
+backup_*/
+output/
+workspace/
+.env
+.env.*
+
+# Real-machine / probe artifacts (stay on the Windows workstation)
+spike*.json
+probe_out/
+deliverables/
+archive/
+*.bak
+
+# Read-only reference clones
+.refs/
+
+# Evidence moved out of the package tree (never wheel / never public export)
+internal-evidence/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local IDE / agent workspace noise (tracked .opencode/skills sync can stay until export)
+.cursor/
+.codegraph/
+
+# One-shot S9 API snapshot (must not overwrite / commit; compare locally)
+cadmcp/backend/api_baseline_s9.json

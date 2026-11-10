@@ -1,0 +1,846 @@
+version: 1
+source_sha: bcc8c4096127a59b05ff85c1c61a345d8a2ea8d85164112631e9b3c36326b0ef
+source_file: com_backend.py
+whitelist_file: com_objects_whitelist.yaml
+methods:
+- method: ComBackend.new_part
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: NewDocument
+      args: tpl, 0, 0, 0
+      location: com_backend.py:847
+      call_path:
+      - ComBackend.new_part
+- method: ComBackend.new_assembly
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: NewDocument
+      args: tpl, 0, 0, 0
+      location: com_backend.py:896
+      call_path:
+      - ComBackend.new_assembly
+    - object: sw
+      method: GetDocumentTemplate
+      args: SW_DOC_ASSEMBLY, '', 0, 0, 0
+      location: com_backend.py:868
+      call_path:
+      - ComBackend.new_assembly
+- method: ComBackend.new_drawing
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: NewDrawing2
+      args: 12, tpl, 12, 0.21, 0.297
+      location: com_backend.py:959
+      call_path:
+      - ComBackend.new_drawing
+- method: ComBackend.create_drawing_view
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: CreateDrawViewFromModelView3
+      args: path, name, 0.12, 0.15, 0.0
+      location: com_backend.py:991
+      call_path:
+      - ComBackend.create_drawing_view
+- method: ComBackend.create_section_view
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:1055
+      call_path:
+      - ComBackend.create_section_view
+    - object: doc
+      method: CreateSectionViewAt5
+      args: float(x_m), float(y_m), 0.0, raw, 0, None, float(depth_m or 0.0)
+      location: com_backend.py:1072
+      call_path:
+      - ComBackend.create_section_view
+- method: ComBackend.insert_model_items
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: InsertModelAnnotations2
+      args: 0, True, 3, False, True, True
+      location: com_backend.py:1095
+      call_path:
+      - ComBackend.insert_model_items
+- method: ComBackend.insert_balloons
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: AutoBalloon5
+      args: opts
+      location: com_backend.py:1127
+      call_path:
+      - ComBackend.insert_balloons
+- method: ComBackend.get_bom
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: comp
+      method: GetModelDoc2
+      args: ''
+      location: com_backend.py:1192
+      call_path:
+      - ComBackend.get_bom
+    - object: comp
+      method: GetPathName
+      args: ''
+      location: com_backend.py:1179
+      call_path:
+      - ComBackend.get_bom
+- method: ComBackend.open_document
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: OpenDoc6
+      args: str(path), sw_type, 0, '', 0, 0
+      location: com_backend.py:1230
+      call_path:
+      - ComBackend.open_document
+    - object: sw
+      method: OpenDoc
+      args: str(path), sw_type
+      location: com_backend.py:1231
+      call_path:
+      - ComBackend.open_document
+- method: ComBackend.close_document
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: CloseDoc
+      args: name
+      location: com_backend.py:1298
+      call_path:
+      - ComBackend.close_document
+- method: ComBackend.set_configuration
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ShowConfiguration2
+      args: raw
+      location: com_backend.py:1401
+      call_path:
+      - ComBackend.set_configuration
+    - object: doc
+      method: AddConfiguration2
+      args: raw, '', '', False, False, True, True, 0
+      location: com_backend.py:1383
+      call_path:
+      - ComBackend.set_configuration
+- method: ComBackend.set_material
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: SetMaterialPropertyName2
+      args: ''''', '''', raw'
+      location: com_backend.py:1446
+      call_path:
+      - ComBackend.set_material
+- method: ComBackend.insert_component
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: OpenDoc
+      args: str(p), _doc_type_for(p)[1]
+      location: com_backend.py:1491
+      call_path:
+      - ComBackend.insert_component
+    - object: sw
+      method: GetOpenDocumentByName
+      args: str(p)
+      location: com_backend.py:1480
+      call_path:
+      - ComBackend.insert_component
+    - object: sw
+      method: CloseDoc
+      args: _get(standalone, 'GetTitle')
+      location: com_backend.py:1501
+      call_path:
+      - ComBackend.insert_component
+- method: ComBackend.edit_component
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: EditAssembly
+      args: ''
+      location: com_backend.py:1741
+      call_path:
+      - ComBackend.edit_component
+- method: ComBackend.end_edit
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:1763
+      call_path:
+      - ComBackend.end_edit
+    - object: doc
+      method: EditAssembly
+      args: ''
+      location: com_backend.py:1767
+      call_path:
+      - ComBackend.end_edit
+- method: ComBackend.set_color
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: SetMaterialPropertyValues
+      args: vals
+      location: com_backend.py:2096
+      call_path:
+      - ComBackend.set_color
+- method: ComBackend.get_color
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: GetMaterialPropertyValues
+      args: ''
+      location: com_backend.py:2112
+      call_path:
+      - ComBackend.get_color
+- method: ComBackend.delete_mate
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:2603
+      call_path:
+      - ComBackend.delete_mate
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:2611
+      call_path:
+      - ComBackend.delete_mate
+- method: ComBackend.sketch_line
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: CreateLine
+      args: x1_m, y1_m, z1_m, x2_m, y2_m, z2_m
+      location: com_backend.py:2941
+      call_path:
+      - ComBackend.sketch_line
+    - object: sm
+      method: CreateLine
+      args: x1s, y1s, 0, x2s, y2s, 0
+      location: com_backend.py:2945
+      call_path:
+      - ComBackend.sketch_line
+- method: ComBackend.sketch_arc
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: CreateArc
+      args: cxs, cys, 0.0, x1s, y1s, 0.0, x2s, y2s, 0.0, direction
+      location: com_backend.py:2982
+      call_path:
+      - ComBackend.sketch_arc
+    - object: sm
+      method: Create3PointArc
+      args: x1s, y1s, 0.0, x3s, y3s, 0.0, x2s, y2s, 0.0
+      location: com_backend.py:2991
+      call_path:
+      - ComBackend.sketch_arc
+- method: ComBackend.sketch_spline
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: CreateSpline2
+      args: arr, True
+      location: com_backend.py:3017
+      call_path:
+      - ComBackend.sketch_spline
+- method: ComBackend.sketch_polygon
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: CreatePolygon
+      args: 0.0, 0.0, 0.0, xp, yp, 0.0, sides, True
+      location: com_backend.py:3044
+      call_path:
+      - ComBackend.sketch_polygon
+- method: ComBackend.add_sketch_dimension
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sw
+      method: SetUserPreferenceToggle
+      args: _SW_INPUT_DIM_VAL_ON_CREATE, False
+      location: com_backend.py:3117
+      call_path:
+      - ComBackend.add_sketch_dimension
+    - object: sw
+      method: SetUserPreferenceToggle
+      args: _SW_INPUT_DIM_VAL_ON_CREATE, old
+      location: com_backend.py:3126
+      call_path:
+      - ComBackend.add_sketch_dimension
+    - object: doc
+      method: AddDiameterDimension2
+      args: mx + abs(dx) * 0.4, my + abs(dy) * 0.4, 0.0
+      location: com_backend.py:3120
+      call_path:
+      - ComBackend.add_sketch_dimension
+    - object: doc
+      method: AddDimension2
+      args: mx - dy * 0.2, my + dx * 0.2, 0.0
+      location: com_backend.py:3122
+      call_path:
+      - ComBackend.add_sketch_dimension
+- method: ComBackend.add_sketch_relation
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: SketchAddConstraints
+      args: sg
+      location: com_backend.py:3172
+      call_path:
+      - ComBackend.add_sketch_relation
+- method: ComBackend.sketch_offset
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: SketchOffset2
+      args: dist, False, False, 0, 0, True
+      location: com_backend.py:3326
+      call_path:
+      - ComBackend.sketch_offset
+- method: ComBackend.sketch_trim
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: sm
+      method: CreateFillet
+      args: float(radius_m), 1
+      location: com_backend.py:3364
+      call_path:
+      - ComBackend.sketch_trim
+- method: ComBackend.sketch_mirror
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: SketchMirror
+      args: ''
+      location: com_backend.py:3403
+      call_path:
+      - ComBackend.sketch_mirror
+- method: ComBackend.create_helix
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: InsertHelix
+      args: False, bool(clockwise), False, False, helixdef, height, float(pitch_m),
+        revs, 0.0, float(start_angle_rad)
+      location: com_backend.py:3855
+      call_path:
+      - ComBackend.create_helix
+- method: ComBackend.extrude_surface
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: EditSketch
+      args: ''
+      location: com_backend.py:4294
+      call_path:
+      - ComBackend.extrude_surface
+    - object: fm
+      method: FeatureExtruRefSurface3
+      args: True, False, False, 0, 0, float(depth_m), float(depth_m), *self._SURFACE_EXTRU_TAIL
+      location: com_backend.py:4295
+      call_path:
+      - ComBackend.extrude_surface
+- method: ComBackend.knit
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4335
+      call_path:
+      - ComBackend.knit
+    - object: fm
+      method: InsertSewRefSurface
+      args: False, False, False, 1e-05, 0.0001
+      location: com_backend.py:4355
+      call_path:
+      - ComBackend.knit
+- method: ComBackend.fill_surface
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: fm
+      method: InsertFillSurface2
+      args: 0, 0, arr, curv, empty, empty
+      location: com_backend.py:4409
+      call_path:
+      - ComBackend.fill_surface
+- method: ComBackend.boundary_surface
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4436
+      call_path:
+      - ComBackend.boundary_surface
+    - object: doc
+      method: InsertLoftRefSurface2
+      args: False, False, False, 1.0, 0, 0
+      location: com_backend.py:4447
+      call_path:
+      - ComBackend.boundary_surface
+- method: ComBackend.thicken
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4489
+      call_path:
+      - ComBackend.thicken
+    - object: fm
+      method: FeatureBossThicken
+      args: float(thickness_m), 0, 0, False, True, True, True
+      location: com_backend.py:4500
+      call_path:
+      - ComBackend.thicken
+- method: ComBackend.rib
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4541
+      call_path:
+      - ComBackend.rib
+    - object: doc
+      method: EditSketch
+      args: ''
+      location: com_backend.py:4545
+      call_path:
+      - ComBackend.rib
+    - object: doc
+      method: EditDelete
+      args: ''
+      location: com_backend.py:4577
+      call_path:
+      - ComBackend.rib
+    - object: sm
+      method: CreateLine
+      args: x0, y0, 0.0, x1, y1, 0.0
+      location: com_backend.py:4590
+      call_path:
+      - ComBackend.rib
+- method: ComBackend.draft
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4640
+      call_path:
+      - ComBackend.draft
+- method: ComBackend.combine
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4697
+      call_path:
+      - ComBackend.combine
+    - object: ext
+      method: SelectByID2
+      args: names[keep], 'SOLIDBODY', 0, 0, 0, False, 1, callout, 0
+      location: com_backend.py:4700
+      call_path:
+      - ComBackend.combine
+    - object: ext
+      method: SelectByID2
+      args: name, 'SOLIDBODY', 0, 0, 0, True, 2, callout, 0
+      location: com_backend.py:4705
+      call_path:
+      - ComBackend.combine
+    - object: ext
+      method: SelectByID2
+      args: name, 'SOLIDBODY', 0, 0, 0, i > 0, 2, callout, 0
+      location: com_backend.py:4709
+      call_path:
+      - ComBackend.combine
+- method: ComBackend.split_body
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4748
+      call_path:
+      - ComBackend.split_body
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:4789
+      call_path:
+      - ComBackend.split_body
+    - object: fm
+      method: InsertDeleteBody2
+      args: 'False'
+      location: com_backend.py:4805
+      call_path:
+      - ComBackend.split_body
+    - object: doc
+      method: CreateFeatureFromBody3
+      args: body, False, 0
+      location: com_backend.py:4775
+      call_path:
+      - ComBackend.split_body
+- method: ComBackend.hole_wizard
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: EditSketch
+      args: ''
+      location: com_backend.py:4892
+      call_path:
+      - ComBackend.hole_wizard
+- method: ComBackend.edge_flange
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5017
+      call_path:
+      - ComBackend.edge_flange
+    - object: doc
+      method: InsertSketchForEdgeFlange
+      args: pool[idx], float(angle_rad), False
+      location: com_backend.py:5025
+      call_path:
+      - ComBackend.edge_flange
+- method: ComBackend.delete_feature
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5333
+      call_path:
+      - ComBackend.delete_feature
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5341
+      call_path:
+      - ComBackend.delete_feature
+- method: ComBackend.create_axis
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5657
+      call_path:
+      - ComBackend.create_axis
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5705
+      call_path:
+      - ComBackend.create_axis
+- method: ComBackend.begin_sketch
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:5816
+      call_path:
+      - ComBackend.begin_sketch
+- method: ComBackend.extrude_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:6486
+      call_path:
+      - ComBackend.extrude_blind
+- method: ComBackend.revolve_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:6767
+      call_path:
+      - ComBackend.revolve_blind
+    - object: sm
+      method: InsertSketch
+      args: 'True'
+      location: com_backend.py:6774
+      call_path:
+      - ComBackend.revolve_blind
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:6791
+      call_path:
+      - ComBackend.revolve_blind
+    - object: sm
+      method: CreateCenterLine
+      args: p[0], p[1], 0.0, p[2], p[3], 0.0
+      location: com_backend.py:6776
+      call_path:
+      - ComBackend.revolve_blind
+    - object: sm
+      method: InsertSketch
+      args: 'True'
+      location: com_backend.py:6778
+      call_path:
+      - ComBackend.revolve_blind
+- method: ComBackend.fillet_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:6884
+      call_path:
+      - ComBackend.fillet_blind
+    - object: fm
+      method: FeatureFillet3
+      args: 195, radius_m, rho, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      location: com_backend.py:6878
+      call_path:
+      - ComBackend.fillet_blind
+- method: ComBackend.chamfer_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:6956
+      call_path:
+      - ComBackend.chamfer_blind
+- method: ComBackend.shell_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7019
+      call_path:
+      - ComBackend.shell_blind
+    - object: doc
+      method: InsertFeatureShell
+      args: thickness_m, False
+      location: com_backend.py:7021
+      call_path:
+      - ComBackend.shell_blind
+- method: ComBackend.linear_pattern_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7099
+      call_path:
+      - ComBackend.linear_pattern_blind
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7114
+      call_path:
+      - ComBackend.linear_pattern_blind
+- method: ComBackend.circular_pattern_blind
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7150
+      call_path:
+      - ComBackend.circular_pattern_blind
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7174
+      call_path:
+      - ComBackend.circular_pattern_blind
+- method: ComBackend.mirror_feature
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: ClearSelection2
+      args: 'True'
+      location: com_backend.py:7223
+      call_path:
+      - ComBackend.mirror_feature
+    - object: fm
+      method: InsertMirrorFeature
+      args: body, False, merge, False
+      location: com_backend.py:7244
+      call_path:
+      - ComBackend.mirror_feature
+- method: ComBackend.set_dimension
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: Parameter
+      args: cand
+      location: com_backend.py:7992
+      call_path:
+      - ComBackend.set_dimension
+- method: ComBackend.set_equation
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: Parameter
+      args: cand
+      location: com_backend.py:8113
+      call_path:
+      - ComBackend.set_equation
+- method: ComBackend.list_faces
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: faces
+      method: append
+      args: FaceRef(index=len(faces), kind=kind, centroid_m=centroid, normal_m=normal,
+        axis_m=axis)
+      location: com_backend.py:8305
+      call_path:
+      - ComBackend.list_faces
+- method: ComBackend.list_edges
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: edges
+      method: append
+      args: EdgeRef(index=len(edges), kind=kind, midpoint_m=midpoint)
+      location: com_backend.py:8404
+      call_path:
+      - ComBackend.list_edges
+- method: ComBackend.screenshot
+  scenarios:
+  - name: main_path
+    condition: 默认路径（不展开辅助方法）
+    sequence:
+    - object: doc
+      method: SaveAs3
+      args: str(path), 0, 2
+      location: com_backend.py:8538
+      call_path:
+      - ComBackend.screenshot

@@ -1,0 +1,42 @@
+version: 1
+
+external_deps:
+  - cadmcp.errors
+  - cadmcp.selectors
+  - cadmcp.probe
+
+error_code_owners:
+  COM_CALL_FAILED:
+    - solidworks/sta.py
+
+state_owners:
+  _thread: solidworks.sta
+  _queue: solidworks.sta
+  _ready: solidworks.sta
+  _stop: solidworks.sta
+  _attach_error: solidworks.sta
+  sw: solidworks.infrastructure
+  _aliases: solidworks.naming
+  _kind_counts: solidworks.naming
+  _pending_sketch_name: solidworks.sketch
+  _sketch_open: solidworks.sketch
+  _completed_sketches: solidworks.sketch
+  _sketch_plane: solidworks.sketch
+  _sketch_entities: solidworks.sketch
+  _sketch_3d: solidworks.sketch
+  _plane_uv_root: solidworks.plane_axis
+
+mixin_overrides: []
+
+modules:
+  protocol:
+    deps: []
+  solidworks:
+    deps:
+      - {module: protocol, reason: "data models"}
+      - {module: solidworks.backend, reason: "compose ComBackend for export"}
+      - {module: solidworks.probe, reason: "Win32DialogProbe for export"}
+  fake:
+    deps:
+      - {module: protocol, reason: "data models"}
+      - {module: fake.backend, reason: "compose FakeBackend for export"}

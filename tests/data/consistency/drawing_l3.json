@@ -1,0 +1,254 @@
+{
+  "sequence": "drawing_l3",
+  "steps": [
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "start_sketch",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "plane",
+        "sketch_open"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "sketch_rectangle",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "entity_count",
+        "unit"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 3,
+      "warning_count": 0
+    },
+    {
+      "tool": "end_sketch",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "entity_count",
+        "name",
+        "plane"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "extrude",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "depth",
+        "kind",
+        "name",
+        "unit"
+      ],
+      "delta_changed": [
+        "bbox_mm",
+        "edge_count",
+        "face_count",
+        "mass_kg",
+        "surface_area_mm2",
+        "volume_mm3"
+      ],
+      "rebuild_ok": true,
+      "state_version": 5,
+      "warning_count": 0
+    },
+    {
+      "tool": "save_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "path",
+        "saved"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 6,
+      "warning_count": 0
+    },
+    {
+      "tool": "new_drawing",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 7,
+      "warning_count": 0
+    },
+    {
+      "tool": "create_drawing_view",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "name",
+        "view"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 8,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_title_block",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "count",
+        "written"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 9,
+      "warning_count": 0
+    },
+    {
+      "tool": "insert_datum",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "edge",
+        "label",
+        "name",
+        "unit"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 10,
+      "warning_count": 0
+    },
+    {
+      "tool": "insert_gdt",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "datums",
+        "edge",
+        "name",
+        "symbol",
+        "tolerance",
+        "unit"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 11,
+      "warning_count": 0
+    },
+    {
+      "tool": "export",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "path",
+        "saved"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 12,
+      "warning_count": 0
+    },
+    {
+      "tool": "add_drawing_sheet",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "name",
+        "paper",
+        "scale"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 13,
+      "warning_count": 0
+    },
+    {
+      "tool": "inspect_drawing",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "active_sheet",
+        "annotation_count",
+        "datum_count",
+        "datums",
+        "gdt_count",
+        "gdts",
+        "missing_title_fields",
+        "missing_tolerances",
+        "paper",
+        "scale",
+        "sheet_count",
+        "sheets",
+        "title_block",
+        "tolerances",
+        "untoleranced_dimensions",
+        "view_count",
+        "views"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 13,
+      "warning_count": 0
+    },
+    {
+      "tool": "close_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "closed",
+        "discarded",
+        "title"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 14,
+      "warning_count": 0
+    }
+  ]
+}

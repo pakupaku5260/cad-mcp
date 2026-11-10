@@ -1,0 +1,44 @@
+# COM 对象白名单（S0 冻结，之后不允许修改）
+# 用途：snapshot_com_sequence.py 只把「白名单内对象.方法(...)」视为 COM 调用
+version: 1
+frozen_at: "2026-11-04"
+
+objects:
+  # 文档级对象
+  - doc
+  - part_doc
+  - asm_doc
+  - drw_doc
+  - active_doc
+  # 管理器
+  - sketch_mgr
+  - feature_mgr
+  - selection_mgr
+  - extension
+  - sel_data
+  # 特征 / 实体
+  - feature
+  - sketch_feat
+  - body
+  - component
+  - comp
+  - mate
+  - mates
+  # 几何
+  - face
+  - faces
+  - edge
+  - edges
+  - vertex
+  # 视图
+  - view
+  - drawing_view
+  - sheet
+  # 应用级
+  - sw
+  - app
+  # 常用别名
+  - ext
+  - sm
+  - fm
+  

@@ -1,0 +1,21 @@
+{
+  "name": "cadmcp",
+  "version": "0.1.0",
+  "description": "CAD MCP server (SolidWorks backend via dedicated STA COM executor)",
+  "command": "cadmcp",
+  "args": [
+    "serve",
+    "--transport",
+    "stdio",
+    "--backend",
+    "solidworks",
+    "--profile",
+    "part"
+  ],
+  "clients": [
+    "claude",
+    "vscode",
+    "opencode",
+    "cursor"
+  ]
+}

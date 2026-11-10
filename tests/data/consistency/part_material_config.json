@@ -1,0 +1,182 @@
+{
+  "sequence": "part_material_config",
+  "steps": [
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "get_material",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "database",
+        "name"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_material",
+      "ok": false,
+      "error_code": "INVALID_ARGUMENT",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_material",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "database",
+        "name"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "get_material",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "database",
+        "name"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "list_configurations",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "active",
+        "names"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_configuration",
+      "ok": false,
+      "error_code": "FEATURE_NOT_FOUND",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_configuration",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "created",
+        "name"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 3,
+      "warning_count": 0
+    },
+    {
+      "tool": "list_configurations",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "active",
+        "names"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 3,
+      "warning_count": 0
+    },
+    {
+      "tool": "new_assembly",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "get_material",
+      "ok": false,
+      "error_code": "INVALID_ARGUMENT",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "set_material",
+      "ok": false,
+      "error_code": "INVALID_ARGUMENT",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "close_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "closed",
+        "discarded",
+        "title"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 5,
+      "warning_count": 0
+    }
+  ]
+}

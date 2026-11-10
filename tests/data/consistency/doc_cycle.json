@@ -1,0 +1,93 @@
+{
+  "sequence": "doc_cycle",
+  "steps": [
+    {
+      "tool": "get_active_document",
+      "ok": false,
+      "error_code": "NO_ACTIVE_DOCUMENT",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 0,
+      "warning_count": 0
+    },
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "get_active_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "close_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "closed",
+        "discarded",
+        "title"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "get_active_document",
+      "ok": false,
+      "error_code": "NO_ACTIVE_DOCUMENT",
+      "error_side_effect": "none",
+      "result_keys": null,
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    },
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "modified",
+        "path",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 3,
+      "warning_count": 0
+    }
+  ]
+}

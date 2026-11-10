@@ -1,0 +1,4609 @@
+version: 1
+frozen_at: "2026-11-04"
+source_com_backend_sha: bcc8c4096127a59b05ff85c1c61a345d8a2ea8d85164112631e9b3c36326b0ef
+source_fake_backend_sha: 59728277e530588678c66542f43b39a8d55d4320507338311124169771858800
+source_base_sha: 55b6e35e429cd1cbd965b2211b702ecec346c2a320171912cffbe69bfb719760
+scope:
+- id: M-0001
+  original: com_backend.py:ComBackend.attach
+  category: thread
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0002
+  original: com_backend.py:ComBackend.stop
+  category: thread
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0003
+  original: com_backend.py:ComBackend._start_sta
+  category: thread
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0004
+  original: com_backend.py:ComBackend._sta_loop
+  category: thread
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0005
+  original: com_backend.py:ComBackend._modal_block
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0006
+  original: com_backend.py:ComBackend._call
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0007
+  original: com_backend.py:ComBackend._attach_failed
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0008
+  original: com_backend.py:ComBackend._map_error
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0009
+  original: com_backend.py:ComBackend._template_folder
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0010
+  original: com_backend.py:ComBackend._resolve_template
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0011
+  original: com_backend.py:ComBackend._doc_info
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0012
+  original: com_backend.py:ComBackend.revision
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0013
+  original: com_backend.py:ComBackend.new_part
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0014
+  original: com_backend.py:ComBackend.new_assembly
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0015
+  original: com_backend.py:ComBackend._resolve_drawing_template
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0016
+  original: com_backend.py:ComBackend.new_drawing
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0017
+  original: com_backend.py:ComBackend.create_drawing_view
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0018
+  original: com_backend.py:ComBackend._require_drawing_doc
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0019
+  original: com_backend.py:ComBackend._first_model_view
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0020
+  original: com_backend.py:ComBackend._select_drawing_view
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0021
+  original: com_backend.py:ComBackend.create_section_view
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0022
+  original: com_backend.py:ComBackend.insert_model_items
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0023
+  original: com_backend.py:ComBackend.insert_balloons
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0024
+  original: com_backend.py:ComBackend.export_document
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0025
+  original: com_backend.py:ComBackend.get_bom
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0026
+  original: com_backend.py:ComBackend.open_document
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0027
+  original: com_backend.py:ComBackend.save_as
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0028
+  original: com_backend.py:ComBackend.close_document
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0029
+  original: com_backend.py:ComBackend.active_document
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0030
+  original: com_backend.py:ComBackend._model_doc
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0031
+  original: com_backend.py:ComBackend.list_configurations
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0032
+  original: com_backend.py:ComBackend.set_configuration
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0033
+  original: com_backend.py:ComBackend._read_material
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0034
+  original: com_backend.py:ComBackend.get_material
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0035
+  original: com_backend.py:ComBackend.set_material
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0036
+  original: com_backend.py:ComBackend.insert_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0037
+  original: com_backend.py:ComBackend._component_is_lightweight
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0038
+  original: com_backend.py:ComBackend._require_assembly_doc
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0039
+  original: com_backend.py:ComBackend._component_ref_of
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0040
+  original: com_backend.py:ComBackend._unfix_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0041
+  original: com_backend.py:ComBackend._mate_involves_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0042
+  original: com_backend.py:ComBackend._component_mate_names
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0043
+  original: com_backend.py:ComBackend._pose_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0044
+  original: com_backend.py:ComBackend.list_components
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0045
+  original: com_backend.py:ComBackend.get_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0046
+  original: com_backend.py:ComBackend._edit_target_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0047
+  original: com_backend.py:ComBackend.edit_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0048
+  original: com_backend.py:ComBackend.end_edit
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0049
+  original: com_backend.py:ComBackend.get_edit_target
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0050
+  original: com_backend.py:ComBackend.set_lightweight
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0051
+  original: com_backend.py:ComBackend._exploded_view_names
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0052
+  original: com_backend.py:ComBackend._is_exploded
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0053
+  original: com_backend.py:ComBackend.explode_view
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0054
+  original: com_backend.py:ComBackend.show_exploded
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0055
+  original: com_backend.py:ComBackend.list_exploded_views
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0056
+  original: com_backend.py:ComBackend.pattern_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0057
+  original: com_backend.py:ComBackend._circular_pattern_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0058
+  original: com_backend.py:ComBackend._linear_pattern_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0059
+  original: com_backend.py:ComBackend.set_color
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0060
+  original: com_backend.py:ComBackend.get_color
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0061
+  original: com_backend.py:ComBackend.move_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0062
+  original: com_backend.py:ComBackend.rotate_component
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0063
+  original: com_backend.py:ComBackend._ensure_active
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0064
+  original: com_backend.py:ComBackend._asm_select_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0065
+  original: com_backend.py:ComBackend._component_by_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0066
+  original: com_backend.py:ComBackend._component_face_objects
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0067
+  original: com_backend.py:ComBackend._component_edge_objects
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0068
+  original: com_backend.py:ComBackend._select_mate_plane
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0069
+  original: com_backend.py:ComBackend._select_mate_face
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0070
+  original: com_backend.py:ComBackend._select_mate_edge
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0071
+  original: com_backend.py:ComBackend._select_mate_ref
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0072
+  original: com_backend.py:ComBackend._add_mate
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0073
+  original: com_backend.py:ComBackend._mate_common
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0074
+  original: com_backend.py:ComBackend._named_mate
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0075
+  original: com_backend.py:ComBackend.mate_concentric
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0076
+  original: com_backend.py:ComBackend.mate_coincident
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0077
+  original: com_backend.py:ComBackend.mate_distance
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0078
+  original: com_backend.py:ComBackend.mate_angle
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0079
+  original: com_backend.py:ComBackend.mate_tangent
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0080
+  original: com_backend.py:ComBackend.mate_screw
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0081
+  original: com_backend.py:ComBackend._iter_mate_features
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0082
+  original: com_backend.py:ComBackend._mate_type_from_sw
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0083
+  original: com_backend.py:ComBackend.list_mates
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0084
+  original: com_backend.py:ComBackend.delete_mate
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0085
+  original: com_backend.py:ComBackend.list_component_faces
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0086
+  original: com_backend.py:ComBackend.list_component_edges
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0087
+  original: com_backend.py:ComBackend.check_interference
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0088
+  original: com_backend.py:ComBackend._assembly_component_objs
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0089
+  original: com_backend.py:ComBackend._assembly_component_names
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0090
+  original: com_backend.py:ComBackend._sw_interference_pairs
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0091
+  original: com_backend.py:ComBackend.select_face
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0092
+  original: com_backend.py:ComBackend.select_edge
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0093
+  original: com_backend.py:ComBackend.get_faces
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0094
+  original: com_backend.py:ComBackend.get_edges
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0095
+  original: com_backend.py:ComBackend._uv_to_sw
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0096
+  original: com_backend.py:ComBackend._uv_from_sw
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0097
+  original: com_backend.py:ComBackend.sketch_line
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0098
+  original: com_backend.py:ComBackend.sketch_arc
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0099
+  original: com_backend.py:ComBackend.sketch_spline
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0100
+  original: com_backend.py:ComBackend.sketch_polygon
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0101
+  original: com_backend.py:ComBackend.add_sketch_dimension
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0102
+  original: com_backend.py:ComBackend.add_sketch_relation
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0103
+  original: com_backend.py:ComBackend._sketch_dispatch
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0104
+  original: com_backend.py:ComBackend._entity_ref_from_seg
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0105
+  original: com_backend.py:ComBackend._solve_status_of
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0106
+  original: com_backend.py:ComBackend.list_sketch_entities
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0107
+  original: com_backend.py:ComBackend.sketch_offset
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0108
+  original: com_backend.py:ComBackend.sketch_trim
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0109
+  original: com_backend.py:ComBackend.sketch_mirror
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0110
+  original: com_backend.py:ComBackend._select_sketch_seg
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0111
+  original: com_backend.py:ComBackend.edit_sketch
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0112
+  original: com_backend.py:ComBackend.sketch_solve_status
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0113
+  original: com_backend.py:ComBackend._select_sketch_endpoint_pair
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0114
+  original: com_backend.py:ComBackend._sketch_segments
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0115
+  original: com_backend.py:ComBackend._seg_at
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0116
+  original: com_backend.py:ComBackend._segment_matches_line
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0117
+  original: com_backend.py:ComBackend._segment_matches_circle
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0118
+  original: com_backend.py:ComBackend._segment_circle
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0119
+  original: com_backend.py:ComBackend._segment_xy
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0120
+  original: com_backend.py:ComBackend._segment_is_construction
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0121
+  original: com_backend.py:ComBackend._drop_construction_segments
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0122
+  original: com_backend.py:ComBackend._line_refs_from_segments
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0123
+  original: com_backend.py:ComBackend._segment_dim_points
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0124
+  original: com_backend.py:ComBackend._pair_dim_points
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0125
+  original: com_backend.py:ComBackend._point_line_dist
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0126
+  original: com_backend.py:ComBackend._parallel_line_pair
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0127
+  original: com_backend.py:ComBackend.create_helix
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0128
+  original: com_backend.py:ComBackend._last_helix_feature
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0129
+  original: com_backend.py:ComBackend._feature_kind
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0130
+  original: com_backend.py:ComBackend._resolve_sweep_pair
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0131
+  original: com_backend.py:ComBackend._sweep_impl
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0132
+  original: com_backend.py:ComBackend.sweep
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0133
+  original: com_backend.py:ComBackend.sweep_cut
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0134
+  original: com_backend.py:ComBackend.loft
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0135
+  original: com_backend.py:ComBackend.loft_cut
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0136
+  original: com_backend.py:ComBackend._resolve_loft_profiles
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0137
+  original: com_backend.py:ComBackend._as_completed_sketch
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0138
+  original: com_backend.py:ComBackend._sketch_is_closed_profile
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0139
+  original: com_backend.py:ComBackend._resolve_loft_guides
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0140
+  original: com_backend.py:ComBackend._loft_impl
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0141
+  original: com_backend.py:ComBackend.extrude_surface
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0142
+  original: com_backend.py:ComBackend.knit
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0143
+  original: com_backend.py:ComBackend.fill_surface
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0144
+  original: com_backend.py:ComBackend.boundary_surface
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0145
+  original: com_backend.py:ComBackend.thicken
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0146
+  original: com_backend.py:ComBackend.rib
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0147
+  original: com_backend.py:ComBackend.draft
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0148
+  original: com_backend.py:ComBackend.combine
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0149
+  original: com_backend.py:ComBackend.split_body
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0150
+  original: com_backend.py:ComBackend.hole_wizard
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0151
+  original: com_backend.py:ComBackend.base_flange
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0152
+  original: com_backend.py:ComBackend.edge_flange
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0153
+  original: com_backend.py:ComBackend.sheet_metal_unfold
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0154
+  original: com_backend.py:ComBackend._new_features_of_type
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0155
+  original: com_backend.py:ComBackend._sheet_body_names
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0156
+  original: com_backend.py:ComBackend._resolve_sheet_bodies
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0157
+  original: com_backend.py:ComBackend._sheet_body_objects
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0158
+  original: com_backend.py:ComBackend._resolve_fill_body
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0159
+  original: com_backend.py:ComBackend._resolve_thicken_target
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0160
+  original: com_backend.py:ComBackend.insert_thread
+  category: thread
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0161
+  original: com_backend.py:ComBackend.delete_feature
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0162
+  original: com_backend.py:ComBackend.suppress_feature
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0163
+  original: com_backend.py:ComBackend._show_view
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0164
+  original: com_backend.py:ComBackend.set_view
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0165
+  original: com_backend.py:ComBackend.list_planes
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0166
+  original: com_backend.py:ComBackend.create_plane
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0167
+  original: com_backend.py:ComBackend._insert_offset_plane
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0168
+  original: com_backend.py:ComBackend._insert_angle_plane
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0169
+  original: com_backend.py:ComBackend._insert_points_plane
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0170
+  original: com_backend.py:ComBackend._select_axis_feat
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0171
+  original: com_backend.py:ComBackend.create_axis
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0172
+  original: com_backend.py:ComBackend.begin_sketch
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0173
+  original: com_backend.py:ComBackend._features_of
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0174
+  original: com_backend.py:ComBackend._reset_sketch_state
+  category: lifecycle
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0175
+  original: com_backend.py:ComBackend._require_open_sketch
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0176
+  original: com_backend.py:ComBackend._last_sketch_feature
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0177
+  original: com_backend.py:ComBackend._real_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0178
+  original: com_backend.py:ComBackend._find_feature
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0179
+  original: com_backend.py:ComBackend._register
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0180
+  original: com_backend.py:ComBackend._resolve_feature
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0181
+  original: com_backend.py:ComBackend._select_edges
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0182
+  original: com_backend.py:ComBackend._part_edge_objects
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0183
+  original: com_backend.py:ComBackend._select_edge_indexes
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0184
+  original: com_backend.py:ComBackend._part_face_objects
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0185
+  original: com_backend.py:ComBackend._select_one_face
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0186
+  original: com_backend.py:ComBackend._select_face_indexes
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0187
+  original: com_backend.py:ComBackend._select_one_edge
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0188
+  original: com_backend.py:ComBackend._select_edge_indexes_marked
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0189
+  original: com_backend.py:ComBackend._ensure_ref_axis
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0190
+  original: com_backend.py:ComBackend._select_ref_axis
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0191
+  original: com_backend.py:ComBackend._select_model_axis
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0192
+  original: com_backend.py:ComBackend._clear_selection
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0193
+  original: com_backend.py:ComBackend._select_at
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0194
+  original: com_backend.py:ComBackend._select_plane
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0195
+  original: com_backend.py:ComBackend._feature_real_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0196
+  original: com_backend.py:ComBackend._select_pending_sketch
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0197
+  original: com_backend.py:ComBackend._consume_sketch_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0198
+  original: com_backend.py:ComBackend._select_sketch_or_curve
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0199
+  original: com_backend.py:ComBackend.end_sketch
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0200
+  original: com_backend.py:ComBackend.active_sketch
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0201
+  original: com_backend.py:ComBackend.draw_rectangle
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0202
+  original: com_backend.py:ComBackend.draw_circle
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0203
+  original: com_backend.py:ComBackend.extrude_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0204
+  original: com_backend.py:ComBackend.extrude_cut
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0205
+  original: com_backend.py:ComBackend._extrude_end_args
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0206
+  original: com_backend.py:ComBackend._feature_extrusion2
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0207
+  original: com_backend.py:ComBackend._feature_extrusion_thin2
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0208
+  original: com_backend.py:ComBackend._feature_cut4
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0209
+  original: com_backend.py:ComBackend._feature_cut_thin2
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0210
+  original: com_backend.py:ComBackend.revolve_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0211
+  original: com_backend.py:ComBackend.fillet_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0212
+  original: com_backend.py:ComBackend.chamfer_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0213
+  original: com_backend.py:ComBackend.shell_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0214
+  original: com_backend.py:ComBackend.linear_pattern_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0215
+  original: com_backend.py:ComBackend.circular_pattern_blind
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0216
+  original: com_backend.py:ComBackend._bodies_of_feature
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0217
+  original: com_backend.py:ComBackend.mirror_feature
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0218
+  original: com_backend.py:ComBackend.force_rebuild
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0219
+  original: com_backend.py:ComBackend._has_solid
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0220
+  original: com_backend.py:ComBackend.mass_properties
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0221
+  original: com_backend.py:ComBackend._bodies_of
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0222
+  original: com_backend.py:ComBackend._comp_point
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0223
+  original: com_backend.py:ComBackend._component_is_fixed
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0224
+  original: com_backend.py:ComBackend._select_component
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0225
+  original: com_backend.py:ComBackend._write_comp_transform
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0226
+  original: com_backend.py:ComBackend._snap_component_origin
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0227
+  original: com_backend.py:ComBackend._face_geometry
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0228
+  original: com_backend.py:ComBackend._comp_dir
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0229
+  original: com_backend.py:ComBackend._unit_dir
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0230
+  original: com_backend.py:ComBackend._face_normal
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0231
+  original: com_backend.py:ComBackend._edge_geometry
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0232
+  original: com_backend.py:ComBackend._same_point
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0233
+  original: com_backend.py:ComBackend._select_entity
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0234
+  original: com_backend.py:ComBackend._body_bbox_m
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0235
+  original: com_backend.py:ComBackend._component_bbox_m
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0236
+  original: com_backend.py:ComBackend._assembly_bbox_m
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0237
+  original: com_backend.py:ComBackend._part_bbox_m
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0238
+  original: com_backend.py:ComBackend._entity_counts
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0239
+  original: com_backend.py:ComBackend.fingerprint
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0240
+  original: com_backend.py:ComBackend._require_part_doc
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0241
+  original: com_backend.py:ComBackend._resolve_dim_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0242
+  original: com_backend.py:ComBackend._dim_short_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0243
+  original: com_backend.py:ComBackend._logical_dim_name
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0244
+  original: com_backend.py:ComBackend._iter_display_dims
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0245
+  original: com_backend.py:ComBackend._dimension_from_disp
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0246
+  original: com_backend.py:ComBackend.list_dimensions
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0247
+  original: com_backend.py:ComBackend.set_dimension
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0248
+  original: com_backend.py:ComBackend._equation_mgr
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0249
+  original: com_backend.py:ComBackend._equation_count
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0250
+  original: com_backend.py:ComBackend._parse_equation_line
+  category: helper
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0251
+  original: com_backend.py:ComBackend._dimension_names
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0252
+  original: com_backend.py:ComBackend.list_equations
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0253
+  original: com_backend.py:ComBackend.set_equation
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0254
+  original: com_backend.py:ComBackend._add_equation
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0255
+  original: com_backend.py:ComBackend.list_features
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0256
+  original: com_backend.py:ComBackend.list_faces
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0257
+  original: com_backend.py:ComBackend.list_edges
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0258
+  original: com_backend.py:ComBackend.selected_entities
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0259
+  original: com_backend.py:ComBackend._screenshot_hide_construction
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0260
+  original: com_backend.py:ComBackend._screenshot_restore
+  category: method
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0261
+  original: com_backend.py:ComBackend.screenshot
+  category: method
+  public: true
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - com_real_machine
+  - baseline_compare
+- id: M-0262
+  original: com_backend.py:ComBackend._instance
+  category: state
+  public: false
+  coverage_type: com_only
+  verification_required:
+  - unit_test
+  - baseline_compare
+  - com_real_machine
+  expected_type: Optional[ComBackend]
+  init_order: 0
+- id: M-0263
+  original: com_backend.py:ComBackend._lock
+  category: state
+  public: false
+  coverage_type: shared
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: threading.RLock
+  init_order: 0
+- id: M-0264
+  original: com_backend.py:ComBackend._LOFT_BOSS_ARGS
+  category: helper
+  public: false
+  coverage_type: shared
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
+- id: M-0265
+  original: com_backend.py:ComBackend._LOFT_CUT_ARGS
+  category: helper
+  public: false
+  coverage_type: shared
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
+- id: M-0266
+  original: com_backend.py:ComBackend._SURFACE_EXTRU_TAIL
+  category: helper
+  public: false
+  coverage_type: shared
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
+- id: M-0267
+  original: fake_backend.py:FakeBackend.calls_named
+  planned_target: cadmcp.backend.fake.backend.FakeBackend.calls_named
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0268
+  original: fake_backend.py:FakeBackend.call_names
+  planned_target: cadmcp.backend.fake.backend.FakeBackend.call_names
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0269
+  original: fake_backend.py:FakeBackend._enter
+  planned_target: cadmcp.backend.fake.backend.FakeBackend._enter
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0270
+  original: fake_backend.py:FakeBackend._require_doc
+  planned_target: cadmcp.backend.fake.backend.FakeBackend._require_doc
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0271
+  original: fake_backend.py:FakeBackend.revision
+  planned_target: cadmcp.backend.fake.backend.FakeBackend.revision
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0272
+  original: fake_backend.py:FakeBackend.new_part
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.new_part
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0273
+  original: fake_backend.py:FakeBackend.new_assembly
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.new_assembly
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0274
+  original: fake_backend.py:FakeBackend.open_document
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.open_document
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0275
+  original: fake_backend.py:FakeBackend.save_as
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.save_as
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0276
+  original: fake_backend.py:FakeBackend.close_document
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.close_document
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0277
+  original: fake_backend.py:FakeBackend.active_document
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.active_document
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0278
+  original: fake_backend.py:FakeBackend._doc_info
+  planned_target: cadmcp.backend.fake.backend.FakeBackend._doc_info
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0279
+  original: fake_backend.py:FakeBackend.list_planes
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin.list_planes
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0280
+  original: fake_backend.py:FakeBackend._plane_names
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin._plane_names
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0281
+  original: fake_backend.py:FakeBackend._resolve_plane_name
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin._resolve_plane_name
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0282
+  original: fake_backend.py:FakeBackend._plane_frame
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin._plane_frame
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0283
+  original: fake_backend.py:FakeBackend._uv_xyz
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin._uv_xyz
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0284
+  original: fake_backend.py:FakeBackend.create_plane
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin.create_plane
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0285
+  original: fake_backend.py:FakeBackend._angle_axis_dir
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin._angle_axis_dir
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0286
+  original: fake_backend.py:FakeBackend.create_axis
+  planned_target: cadmcp.backend.fake.plane_axis.FakePlaneAxisMixin.create_axis
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0287
+  original: fake_backend.py:FakeBackend.begin_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.begin_sketch
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0288
+  original: fake_backend.py:FakeBackend.end_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.end_sketch
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0289
+  original: fake_backend.py:FakeBackend.active_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.active_sketch
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0290
+  original: fake_backend.py:FakeBackend.draw_rectangle
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.draw_rectangle
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0291
+  original: fake_backend.py:FakeBackend.draw_circle
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.draw_circle
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0292
+  original: fake_backend.py:FakeBackend.sketch_line
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_line
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0293
+  original: fake_backend.py:FakeBackend.sketch_arc
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_arc
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0294
+  original: fake_backend.py:FakeBackend.sketch_spline
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_spline
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0295
+  original: fake_backend.py:FakeBackend.sketch_polygon
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_polygon
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0296
+  original: fake_backend.py:FakeBackend.add_sketch_dimension
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.add_sketch_dimension
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0297
+  original: fake_backend.py:FakeBackend.add_sketch_relation
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.add_sketch_relation
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0298
+  original: fake_backend.py:FakeBackend._sketch_by_name
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._sketch_by_name
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0299
+  original: fake_backend.py:FakeBackend._entity_ref
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._entity_ref
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0300
+  original: fake_backend.py:FakeBackend.list_sketch_entities
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.list_sketch_entities
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0301
+  original: fake_backend.py:FakeBackend.sketch_offset
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_offset
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0302
+  original: fake_backend.py:FakeBackend.sketch_trim
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_trim
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0303
+  original: fake_backend.py:FakeBackend.sketch_mirror
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_mirror
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0304
+  original: fake_backend.py:FakeBackend._reflect_xy
+  planned_target: cadmcp.backend.fake._engine._reflect_xy
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0305
+  original: fake_backend.py:FakeBackend._mirror_entity
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._mirror_entity
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0306
+  original: fake_backend.py:FakeBackend.edit_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.edit_sketch
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0307
+  original: fake_backend.py:FakeBackend.sketch_solve_status
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin.sketch_solve_status
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0308
+  original: fake_backend.py:FakeBackend._sketch_seg
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._sketch_seg
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0309
+  original: fake_backend.py:FakeBackend._snap_sketch_endpoints
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._snap_sketch_endpoints
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0310
+  original: fake_backend.py:FakeBackend._line_by_ends
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._line_by_ends
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0311
+  original: fake_backend.py:FakeBackend._circle_by_center_rim
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._circle_by_center_rim
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0312
+  original: fake_backend.py:FakeBackend._dimension_by_index
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._dimension_by_index
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0313
+  original: fake_backend.py:FakeBackend._parallel_gap
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._parallel_gap
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0314
+  original: fake_backend.py:FakeBackend._drive_across_flats
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._drive_across_flats
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0315
+  original: fake_backend.py:FakeBackend._across_flats_from_points
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._across_flats_from_points
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0316
+  original: fake_backend.py:FakeBackend._equal_line_len
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._equal_line_len
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0317
+  original: fake_backend.py:FakeBackend._align_line_dir
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._align_line_dir
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0318
+  original: fake_backend.py:FakeBackend._perp_line_dir
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._perp_line_dir
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0319
+  original: fake_backend.py:FakeBackend._open_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._open_sketch
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0320
+  original: fake_backend.py:FakeBackend._pending_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._pending_sketch
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0321
+  original: fake_backend.py:FakeBackend._consume_sketch
+  planned_target: cadmcp.backend.fake.sketch.FakeSketchMixin._consume_sketch
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0322
+  original: fake_backend.py:FakeBackend.extrude_blind
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin.extrude_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0323
+  original: fake_backend.py:FakeBackend._apply_extrude_geom
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._apply_extrude_geom
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0324
+  original: fake_backend.py:FakeBackend._thin_section_area
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._thin_section_area
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0325
+  original: fake_backend.py:FakeBackend.extrude_cut
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin.extrude_cut
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0326
+  original: fake_backend.py:FakeBackend._ray_hit_t
+  planned_target: cadmcp.backend.fake._engine._ray_hit_t
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0327
+  original: fake_backend.py:FakeBackend._upto_z_range
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._upto_z_range
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0328
+  original: fake_backend.py:FakeBackend._solid_z_span
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._solid_z_span
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0329
+  original: fake_backend.py:FakeBackend.revolve_blind
+  planned_target: cadmcp.backend.fake.features.revolve.FakeRevolveMixin.revolve_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0330
+  original: fake_backend.py:FakeBackend._extents
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._extents
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0331
+  original: fake_backend.py:FakeBackend._edge_length
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._edge_length
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0332
+  original: fake_backend.py:FakeBackend._edge_count
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._edge_count
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0333
+  original: fake_backend.py:FakeBackend._checked_indexes
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._checked_indexes
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0334
+  original: fake_backend.py:FakeBackend._material_features
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._material_features
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0335
+  original: fake_backend.py:FakeBackend._pattern_source
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._pattern_source
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0336
+  original: fake_backend.py:FakeBackend._detail_cut
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin._detail_cut
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0337
+  original: fake_backend.py:FakeBackend.fillet_blind
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.fillet_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0338
+  original: fake_backend.py:FakeBackend.chamfer_blind
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.chamfer_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0339
+  original: fake_backend.py:FakeBackend.shell_blind
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.shell_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0340
+  original: fake_backend.py:FakeBackend.linear_pattern_blind
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.linear_pattern_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0341
+  original: fake_backend.py:FakeBackend.circular_pattern_blind
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.circular_pattern_blind
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0342
+  original: fake_backend.py:FakeBackend.mirror_feature
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.mirror_feature
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0343
+  original: fake_backend.py:FakeBackend._reflect_point
+  planned_target: cadmcp.backend.fake._engine._reflect_point
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0344
+  original: fake_backend.py:FakeBackend._reflected_bbox
+  planned_target: cadmcp.backend.fake._engine._reflected_bbox
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0345
+  original: fake_backend.py:FakeBackend._rotate_point
+  planned_target: cadmcp.backend.fake._engine._rotate_point
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0346
+  original: fake_backend.py:FakeBackend._rotated_bbox
+  planned_target: cadmcp.backend.fake._engine._rotated_bbox
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0347
+  original: fake_backend.py:FakeBackend.create_helix
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.create_helix
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0348
+  original: fake_backend.py:FakeBackend.sweep
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.sweep
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0349
+  original: fake_backend.py:FakeBackend.sweep_cut
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.sweep_cut
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0350
+  original: fake_backend.py:FakeBackend.loft
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin.loft
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0351
+  original: fake_backend.py:FakeBackend.loft_cut
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin.loft_cut
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0352
+  original: fake_backend.py:FakeBackend.extrude_surface
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.extrude_surface
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0353
+  original: fake_backend.py:FakeBackend.knit
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.knit
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0354
+  original: fake_backend.py:FakeBackend.thicken
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.thicken
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0355
+  original: fake_backend.py:FakeBackend.fill_surface
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.fill_surface
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0356
+  original: fake_backend.py:FakeBackend.boundary_surface
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.boundary_surface
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0357
+  original: fake_backend.py:FakeBackend.rib
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.rib
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0358
+  original: fake_backend.py:FakeBackend.draft
+  planned_target: cadmcp.backend.fake.features.surface.FakeSurfaceMixin.draft
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0359
+  original: fake_backend.py:FakeBackend.combine
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.combine
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0360
+  original: fake_backend.py:FakeBackend.split_body
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.split_body
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0361
+  original: fake_backend.py:FakeBackend.hole_wizard
+  planned_target: cadmcp.backend.fake.features.modify.FakeModifyMixin.hole_wizard
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0362
+  original: fake_backend.py:FakeBackend.base_flange
+  planned_target: cadmcp.backend.fake.features.sheetmetal.FakeSheetMetalMixin.base_flange
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0363
+  original: fake_backend.py:FakeBackend._sheet_base
+  planned_target: cadmcp.backend.fake.features.sheetmetal.FakeSheetMetalMixin._sheet_base
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0364
+  original: fake_backend.py:FakeBackend.edge_flange
+  planned_target: cadmcp.backend.fake.features.sheetmetal.FakeSheetMetalMixin.edge_flange
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0365
+  original: fake_backend.py:FakeBackend.sheet_metal_unfold
+  planned_target: cadmcp.backend.fake.features.sheetmetal.FakeSheetMetalMixin.sheet_metal_unfold
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0366
+  original: fake_backend.py:FakeBackend._loft_sketches
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._loft_sketches
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0367
+  original: fake_backend.py:FakeBackend._ended_sketch
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._ended_sketch
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0368
+  original: fake_backend.py:FakeBackend._guide_is_closed
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._guide_is_closed
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0369
+  original: fake_backend.py:FakeBackend._loft_guides
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._loft_guides
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0370
+  original: fake_backend.py:FakeBackend._loft
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._loft
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0371
+  original: fake_backend.py:FakeBackend._sweep_pair
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._sweep_pair
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0372
+  original: fake_backend.py:FakeBackend._sweep_profile
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._sweep_profile
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0373
+  original: fake_backend.py:FakeBackend._triangle_profile
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._triangle_profile
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0374
+  original: fake_backend.py:FakeBackend._path_segments
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._path_segments
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0375
+  original: fake_backend.py:FakeBackend._segment_length
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._segment_length
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0376
+  original: fake_backend.py:FakeBackend._chain_path_length
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._chain_path_length
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0377
+  original: fake_backend.py:FakeBackend._sweep_path
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._sweep_path
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0378
+  original: fake_backend.py:FakeBackend._sweep
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin._sweep
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0379
+  original: fake_backend.py:FakeBackend.insert_thread
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.insert_thread
+  category: thread
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0380
+  original: fake_backend.py:FakeBackend.delete_feature
+  planned_target: cadmcp.backend.fake.features.manage.FakeFeatureManageMixin.delete_feature
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0381
+  original: fake_backend.py:FakeBackend.suppress_feature
+  planned_target: cadmcp.backend.fake.features.manage.FakeFeatureManageMixin.suppress_feature
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0382
+  original: fake_backend.py:FakeBackend._profile_of
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._profile_of
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0383
+  original: fake_backend.py:FakeBackend._polygon_profile
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._polygon_profile
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0384
+  original: fake_backend.py:FakeBackend._chain_profile
+  planned_target: cadmcp.backend.fake.features.extrude.FakeExtrudeMixin._chain_profile
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0385
+  original: fake_backend.py:FakeBackend._sketch_bbox3d
+  planned_target: cadmcp.backend.fake.features.loft.FakeLoftMixin._sketch_bbox3d
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0386
+  original: fake_backend.py:FakeBackend.force_rebuild
+  planned_target: cadmcp.backend.fake.features.manage.FakeFeatureManageMixin.force_rebuild
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0387
+  original: fake_backend.py:FakeBackend._geom
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._geom
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0388
+  original: fake_backend.py:FakeBackend.mass_properties
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.mass_properties
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0389
+  original: fake_backend.py:FakeBackend.fingerprint
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.fingerprint
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0390
+  original: fake_backend.py:FakeBackend.list_features
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.list_features
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0391
+  original: fake_backend.py:FakeBackend._require_part
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._require_part
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0392
+  original: fake_backend.py:FakeBackend._put_length_dim
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._put_length_dim
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0393
+  original: fake_backend.py:FakeBackend._put_angle_dim
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._put_angle_dim
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0394
+  original: fake_backend.py:FakeBackend._put_sketch_dim
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._put_sketch_dim
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0395
+  original: fake_backend.py:FakeBackend._refresh_from_sketch
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._refresh_from_sketch
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0396
+  original: fake_backend.py:FakeBackend._refresh_revolve
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._refresh_revolve
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0397
+  original: fake_backend.py:FakeBackend._apply_dim_record
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._apply_dim_record
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0398
+  original: fake_backend.py:FakeBackend._known_equation_names
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._known_equation_names
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0399
+  original: fake_backend.py:FakeBackend._eval_equation_mm
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._eval_equation_mm
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0400
+  original: fake_backend.py:FakeBackend._apply_equations
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._apply_equations
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0401
+  original: fake_backend.py:FakeBackend.list_equations
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.list_equations
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0402
+  original: fake_backend.py:FakeBackend.set_equation
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.set_equation
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0403
+  original: fake_backend.py:FakeBackend._refresh_extrude
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin._refresh_extrude
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0404
+  original: fake_backend.py:FakeBackend.list_dimensions
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.list_dimensions
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0405
+  original: fake_backend.py:FakeBackend.set_dimension
+  planned_target: cadmcp.backend.fake.query.FakeQueryMixin.set_dimension
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0406
+  original: fake_backend.py:FakeBackend._material_entities
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin._material_entities
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0407
+  original: fake_backend.py:FakeBackend.list_faces
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.list_faces
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0408
+  original: fake_backend.py:FakeBackend.list_edges
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.list_edges
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0409
+  original: fake_backend.py:FakeBackend.selected_entities
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.selected_entities
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0410
+  original: fake_backend.py:FakeBackend._require_assembly
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._require_assembly
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0411
+  original: fake_backend.py:FakeBackend.insert_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.insert_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0412
+  original: fake_backend.py:FakeBackend._component_or_fail
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._component_or_fail
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0413
+  original: fake_backend.py:FakeBackend._component_ref
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._component_ref
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0414
+  original: fake_backend.py:FakeBackend._snapshot_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._snapshot_component
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0415
+  original: fake_backend.py:FakeBackend._snapshot_nested_child
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._snapshot_nested_child
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0416
+  original: fake_backend.py:FakeBackend._instantiate_nested
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._instantiate_nested
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0417
+  original: fake_backend.py:FakeBackend._mates_locking
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._mates_locking
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0418
+  original: fake_backend.py:FakeBackend._sync_component_world
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._sync_component_world
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0419
+  original: fake_backend.py:FakeBackend._sync_one_component_world
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._sync_one_component_world
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0420
+  original: fake_backend.py:FakeBackend._translate_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._translate_component
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0421
+  original: fake_backend.py:FakeBackend.move_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.move_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0422
+  original: fake_backend.py:FakeBackend.rotate_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.rotate_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0423
+  original: fake_backend.py:FakeBackend.list_components
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.list_components
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0424
+  original: fake_backend.py:FakeBackend.get_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.get_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0425
+  original: fake_backend.py:FakeBackend.edit_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.edit_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0426
+  original: fake_backend.py:FakeBackend.end_edit
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.end_edit
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0427
+  original: fake_backend.py:FakeBackend.get_edit_target
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.get_edit_target
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0428
+  original: fake_backend.py:FakeBackend.set_lightweight
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.set_lightweight
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0429
+  original: fake_backend.py:FakeBackend.explode_view
+  planned_target: cadmcp.backend.fake.assembly.explode.FakeAssemblyExplodeMixin.explode_view
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0430
+  original: fake_backend.py:FakeBackend.show_exploded
+  planned_target: cadmcp.backend.fake.assembly.explode.FakeAssemblyExplodeMixin.show_exploded
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0431
+  original: fake_backend.py:FakeBackend.list_exploded_views
+  planned_target: cadmcp.backend.fake.assembly.explode.FakeAssemblyExplodeMixin.list_exploded_views
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0432
+  original: fake_backend.py:FakeBackend._drop_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin._drop_component
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0433
+  original: fake_backend.py:FakeBackend.pattern_component
+  planned_target: cadmcp.backend.fake.assembly.component.FakeAssemblyComponentMixin.pattern_component
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0434
+  original: fake_backend.py:FakeBackend.set_color
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.set_color
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0435
+  original: fake_backend.py:FakeBackend.get_color
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.get_color
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0436
+  original: fake_backend.py:FakeBackend._offset_library
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._offset_library
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0437
+  original: fake_backend.py:FakeBackend._face_kind
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._face_kind
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0438
+  original: fake_backend.py:FakeBackend._edge_kind
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._edge_kind
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0439
+  original: fake_backend.py:FakeBackend._mate
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._mate
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0440
+  original: fake_backend.py:FakeBackend._vec_len
+  planned_target: cadmcp.backend.fake._engine._vec_len
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0441
+  original: fake_backend.py:FakeBackend._vec_unit
+  planned_target: cadmcp.backend.fake._engine._vec_unit
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0442
+  original: fake_backend.py:FakeBackend._vec_dot
+  planned_target: cadmcp.backend.fake._engine._vec_dot
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0443
+  original: fake_backend.py:FakeBackend._vec_cross
+  planned_target: cadmcp.backend.fake._engine._vec_cross
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0444
+  original: fake_backend.py:FakeBackend._rodrigues
+  planned_target: cadmcp.backend.fake._engine._rodrigues
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0445
+  original: fake_backend.py:FakeBackend._rotation_aligning
+  planned_target: cadmcp.backend.fake._engine._rotation_aligning
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0446
+  original: fake_backend.py:FakeBackend._grounded_component
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._grounded_component
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0447
+  original: fake_backend.py:FakeBackend._movable_of_pair
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._movable_of_pair
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0448
+  original: fake_backend.py:FakeBackend._apply_rigid
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._apply_rigid
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0449
+  original: fake_backend.py:FakeBackend._entity_plane
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._entity_plane
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0450
+  original: fake_backend.py:FakeBackend._entity_axis
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._entity_axis
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0451
+  original: fake_backend.py:FakeBackend._align_direction
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._align_direction
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0452
+  original: fake_backend.py:FakeBackend._solve_mate
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._solve_mate
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0453
+  original: fake_backend.py:FakeBackend.mate_concentric
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_concentric
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0454
+  original: fake_backend.py:FakeBackend.mate_coincident
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_coincident
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0455
+  original: fake_backend.py:FakeBackend.mate_distance
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_distance
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0456
+  original: fake_backend.py:FakeBackend.mate_angle
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_angle
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0457
+  original: fake_backend.py:FakeBackend.mate_tangent
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_tangent
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0458
+  original: fake_backend.py:FakeBackend.mate_screw
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.mate_screw
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0459
+  original: fake_backend.py:FakeBackend.list_mates
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.list_mates
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0460
+  original: fake_backend.py:FakeBackend.delete_mate
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin.delete_mate
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0461
+  original: fake_backend.py:FakeBackend.list_component_faces
+  planned_target: cadmcp.backend.fake.assembly.query.FakeAssemblyQueryMixin.list_component_faces
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0462
+  original: fake_backend.py:FakeBackend.list_component_edges
+  planned_target: cadmcp.backend.fake.assembly.query.FakeAssemblyQueryMixin.list_component_edges
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0463
+  original: fake_backend.py:FakeBackend.check_interference
+  planned_target: cadmcp.backend.fake.assembly.query.FakeAssemblyQueryMixin.check_interference
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0464
+  original: fake_backend.py:FakeBackend.new_drawing
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.new_drawing
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0465
+  original: fake_backend.py:FakeBackend.create_drawing_view
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.create_drawing_view
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0466
+  original: fake_backend.py:FakeBackend._require_drawing
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin._require_drawing
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0467
+  original: fake_backend.py:FakeBackend.create_section_view
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.create_section_view
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0468
+  original: fake_backend.py:FakeBackend.insert_model_items
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.insert_model_items
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0469
+  original: fake_backend.py:FakeBackend.insert_balloons
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.insert_balloons
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0470
+  original: fake_backend.py:FakeBackend.export_document
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.export_document
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0471
+  original: fake_backend.py:FakeBackend.list_configurations
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.list_configurations
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0472
+  original: fake_backend.py:FakeBackend.set_configuration
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.set_configuration
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0473
+  original: fake_backend.py:FakeBackend.get_material
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.get_material
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0474
+  original: fake_backend.py:FakeBackend.set_material
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.set_material
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0475
+  original: fake_backend.py:FakeBackend._entries_for_model
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin._entries_for_model
+  category: method
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0476
+  original: fake_backend.py:FakeBackend.get_bom
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.get_bom
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0477
+  original: fake_backend.py:FakeBackend.insert_bom
+  planned_target: cadmcp.backend.fake.document.FakeDocumentMixin.insert_bom
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0478
+  original: fake_backend.py:FakeBackend.select_face
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.select_face
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0479
+  original: fake_backend.py:FakeBackend.select_edge
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.select_edge
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0480
+  original: fake_backend.py:FakeBackend.get_faces
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.get_faces
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0481
+  original: fake_backend.py:FakeBackend.get_edges
+  planned_target: cadmcp.backend.fake.selection.FakeSelectionMixin.get_edges
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0482
+  original: fake_backend.py:FakeBackend.set_view
+  planned_target: cadmcp.backend.fake.view.FakeViewMixin.set_view
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0483
+  original: fake_backend.py:FakeBackend.screenshot
+  planned_target: cadmcp.backend.fake.view.FakeViewMixin.screenshot
+  category: method
+  public: true
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - fake_verification
+  - baseline_compare
+- id: M-0484
+  original: fake_backend.py:FakeBackend._PLANE_NORMAL_LOCAL
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._PLANE_NORMAL_LOCAL
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
+- id: M-0485
+  original: fake_backend.py:FakeBackend._PLANE_MATES
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._PLANE_MATES
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
+- id: M-0486
+  original: fake_backend.py:FakeBackend._MATE_LABELS
+  planned_target: cadmcp.backend.fake.assembly.mate.FakeAssemblyMateMixin._MATE_LABELS
+  category: helper
+  public: false
+  coverage_type: fake_only
+  verification_required:
+  - unit_test
+  - baseline_compare
+  expected_type: null
+  init_order: null
