@@ -12,6 +12,7 @@ CAD-MCP-Server: ein Prozess, eigener STA-Executor, offline testbares Fake-Backen
 > Community-MCP-Server.
 
 [![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Anforderungen
@@ -26,7 +27,11 @@ für lokale Entwicklung nicht erforderlich.
 
 ## Installation
 
-Derzeit nur aus dem Quellcode (PyPI später):
+```bash
+pip install pycadmcp
+```
+
+Entwicklung (editierbar + Testdeps):
 
 ```bash
 git clone https://github.com/shiyang19822000/cad-mcp.git
