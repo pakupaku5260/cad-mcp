@@ -10,6 +10,7 @@ Fake backend — **SolidWorks backend first**.
 > community MCP server.
 
 [![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Requirements
@@ -24,7 +25,11 @@ SolidWorks installed to develop or verify locally.
 
 ## Install
 
-Source install only for now (PyPI deferred):
+```bash
+pip install pycadmcp
+```
+
+For development (editable + test tools):
 
 ```bash
 git clone https://github.com/shiyang19822000/cad-mcp.git
