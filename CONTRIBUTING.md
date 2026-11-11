@@ -33,6 +33,33 @@ pytest -q
 python scripts/tool_inventory.py --check
 ```
 
+Architecture gate (structural invariants):
+
+```bash
+pytest -q tests/architecture/
+```
+
+## HTTP transport (local debugging)
+
+`cadmcp serve --transport http` starts a Streamable HTTP listener on
+`127.0.0.1:8756` by default — MCP endpoint `http://127.0.0.1:8756/mcp`,
+health monitoring at `/health`. HTTP mode is authenticated by default: a
+bearer token is auto-created at `%APPDATA%\cadmcp\token` (Windows) or
+`~/.config/cadmcp/token` (POSIX); send it as `Authorization: Bearer <token>`.
+`--allow-insecure` disables auth on loopback only — non-loopback binds
+always require the token. MCP clients should prefer stdio; HTTP is for
+local debugging and monitoring.
+
+## Real SolidWorks tests (destructive)
+
+```bash
+# WARNING: closes all open SolidWorks documents WITHOUT saving.
+set CADMCP_REAL_SW=1
+pytest -q -m sw
+```
+
+Only run real-SW tests on disposable sessions.
+
 ## Coding rules (short)
 
 - Keep tool names, schemas, and COM call order stable unless the PR is an

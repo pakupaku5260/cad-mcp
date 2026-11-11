@@ -4,8 +4,10 @@
 
 > **English README is authoritative; translations welcome via PR.**
 
-CAD-MCP-Server: ein Prozess, eigener STA-Executor, offline testbares Fake-Backend —
-**SolidWorks-Backend zuerst**.
+Lassen Sie KI-Agenten (Cursor, Claude, VS Code, OpenCode) SolidWorks über MCP
+steuern: Beschreiben Sie ein Bauteil in normaler Sprache, verfolgen Sie, wie
+das Modell entsteht, und fragen Sie dann Masseneigenschaften ab, bauen Sie
+Baugruppen, erstellen Sie Zeichnungen und Exporte — ohne den Chat zu verlassen.
 
 > **Nicht verbunden mit Dassault Systèmes.** SolidWorks® ist eine Marke von
 > Dassault Systèmes oder verbundenen Unternehmen. Dies ist ein unabhängiger
@@ -15,15 +17,51 @@ CAD-MCP-Server: ein Prozess, eigener STA-Executor, offline testbares Fake-Backen
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Anforderungen
+## Was es für Sie tun kann
 
-| Modus | Benötigt |
+- **Konversationelle Bauteilmodellierung** — Skizzen, Extrudieren, Verrunden,
+  Bohrungsassistent, Gewinde, Sweeps: „eine 100×50×10-Platte mit vier
+  Ø6-Durchgangsbohrungen" anfordern und Maße im Chat weiter anpassen.
+- **Konstruktionszustand prüfen** — Masseneigenschaften, Geometrie,
+  Bounding-Box, Featurebaum, Flächen-/Kantenabfragen.
+- **Baugruppen** — Komponenten einfügen, Paarungen hinzufügen,
+  Komponentenoperationen.
+- **Zeichnungen & Blech** — Ansichten und Beschriftungen, DrawingSpec;
+  Grundflansch / Hemmkante / Abwicklung.
+- **Export** von STEP / STL / PDF / DXF direkt aus dem Gespräch.
+- **Nicht stecken bleiben** — blockiert ein SolidWorks-Dialog die Sitzung,
+  führen eingebaute Skills (`solidworks-modeling`, `solidworks-assembly`,
+  `solidworks-recovery`) und `cadmcp doctor` den Agenten durch die Wiederherstellung.
+
+## Quickstart-Demo
+
+![Quickstart-Demo: 100×50×10-Platte mit vier Ø6-Durchgangsbohrungen, über MCP erstellt](docs/assets/quickstart-demo.png)
+
+Prompt: *„Erstelle eine 100×50×10-mm-Platte mit vier Ø6-Durchgangsbohrungen in
+den Ecken."* Der Agent rief diese Werkzeuge auf (echte Sitzung):
+
+```text
+new_part            {}
+start_sketch        {"plane": "Front Plane"}
+sketch_rectangle    {"x1": 0, "y1": 0, "x2": 100, "y2": 50}
+end_sketch          {}
+extrude             {"depth": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 10, "y": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 90, "y": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 10, "y": 40}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 90, "y": 40}
+get_mass_properties {}
+```
+
+`get_mass_properties` meldet 48.869 mm³ — 50.000 minus vier Ø6-Bohrungen,
+exakt wie angefordert.
+
+## Voraussetzungen
+
+| Setup | Benötigt |
 |---|---|
-| **Fake-Backend (CI-Standard)** | Python 3.11+, Windows/macOS/Linux |
-| **SolidWorks-Backend** | Windows + SolidWorks **2025** + `pywin32` |
-
-Die komplette Offline-Testsuite läuft gegen **FakeBackend** — SolidWorks ist
-für lokale Entwicklung nicht erforderlich.
+| **SolidWorks-Backend** (echte Modellierung) | Windows + laufendes SolidWorks **2025** + Python 3.11+ + `pywin32` |
+| **Fake-Backend** (MCP-Verkabelung ohne SolidWorks testen) | Python 3.11+, jedes OS — nur Konnektivitätsprüfung, keine echte Modellierung |
 
 ## Installation
 
@@ -31,35 +69,25 @@ für lokale Entwicklung nicht erforderlich.
 pip install pycadmcp
 ```
 
-Entwicklung (editierbar + Testdeps):
+CLI-Einstiegspunkt: `cadmcp`.
 
-```bash
-git clone https://github.com/pakupaku5260/cad-mcp.git
-cd cad-mcp
-python -m venv .venv
-# Windows:
-.\.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-```
+## Mit einem KI-Client verbinden
 
-CLI: `cadmcp`.
+Beide Transporte werden unterstützt: **stdio** (der Client startet den Server —
+empfohlen für Editoren und Agenten) und **HTTP** (ein dauerhaft laufender
+lokaler Server; auch praktisch für Debugging und Monitoring).
 
-## Schnellstart
+### stdio (empfohlen)
 
-```bash
-cadmcp doctor --backend fake
-```
-
-### MCP-Client anbinden
-
-Empfohlen: **stdio**. Nach `pip install pycadmcp`:
+Ein Befehl schreibt den Servereintrag für Cursor, Claude Desktop, VS Code oder
+OpenCode:
 
 ```bash
 cadmcp install --client cursor      # oder: claude | vscode | opencode
 cadmcp install --client cursor --dry-run
 ```
 
-Schreibt einen Server-Eintrag `solidworks`. Manuelles JSON:
+Das schreibt einen Servereintrag namens `solidworks`. Entsprechende manuelle JSON:
 
 ```json
 {
@@ -72,69 +100,105 @@ Schreibt einen Server-Eintrag `solidworks`. Manuelles JSON:
 }
 ```
 
-Ohne SolidWorks: `"--backend", "fake"`. HTTP nur für lokales Debugging; Clients nutzen stdio.
+Ohne installiertes SolidWorks `"--backend", "fake"` verwenden.
 
-Danach Tools im Client aufrufen (z. B. `examples/box_recipe.json` + `replay_recipe`).
+### HTTP (Streamable HTTP)
+
+Server einmal starten und URL-basierte Clients darauf richten:
 
 ```bash
-cadmcp serve --transport stdio --backend fake --profile part
+cadmcp serve --transport http --backend solidworks
+# lauscht auf 127.0.0.1:8756 — MCP-Endpunkt http://127.0.0.1:8756/mcp
 ```
 
-Für echte SolidWorks-Nutzung: `--backend solidworks` unter Windows.
+- HTTP ist standardmäßig authentifiziert: Ein Token wird automatisch erzeugt
+  unter `%APPDATA%\cadmcp\token` (Windows) bzw. `~/.config/cadmcp/token`
+  (POSIX); senden Sie es als `Authorization: Bearer <token>`.
+- `--host` / `--port` passen die Bindung an; `--allow-insecure` deaktiviert
+  Authentifizierung nur auf Loopback (Nicht-Loopback-Bindungen verlangen
+  stets das Token).
+- `GET /health` liefert den Executor-Zustand zum Monitoring (ohne Auth).
 
-## Fähigkeitsmatrix
+JSON für URL-basierte Clients:
 
-**134 Tools** in **9 Toolsets** — siehe [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md).
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "url": "http://127.0.0.1:8756/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
 
-| Toolset | Anzahl | Fokus |
+### Erstes Ergebnis — und bei Blockaden
+
+Client neu starten, einen Chat öffnen und die Demo-Aufgabe oben stellen.
+Gesundheitscheck: `cadmcp doctor --backend solidworks` (oder `--backend fake`
+ohne SolidWorks). Meldet der Agent einen hängenden Executor, lassen Sie ihn
+`cadmcp doctor` ausführen — der Recovery-Skill
+(`cadmcp://skill/solidworks-recovery`) führt durch das Aufräumen von
+SolidWorks-Dialogen.
+
+Optionale skriptgesteuerte Demo (aus einem Repo-Klon): `examples/box_recipe.json`
+in den Arbeitsbereich kopieren und `replay_recipe` ausführen.
+
+## Funktionsübersicht
+
+**134 Werkzeuge** in 9 Toolsets (siehe [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
+
+| Toolset | Anzahl | Schwerpunkt |
 |---|---|---|
-| core | 45 | Dokumente, Skizzen, Basis-Features, Abfragen |
-| features_adv | 25 | Gewinde, Helix, Sweep, Flächen |
-| assembly | 20 | Einfügen, Verknüpfungen, Komponenten |
-| drawing | 16 | Ansichten, Annotationen |
-| sketch_adv | 12 | Splines, Offset/Trim, Bemaßungen |
-| sheetmetal | 7 | Blech |
-| selection | 6 | Flächen-/Kantenwahl |
-| view | 2 | Ansichten / Screenshots |
+| core | 45 | Dokumente, Skizzen, Grundfeatures, Abfragen |
+| features_adv | 25 | Gewinde, Helix, Sweep, Flächen, Feature-Operationen |
+| assembly | 20 | Einfügen, Paarungen, Komponentenoperationen |
+| drawing | 16 | Ansichten, Beschriftungen, DrawingSpec |
+| sketch_adv | 12 | Splines, Versatz/Trimmen, Bedingungen, Maße |
+| sheetmetal | 7 | Grundflansch/Hemmkante, Abwicklung |
+| selection | 6 | Flächen-/Kanten-Auswahlhilfen |
+| view | 2 | Ausrichtungen / Screenshots |
 | export | 1 | STEP/STL/PDF/DXF |
 
-Skills: `cadmcp://skill/...`.
-
-## Architektur (Kurz)
-
-- Gemeinsame Protocol-Schicht für Fake und SolidWorks.
-- SolidWorks-COM nur auf einem **STA**-Thread.
-- Ergebnisse als OpResult-Umschlag.
-
-Details: [ARCHITECTURE.md](ARCHITECTURE.md). Umbenennung: [docs/naming.md](docs/naming.md).
-
-## Tests
-
-```bash
-ruff check .
-pytest -q
-python scripts/tool_inventory.py --check
-```
-
-Echte SolidWorks-Tests (schließen Dokumente **ohne Speichern**):
-
-```bash
-set CADMCP_REAL_SW=1
-pytest -q -m sw
-```
+Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
+werden als `cadmcp://skill/...`-Ressourcen ausgeliefert.
 
 ## Bekannte Einschränkungen
 
-| Einschränkung | Hinweis |
+| Einschränkung | Hinweise |
 |---|---|
-| Mold Core/Cavity | Blockiert — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
-| Native InsertThread-API | Helix + Sweep-Cut-Pfad — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
-| Toolbox | Nicht integriert — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
-| Part in-context edit | Nicht unterstützt — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
-| Axiale Einschraubbewegung | Nicht unterstützt |
+| Formkern/Kavität | Blockiert bis zuverlässige Trennflächen / Lizenzkontext — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
+| Native InsertThread-API | Stattdessen Helix + Sweep-Cut — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| SolidWorks Toolbox | Nicht integriert — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
+| Bauteilbearbeitung im Kontext (`EditPart2`) | Nicht unterstützt; Teilbaugruppenbearbeitung ja — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
+| Axiale Schraub-/Vorschub-Paarungsbewegung | Nicht unterstützt |
+
+## Architektur in drei Fakten
+
+- SolidWorks-COM läuft nur auf einem dedizierten **STA-Thread**;
+  Anwendungscode baut nie selbst COM-Verbindungen auf.
+- Ein offline testbares **Fake-Backend** implementiert dasselbe Protokoll —
+  die gesamte Testsuite läuft ohne SolidWorks.
+- Jedes Werkzeug liefert einen typisierten **OpResult**-Umschlag
+  (`ok` / `error.code` / `delta` / `state_version`).
+
+Details: [ARCHITECTURE.md](ARCHITECTURE.md). Namenshistorie: [docs/naming.md](docs/naming.md).
+
+## Entwicklung
+
+```bash
+git clone https://github.com/pakupaku5260/cad-mcp.git
+cd cad-mcp
+pip install -e ".[dev]"
+```
+
+Offline-Tests, das Architektur-Gate, HTTP-Debugging und (destruktive)
+Real-SolidWorks-Testläufe sind in [CONTRIBUTING.md](CONTRIBUTING.md)
+beschrieben; das Systemdesign in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Lizenz
 
 [MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
-Nicht verbunden mit Dassault Systèmes.
+Nicht verbunden mit Dassault Systèmes. SolidWorks® ist eine Marke von
+Dassault Systèmes oder verbundenen Unternehmen.

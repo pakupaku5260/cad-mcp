@@ -2,8 +2,9 @@
 
 **Languages:** [English](README.md) · [简体中文](README.zh-CN.md) · [Deutsch](README.de.md) · [日本語](README.ja.md)
 
-CAD MCP server: one process, a dedicated STA executor, and an offline-testable
-Fake backend — **SolidWorks backend first**.
+Let AI agents (Cursor, Claude, VS Code, OpenCode) drive SolidWorks over MCP:
+describe a part in plain language, watch the model build, then query mass
+properties, assemble, detail, and export — without leaving the chat.
 
 > **Not affiliated with Dassault Systèmes.** SolidWorks® is a trademark of
 > Dassault Systèmes or its subsidiaries. This project is an independent
@@ -13,15 +14,50 @@ Fake backend — **SolidWorks backend first**.
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## What it can do for you
+
+- **Conversational part modeling** — sketch, extrude, fillet, hole wizard,
+  threads, sweeps: ask for "a 100×50×10 plate with four Ø6 through holes" and
+  iterate on dimensions in chat.
+- **Inspect design state** — mass properties, geometry, bounding box, feature
+  tree, face/edge queries.
+- **Assemblies** — insert components, add mates, component operations.
+- **Drawings & sheet metal** — views and annotations, DrawingSpec; base
+  flange / hem / flat pattern.
+- **Export** STEP / STL / PDF / DXF from the conversation.
+- **Stay unblocked** — when a SolidWorks dialog stalls the session, built-in
+  skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
+  and `cadmcp doctor` guide the agent through recovery.
+
+## Quickstart demo
+
+![Quickstart demo: 100×50×10 plate with four Ø6 through holes, built via MCP](docs/assets/quickstart-demo.png)
+
+Prompt: *"Create a 100×50×10 mm plate with four Ø6 through holes at the
+corners."* The agent made these calls (real session):
+
+```text
+new_part            {}
+start_sketch        {"plane": "Front Plane"}
+sketch_rectangle    {"x1": 0, "y1": 0, "x2": 100, "y2": 50}
+end_sketch          {}
+extrude             {"depth": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 10, "y": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 90, "y": 10}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 10, "y": 40}
+hole_wizard         {"face": 4, "diameter": 6, "end": "through_all", "x": 90, "y": 40}
+get_mass_properties {}
+```
+
+`get_mass_properties` reports 48,869 mm³ — 50,000 minus four Ø6 holes, exactly
+as requested.
+
 ## Requirements
 
-| Mode | Needs |
+| Setup | Needs |
 |---|---|
-| **Fake backend (default for CI)** | Python 3.11+, Windows/macOS/Linux |
-| **SolidWorks backend** | Windows + SolidWorks **2025** (ProgID `SldWorks.Application` / `SOLIDWORKS_2025`) + `pywin32` |
-
-The full offline test suite runs against **FakeBackend** — you do **not** need
-SolidWorks installed to develop or verify locally.
+| **SolidWorks backend** (real modeling) | Windows + SolidWorks **2025** running + Python 3.11+ + `pywin32` |
+| **Fake backend** (try MCP wiring without SolidWorks) | Python 3.11+, any OS — connectivity check only, no real modeling |
 
 ## Install
 
@@ -29,31 +65,18 @@ SolidWorks installed to develop or verify locally.
 pip install pycadmcp
 ```
 
-For development (editable + test tools):
-
-```bash
-git clone https://github.com/pakupaku5260/cad-mcp.git
-cd cad-mcp
-python -m venv .venv
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-```
-
 CLI entry point: `cadmcp`.
 
-## Quick start
+## Connect to an AI client
 
-Health check (Fake):
+Both transports are supported: **stdio** (the client spawns the server —
+recommended for editors and agents) and **HTTP** (a long-running local server;
+also handy for debugging and monitoring).
 
-```bash
-cadmcp doctor --backend fake
-```
+### stdio (recommended)
 
-### Use with an MCP client
-
-Editors/agents spawn the server over **stdio** (recommended). After
-`pip install pycadmcp`:
+One command writes the server entry for Cursor, Claude Desktop, VS Code, or
+OpenCode:
 
 ```bash
 cadmcp install --client cursor      # or: claude | vscode | opencode
@@ -73,21 +96,49 @@ That writes a server entry named `solidworks`. Equivalent manual JSON:
 }
 ```
 
-Use `"--backend", "fake"` when SolidWorks is not installed. HTTP transport is
-for advanced local debugging only; MCP clients should use stdio.
+Use `"--backend", "fake"` when SolidWorks is not installed.
 
-Once connected, call tools from the client (for example copy
-`examples/box_recipe.json` into the workspace and run `replay_recipe`).
+### HTTP (Streamable HTTP)
 
-Stdio serve (manual / scripts):
+Start the server once and point URL-based clients at it:
 
 ```bash
-cadmcp serve --transport stdio --backend fake --profile part
+cadmcp serve --transport http --backend solidworks
+# listens on 127.0.0.1:8756 — MCP endpoint http://127.0.0.1:8756/mcp
 ```
 
-For real SolidWorks, use `--backend solidworks` on Windows with SolidWorks running.
+- HTTP is authenticated by default: a token is auto-created at
+  `%APPDATA%\cadmcp\token` (Windows) or `~/.config/cadmcp/token` (POSIX);
+  send it as `Authorization: Bearer <token>`.
+- `--host` / `--port` adjust the bind; `--allow-insecure` disables auth on
+  loopback only (non-loopback binds always require the token).
+- `GET /health` returns executor state for monitoring (no auth required).
 
-## Capability matrix
+Client config for URL-based clients:
+
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "url": "http://127.0.0.1:8756/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
+
+### First result, and when things stall
+
+Restart the client, open a chat, and ask for the plate from the demo above.
+Health check: `cadmcp doctor --backend solidworks` (or `--backend fake`
+without SolidWorks). If the agent reports a stuck executor, ask it to run
+`cadmcp doctor` — the recovery skill (`cadmcp://skill/solidworks-recovery`)
+walks through clearing SolidWorks dialogs.
+
+Optional scripted demo (from a repo clone): copy `examples/box_recipe.json`
+into the workspace and run `replay_recipe`.
+
+## Capability overview
 
 **134 tools** across 9 toolsets (see [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
 
@@ -106,36 +157,6 @@ For real SolidWorks, use `--backend solidworks` on Windows with SolidWorks runni
 Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
 ship as `cadmcp://skill/...` resources.
 
-## Architecture (summary)
-
-- **Protocol layer** shared by Fake and SolidWorks backends.
-- **SolidWorks COM** runs only on a dedicated **STA** thread; business code
-  never creates COM connections itself.
-- Tool results use a typed OpResult envelope (`ok` / `error.code` / `delta` /
-  `state_version`).
-
-Details: [ARCHITECTURE.md](ARCHITECTURE.md). Naming history: [docs/naming.md](docs/naming.md).
-
-## Testing
-
-Offline (default):
-
-```bash
-ruff check .
-pytest -q
-python scripts/tool_inventory.py --check
-```
-
-Real SolidWorks (destructive):
-
-```bash
-# WARNING: closes all open SolidWorks documents WITHOUT saving.
-set CADMCP_REAL_SW=1
-pytest -q -m sw
-```
-
-Only run real-SW tests on disposable sessions.
-
 ## Known limitations
 
 | Limitation | Notes |
@@ -145,6 +166,30 @@ Only run real-SW tests on disposable sessions.
 | SolidWorks Toolbox | Not integrated — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
 | Part in-context edit (`EditPart2`) | Not supported; subassembly edit is — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | Axial screw-in / feed mate motion | Not supported |
+
+## Architecture in three facts
+
+- SolidWorks COM runs only on a dedicated **STA thread**; business code never
+  creates COM connections itself.
+- An offline-testable **Fake backend** implements the same protocol, so the
+  full test suite runs without SolidWorks.
+- Every tool returns a typed **OpResult** envelope (`ok` / `error.code` /
+  `delta` / `state_version`).
+
+Details: [ARCHITECTURE.md](ARCHITECTURE.md). Naming history: [docs/naming.md](docs/naming.md).
+
+## Development
+
+```bash
+git clone https://github.com/pakupaku5260/cad-mcp.git
+cd cad-mcp
+pip install -e ".[dev]"
+```
+
+Offline tests, the architecture gate, HTTP debugging, and (destructive)
+real-SolidWorks test runs are documented in
+[CONTRIBUTING.md](CONTRIBUTING.md); system design in
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## License
 
