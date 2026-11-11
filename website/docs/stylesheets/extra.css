@@ -1,0 +1,324 @@
+/* Landing: design-tool canvas + AI tool-graph atmosphere */
+
+.cmdx-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  /* after another −1/5 */
+  min-height: min(43vh, 22.5rem);
+  margin: 0;
+  padding: 2.35rem 0 1.1rem;
+  overflow: hidden;
+  color: #f8fafc;
+  background:
+    radial-gradient(900px 420px at 12% 18%, rgba(245, 158, 11, 0.16), transparent 55%),
+    radial-gradient(800px 460px at 86% 22%, rgba(56, 189, 248, 0.18), transparent 52%),
+    linear-gradient(155deg, #0c1220 0%, #151c2c 48%, #0f172a 100%);
+}
+
+.cmdx-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 72%);
+}
+
+.cmdx-hero__glow {
+  position: absolute;
+  inset: auto 0% -35% 35%;
+  z-index: 0;
+  height: 70%;
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.14), transparent 68%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* Same column logic as footer: shell row, copy left / art right */
+.cmdx-hero__row {
+  position: relative;
+  z-index: 1;
+  align-items: center;
+  gap: 1.25rem 2rem;
+}
+
+.cmdx-hero__inner {
+  position: relative;
+  flex: 1 1 16rem;
+  min-width: 0;
+  max-width: 34rem;
+  padding: 0;
+  color: #f8fafc;
+}
+
+.cmdx-hero__art {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(22rem, 38%);
+  height: 11.5rem;
+  margin-left: auto;
+  background: url("../assets/design-mesh.svg") center / contain no-repeat;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.cmdx-hero__brand {
+  margin: 0 0 0.55rem !important;
+  color: #ffffff !important;
+  font-size: clamp(2.6rem, 7vw, 4.25rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.02 !important;
+  text-transform: none !important;
+}
+
+.cmdx-hero__tagline {
+  margin: 0 0 0.75rem;
+  max-width: 34rem;
+  color: #fde68a !important;
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+.cmdx-hero__lead {
+  margin: 0 0 1.35rem;
+  max-width: 36rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.cmdx-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Matched CTA pair — slightly smaller for shorter hero */
+.cmdx-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 8.25rem;
+  height: 2.35rem;
+  padding: 0 1.1rem;
+  border-radius: 0.3rem;
+  border: 1.5px solid transparent;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cmdx-cta--primary {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #111827 !important;
+}
+
+.cmdx-cta--primary:hover,
+.cmdx-cta--primary:focus {
+  background: #fbbf24;
+  border-color: #fbbf24;
+  color: #111827 !important;
+}
+
+.cmdx-cta--secondary {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fde68a !important;
+}
+
+.cmdx-cta--secondary:hover,
+.cmdx-cta--secondary:focus {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: #fbbf24;
+  color: #fff7ed !important;
+}
+
+@media screen and (max-width: 52em) {
+  .cmdx-hero__art {
+    display: none;
+  }
+
+  .cmdx-cta {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Body links: unify hover to brand amber */
+.md-typeset a:hover,
+.md-typeset a:focus {
+  color: #fbbf24 !important;
+}
+
+.cmdx-body {
+  /* Horizontal inset comes from .md-content__inner — avoid double padding */
+  max-width: none;
+  margin: 0;
+  /* Bottom spacing comes from last block margins (~same as inner pages ~24px) */
+  padding: 0.25rem 0 0;
+  box-sizing: border-box;
+}
+
+.cmdx-body.md-typeset > h2:first-of-type,
+.cmdx-body > h2:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.cmdx-body .grid.cards > ul > li {
+  border-radius: 0.4rem;
+}
+
+.cmdx-body .grid:last-child,
+.cmdx-body .grid:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+.cmdx-body .grid:last-of-type > ul {
+  margin-bottom: 0 !important;
+}
+
+/* Inner pages: slim custom top flush with viewport */
+.cmdx-top {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  margin: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Shared content column — top bar, article, footer all use this */
+.cmdx-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  box-sizing: border-box !important;
+  width: 100%;
+  max-width: 61rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.cmdx-top__inner {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.cmdx-top__brand {
+  color: #fff !important;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-decoration: none !important;
+}
+
+.cmdx-top__brand:hover,
+.cmdx-top__brand:focus {
+  color: #fbbf24 !important;
+}
+
+.cmdx-top__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+}
+
+.cmdx-top__links a {
+  color: rgba(226, 232, 240, 0.82) !important;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none !important;
+}
+
+.cmdx-top__links a:hover,
+.cmdx-top__links a:focus {
+  color: #fbbf24 !important;
+}
+
+/* Inner article width when sidebars are gone */
+.md-typeset {
+  max-width: 61rem;
+}
+
+.md-content__inner {
+  box-sizing: border-box !important;
+  max-width: 61rem !important;
+  margin-top: 0;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-top: 1.35rem;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.md-typeset > h1:first-child {
+  margin-top: 0;
+}
+
+/* Footer redesign: one color, one column — no Material dual-tone meta bar */
+.cmdx-footer {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: #0f172a !important;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.cmdx-footer__inner {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.cmdx-footer__copy {
+  margin: 0;
+  padding: 0;
+  max-width: 48rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.cmdx-footer__github {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  color: rgba(226, 232, 240, 0.82) !important;
+  text-decoration: none !important;
+}
+
+.cmdx-footer__github svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: currentColor;
+}
+
+.cmdx-footer__github:hover,
+.cmdx-footer__github:focus {
+  color: #fbbf24 !important;
+}

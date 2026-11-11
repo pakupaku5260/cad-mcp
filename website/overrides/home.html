@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+
+{% block tabs %}
+  {{ super() }}
+  <section class="cmdx-hero" aria-label="cadmcp">
+    <div class="cmdx-hero__bg" aria-hidden="true"></div>
+    <div class="cmdx-hero__glow" aria-hidden="true"></div>
+    <div class="cmdx-shell cmdx-hero__row">
+      <div class="cmdx-hero__inner">
+        <h1 class="cmdx-hero__brand">cadmcp</h1>
+        <p class="cmdx-hero__tagline">{{ config.site_description }}</p>
+        <p class="cmdx-hero__lead">
+          Connect your AI client to design tools over MCP — sketching, features, assembly,
+          and iteration through a dedicated executor.
+        </p>
+        <div class="cmdx-hero__actions">
+          <a class="cmdx-cta cmdx-cta--primary" href="{{ base_url }}/getting-started/">Get started</a>
+          <a class="cmdx-cta cmdx-cta--secondary" href="{{ config.repo_url }}">GitHub</a>
+        </div>
+      </div>
+      <div class="cmdx-hero__art" aria-hidden="true"></div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block content %}
+  <div class="cmdx-body md-typeset">
+    {{ page.content }}
+  </div>
+{% endblock %}

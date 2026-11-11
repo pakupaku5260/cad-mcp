@@ -14,8 +14,11 @@ Baugruppen, erstellen Sie Zeichnungen und Exporte — ohne den Chat zu verlassen
 > Community-MCP-Server.
 
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://pakupaku5260.github.io/cad-mcp/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**Docs (English):** [pakupaku5260.github.io/cad-mcp](https://pakupaku5260.github.io/cad-mcp/)
 
 ## Was es für Sie tun kann
 

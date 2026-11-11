@@ -52,3 +52,6 @@ Thumbs.db
 
 # One-shot S9 API snapshot (must not overwrite / commit; compare locally)
 cadmcp/backend/api_baseline_s9.json
+
+# MkDocs build output
+website/site/

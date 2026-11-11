@@ -1,0 +1,79 @@
+# cadmcp public site (MkDocs Material). Source: website/docs — not repo docs/.
+site_name: cadmcp
+site_description: Bridging AI and CAD.
+site_author: cadmcp
+site_url: https://pakupaku5260.github.io/cad-mcp/
+
+repo_url: https://github.com/pakupaku5260/cad-mcp
+repo_name: pakupaku5260/cad-mcp
+edit_uri: ""
+
+docs_dir: website/docs
+site_dir: website/site
+
+theme:
+  name: material
+  custom_dir: website/overrides
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  features:
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/pakupaku5260/cad-mcp
+  generator: false
+
+copyright: >
+  MIT License.
+  Not affiliated with Dassault Systèmes.
+  SolidWorks® is a trademark of Dassault Systèmes or its subsidiaries.
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Tools: tools.md
+  - Architecture: architecture.md
+  - FAQ: faq.md

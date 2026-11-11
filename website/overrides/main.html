@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  {{ super() }}
+  <style>
+    /* Site-wide: no Material app chrome */
+    .md-header,
+    .md-tabs,
+    .md-sidebar,
+    .md-sidebar--primary,
+    .md-sidebar--secondary { display: none !important; }
+    .md-main__inner { margin-top: 0; }
+    .md-content { max-width: none; }
+    .md-container { padding-top: 0 !important; }
+    .md-main { padding-top: 0 !important; margin-top: 0 !important; }
+  </style>
+{% endblock %}
+
+{% block header %}
+  {# Flush to viewport top — not inside md-content padding #}
+  {% if page and page.file and page.file.src_uri != "index.md" %}
+  <nav class="cmdx-top" aria-label="Site">
+    <div class="cmdx-shell cmdx-top__inner">
+      {# Do not pass "*.md" to |url — it stays ".md" and 404s with directory URLs.
+         Join from base_url so hrefs are always ".../page/" style. #}
+      <a class="cmdx-top__brand" href="{{ base_url }}">cadmcp</a>
+      <div class="cmdx-top__links">
+        <a href="{{ base_url }}/getting-started/">Getting started</a>
+        <a href="{{ base_url }}/tools/">Tools</a>
+        <a href="{{ base_url }}/architecture/">Architecture</a>
+        <a href="{{ base_url }}/faq/">FAQ</a>
+        <a href="{{ config.repo_url }}">GitHub</a>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+{% endblock %}
+
+{% block site_nav %}{% endblock %}
