@@ -4,15 +4,9 @@ Thanks for helping improve **cadmcp**.
 
 ## Where to send changes
 
-| Kind of change | Where |
-|---|---|
-| Public bug fixes, docs, examples | Open a **GitHub** pull request against the public repo |
-| Day-to-day product development | Happens on the **internal Gitee** tree (whitelist export → GitHub) |
-
-Do **not** treat the GitHub mirror as the primary development remote. Maintainers
-merge GitHub PRs, then **patch-back** the diff onto Gitee (`gh pr diff` /
-`git format-patch` → apply on Gitee → green tests → next Sync export).
-Commit SHAs are **not** shared between the two remotes.
+Open a pull request against **this repository** for bug fixes, docs, and
+examples. Maintainers may rework commits before they land in a release; do not
+rely on PR commit SHAs staying unchanged on `main`.
 
 ## Development setup
 
