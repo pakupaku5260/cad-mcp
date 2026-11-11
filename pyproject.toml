@@ -7,7 +7,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
-    { name = "shiyang19822000", email = "shiyang19822000@gmail.com" },
+    { name = "pakupaku5260", email = "pakupaku5260@gmail.com" },
 ]
 keywords = ["mcp", "cad", "solidworks", "sta", "com"]
 classifiers = [
@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
 ]
-urls = { Homepage = "https://github.com/shiyang19822000/cad-mcp", Repository = "https://github.com/shiyang19822000/cad-mcp.git", Issues = "https://github.com/shiyang19822000/cad-mcp/issues" }
+urls = { Homepage = "https://github.com/pakupaku5260/cad-mcp", Repository = "https://github.com/pakupaku5260/cad-mcp.git", Issues = "https://github.com/pakupaku5260/cad-mcp/issues" }
 dependencies = [
     "jsonschema>=4.26.0",
     "mcp>=2.3.0",

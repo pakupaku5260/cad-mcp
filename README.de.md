@@ -11,7 +11,7 @@ CAD-MCP-Server: ein Prozess, eigener STA-Executor, offline testbares Fake-Backen
 > Dassault Systèmes oder verbundenen Unternehmen. Dies ist ein unabhängiger
 > Community-MCP-Server.
 
-[![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -34,7 +34,7 @@ pip install pycadmcp
 Entwicklung (editierbar + Testdeps):
 
 ```bash
-git clone https://github.com/shiyang19822000/cad-mcp.git
+git clone https://github.com/pakupaku5260/cad-mcp.git
 cd cad-mcp
 python -m venv .venv
 # Windows:
@@ -50,10 +50,33 @@ CLI: `cadmcp`.
 cadmcp doctor --backend fake
 ```
 
-Beispiel-Rezept: `examples/box_recipe.json` (MCP-Tool `replay_recipe`).
+### MCP-Client anbinden
+
+Empfohlen: **stdio**. Nach `pip install pycadmcp`:
 
 ```bash
-cadmcp install --client opencode --dry-run
+cadmcp install --client cursor      # oder: claude | vscode | opencode
+cadmcp install --client cursor --dry-run
+```
+
+Schreibt einen Server-Eintrag `solidworks`. Manuelles JSON:
+
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "command": "cadmcp",
+      "args": ["serve", "--transport", "stdio", "--backend", "solidworks", "--profile", "part"]
+    }
+  }
+}
+```
+
+Ohne SolidWorks: `"--backend", "fake"`. HTTP nur für lokales Debugging; Clients nutzen stdio.
+
+Danach Tools im Client aufrufen (z. B. `examples/box_recipe.json` + `replay_recipe`).
+
+```bash
 cadmcp serve --transport stdio --backend fake --profile part
 ```
 
@@ -104,14 +127,14 @@ pytest -q -m sw
 
 | Einschränkung | Hinweis |
 |---|---|
-| Mold Core/Cavity | Blockiert — [#1](https://github.com/shiyang19822000/cad-mcp/issues/1) |
-| Native InsertThread-API | Helix + Sweep-Cut-Pfad — [#2](https://github.com/shiyang19822000/cad-mcp/issues/2) |
-| Toolbox | Nicht integriert — [#3](https://github.com/shiyang19822000/cad-mcp/issues/3) |
-| Part in-context edit | Nicht unterstützt — [#4](https://github.com/shiyang19822000/cad-mcp/issues/4) |
+| Mold Core/Cavity | Blockiert — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
+| Native InsertThread-API | Helix + Sweep-Cut-Pfad — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| Toolbox | Nicht integriert — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
+| Part in-context edit | Nicht unterstützt — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | Axiale Einschraubbewegung | Nicht unterstützt |
 
 ## Lizenz
 
-[MIT](LICENSE) — Copyright (c) 2026 shiyang19822000.
+[MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
 Nicht verbunden mit Dassault Systèmes.

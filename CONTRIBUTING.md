@@ -17,7 +17,7 @@ Commit SHAs are **not** shared between the two remotes.
 ## Development setup
 
 ```bash
-git clone https://github.com/shiyang19822000/cad-mcp.git
+git clone https://github.com/pakupaku5260/cad-mcp.git
 cd cad-mcp
 python -m venv .venv
 # Windows: .venv\Scripts\activate

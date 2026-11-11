@@ -14,12 +14,15 @@ once public tags are cut.
   SECURITY, ARCHITECTURE, CHANGELOG, and CI workflow.
 - `examples/box_recipe.json` for `replay_recipe` quick start.
 - Naming gate (`tests/architecture/test_naming.py`) and [docs/naming.md](docs/naming.md).
+- README MCP client usage (install helper + manual stdio JSON).
 
 ### Changed
 
 - Product identity is **cadmcp** (distribution, import, CLI). SolidWorks COM
   backend lives under `cadmcp.backend.solidworks` with `--backend solidworks`.
 - Resource URIs use `cadmcp://`; environment variables use `CADMCP_*`.
+- Public GitHub home is https://github.com/pakupaku5260/cad-mcp
+  (copyright / authors / security contact: `pakupaku5260`).
 
 ### Removed
 

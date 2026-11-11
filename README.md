@@ -9,7 +9,7 @@ Fake backend — **SolidWorks backend first**.
 > Dassault Systèmes or its subsidiaries. This project is an independent
 > community MCP server.
 
-[![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -32,7 +32,7 @@ pip install pycadmcp
 For development (editable + test tools):
 
 ```bash
-git clone https://github.com/shiyang19822000/cad-mcp.git
+git clone https://github.com/pakupaku5260/cad-mcp.git
 cd cad-mcp
 python -m venv .venv
 # Windows PowerShell:
@@ -50,22 +50,36 @@ Health check (Fake):
 cadmcp doctor --backend fake
 ```
 
-Replay a design recipe from the workspace (Fake):
+### Use with an MCP client
+
+Editors/agents spawn the server over **stdio** (recommended). After
+`pip install pycadmcp`:
 
 ```bash
-# Copy examples/box_recipe.json into your workspace, then via MCP tool:
-#   replay_recipe(path="box_recipe.json")
-# Or drive the same tools interactively through an MCP client.
+cadmcp install --client cursor      # or: claude | vscode | opencode
+cadmcp install --client cursor --dry-run
 ```
 
-Install into a local MCP client (writes server key `solidworks`):
+That writes a server entry named `solidworks`. Equivalent manual JSON:
 
-```bash
-cadmcp install --client opencode --dry-run
-cadmcp install --client opencode
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "command": "cadmcp",
+      "args": ["serve", "--transport", "stdio", "--backend", "solidworks", "--profile", "part"]
+    }
+  }
+}
 ```
 
-Stdio serve (typical for editors):
+Use `"--backend", "fake"` when SolidWorks is not installed. HTTP transport is
+for advanced local debugging only; MCP clients should use stdio.
+
+Once connected, call tools from the client (for example copy
+`examples/box_recipe.json` into the workspace and run `replay_recipe`).
+
+Stdio serve (manual / scripts):
 
 ```bash
 cadmcp serve --transport stdio --backend fake --profile part
@@ -126,15 +140,15 @@ Only run real-SW tests on disposable sessions.
 
 | Limitation | Notes |
 |---|---|
-| Mold Core/Cavity | Blocked pending reliable parting-surface / license context — [#1](https://github.com/shiyang19822000/cad-mcp/issues/1) |
-| Native InsertThread API | Helix + sweep cut path is used instead — [#2](https://github.com/shiyang19822000/cad-mcp/issues/2) |
-| SolidWorks Toolbox | Not integrated — [#3](https://github.com/shiyang19822000/cad-mcp/issues/3) |
-| Part in-context edit (`EditPart2`) | Not supported; subassembly edit is — [#4](https://github.com/shiyang19822000/cad-mcp/issues/4) |
+| Mold Core/Cavity | Blocked pending reliable parting-surface / license context — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
+| Native InsertThread API | Helix + sweep cut path is used instead — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| SolidWorks Toolbox | Not integrated — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
+| Part in-context edit (`EditPart2`) | Not supported; subassembly edit is — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | Axial screw-in / feed mate motion | Not supported |
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2026 shiyang19822000.
+[MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
 Not affiliated with Dassault Systèmes. SolidWorks® is a trademark of
 Dassault Systèmes or its subsidiaries.

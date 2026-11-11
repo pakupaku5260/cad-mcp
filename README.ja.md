@@ -10,7 +10,7 @@ CAD MCP サーバー：単一プロセス、専用 STA 実行器、オフライ�
 > **Dassault Systèmes とは無関係です。** SolidWorks® は Dassault Systèmes または
 > その子会社の商標です。本プロジェクトは独立したコミュニティ向け MCP サーバーです。
 
-[![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -32,7 +32,7 @@ pip install pycadmcp
 開発用（editable + テスト依存）：
 
 ```bash
-git clone https://github.com/shiyang19822000/cad-mcp.git
+git clone https://github.com/pakupaku5260/cad-mcp.git
 cd cad-mcp
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -47,10 +47,33 @@ CLI: `cadmcp`。
 cadmcp doctor --backend fake
 ```
 
-レシピ例: `examples/box_recipe.json`（MCP ツール `replay_recipe`）。
+### MCP クライアント連携
+
+推奨は **stdio**。`pip install pycadmcp` のあと:
 
 ```bash
-cadmcp install --client opencode --dry-run
+cadmcp install --client cursor      # または claude | vscode | opencode
+cadmcp install --client cursor --dry-run
+```
+
+サーバキー `solidworks` を書き込みます。手動 JSON 例:
+
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "command": "cadmcp",
+      "args": ["serve", "--transport", "stdio", "--backend", "solidworks", "--profile", "part"]
+    }
+  }
+}
+```
+
+SolidWorks が無い場合は `"fake"`。HTTP はローカル调试向け；クライアントは stdio を使ってください。
+
+接続後、クライアントからツールを呼び出します（例: `examples/box_recipe.json` と `replay_recipe`）。
+
+```bash
 cadmcp serve --transport stdio --backend fake --profile part
 ```
 
@@ -101,14 +124,14 @@ pytest -q -m sw
 
 | 制限 | 内容 |
 |---|---|
-| 金型コア/キャビティ | ブロック中 — [#1](https://github.com/shiyang19822000/cad-mcp/issues/1) |
-| ネイティブ InsertThread | ヘリックス + スイープ切除パスを使用 — [#2](https://github.com/shiyang19822000/cad-mcp/issues/2) |
-| Toolbox | 未統合 — [#3](https://github.com/shiyang19822000/cad-mcp/issues/3) |
-| 部品のインコンテキスト編集 | 非対応 — [#4](https://github.com/shiyang19822000/cad-mcp/issues/4) |
+| 金型コア/キャビティ | ブロック中 — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
+| ネイティブ InsertThread | ヘリックス + スイープ切除パスを使用 — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| Toolbox | 未統合 — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
+| 部品のインコンテキスト編集 | 非対応 — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | 軸方向ねじ込みモーション | 非対応 |
 
 ## ライセンス
 
-[MIT](LICENSE) — Copyright (c) 2026 shiyang19822000。
+[MIT](LICENSE) — Copyright (c) 2026 pakupaku5260。
 
 Dassault Systèmes とは無関係です。

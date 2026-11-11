@@ -8,7 +8,7 @@ CAD MCP 服务器：单进程、专用 STA 执行器、可离线测试的 Fake �
 
 > **与达索系统无附属关系。** SolidWorks® 为达索系统或其子公司商标。本项目为独立社区 MCP 服务器。
 
-[![CI](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shiyang19822000/cad-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -30,7 +30,7 @@ pip install pycadmcp
 开发安装（可编辑 + 测试依赖）：
 
 ```bash
-git clone https://github.com/shiyang19822000/cad-mcp.git
+git clone https://github.com/pakupaku5260/cad-mcp.git
 cd cad-mcp
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -45,10 +45,33 @@ pip install -e ".[dev]"
 cadmcp doctor --backend fake
 ```
 
-配方回放示例见 `examples/box_recipe.json`（MCP 工具 `replay_recipe`）。
+### 接入 MCP 客户端
+
+推荐 **stdio**：客户端拉起进程。安装后：
 
 ```bash
-cadmcp install --client opencode --dry-run
+cadmcp install --client cursor      # 或 claude | vscode | opencode
+cadmcp install --client cursor --dry-run
+```
+
+会写入名为 `solidworks` 的服务项。等价手工配置：
+
+```json
+{
+  "mcpServers": {
+    "solidworks": {
+      "command": "cadmcp",
+      "args": ["serve", "--transport", "stdio", "--backend", "solidworks", "--profile", "part"]
+    }
+  }
+}
+```
+
+无 SolidWorks 时把 `"--backend", "solidworks"` 换成 `"fake"`。HTTP 仅用于本机调试；MCP 客户端请用 stdio。
+
+连上后即可在客户端里调工具（可将 `examples/box_recipe.json` 放入工作区后调用 `replay_recipe`）。
+
+```bash
 cadmcp serve --transport stdio --backend fake --profile part
 ```
 
@@ -99,14 +122,14 @@ pytest -q -m sw
 
 | 限制 | 说明 |
 |---|---|
-| 模具型芯/型腔 | 阻塞（分型面 / 许可上下文）— [#1](https://github.com/shiyang19822000/cad-mcp/issues/1) |
-| 原生 InsertThread | 使用螺旋+扫掠切除路径 — [#2](https://github.com/shiyang19822000/cad-mcp/issues/2) |
-| Toolbox | 未集成 — [#3](https://github.com/shiyang19822000/cad-mcp/issues/3) |
-| 零件在位编辑 (`EditPart2`) | 不支持；子装配在位编辑可用 — [#4](https://github.com/shiyang19822000/cad-mcp/issues/4) |
+| 模具型芯/型腔 | 阻塞（分型面 / 许可上下文）— [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
+| 原生 InsertThread | 使用螺旋+扫掠切除路径 — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| Toolbox | 未集成 — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
+| 零件在位编辑 (`EditPart2`) | 不支持；子装配在位编辑可用 — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | 轴向拧入运动 | 不支持 |
 
 ## 许可证
 
-[MIT](LICENSE) — Copyright (c) 2026 shiyang19822000。
+[MIT](LICENSE) — Copyright (c) 2026 pakupaku5260。
 
 与达索系统无附属关系。SolidWorks® 为达索系统或其子公司商标。

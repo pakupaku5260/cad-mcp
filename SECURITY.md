@@ -7,7 +7,7 @@ public repository. There is no long-term support branch yet.
 
 ## Reporting a vulnerability
 
-Please email **shiyang19822000@gmail.com** with:
+Please email **pakupaku5260@gmail.com** with:
 
 - a description of the issue
 - steps to reproduce
