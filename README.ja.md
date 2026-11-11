@@ -13,11 +13,11 @@ SolidWorks を操作させましょう：自然言語で部品を記述し、モ
 > その子会社の商標です。本プロジェクトは独立したコミュニティ向け MCP サーバーです。
 
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-docs.npanic.com-blue)](https://docs.npanic.com/)
+[![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Docs（英語）:** [docs.npanic.com](https://docs.npanic.com/)
+**Docs（英語）:** [cad.npanic.com](https://cad.npanic.com/)
 
 ## できること
 

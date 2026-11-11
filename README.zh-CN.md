@@ -11,11 +11,11 @@
 > **与达索系统无附属关系。** SolidWorks® 为达索系统或其子公司商标。本项目为独立社区 MCP 服务器。
 
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-docs.npanic.com-blue)](https://docs.npanic.com/)
+[![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**文档站点（英文）：** [docs.npanic.com](https://docs.npanic.com/)
+**文档站点（英文）：** [cad.npanic.com](https://cad.npanic.com/)
 
 ## 它能帮你做什么
 
