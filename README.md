@@ -6,10 +6,6 @@ Let AI agents (Cursor, Claude, VS Code, OpenCode) drive SolidWorks over MCP:
 describe a part in plain language, watch the model build, then query mass
 properties, assemble, detail, and export — without leaving the chat.
 
-> **Not affiliated with Dassault Systèmes.** SolidWorks® is a trademark of
-> Dassault Systèmes or its subsidiaries. This project is an independent
-> community MCP server.
-
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
@@ -198,5 +194,5 @@ real-SolidWorks test runs are documented in
 
 [MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
-Not affiliated with Dassault Systèmes. SolidWorks® is a trademark of
-Dassault Systèmes or its subsidiaries.
+Independent project, not affiliated with Dassault Systèmes · SOLIDWORKS® is a
+registered trademark of Dassault Systèmes SolidWorks Corporation.

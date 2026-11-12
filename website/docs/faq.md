@@ -1,3 +1,7 @@
+---
+description: Short answers about cadmcp — what it is, whether you need SolidWorks, which clients work, and where the source lives.
+---
+
 # FAQ
 
 ## What is cadmcp?
@@ -16,29 +20,22 @@ OS. Real geometry in SolidWorks requires Windows, SolidWorks 2025 running, and
 ## Which AI clients work?
 
 Any MCP host that can spawn a stdio server or connect over Streamable HTTP —
-including Cursor, Claude Desktop, VS Code, and OpenCode. Use
-`cadmcp install --client …` for common editors.
+including Cursor, Claude Desktop, VS Code, and OpenCode. `cadmcp install --client`
+writes the entry for those four; see [Getting started](getting-started.md).
 
 ## What are the known limits?
 
-Current product limits include (details tracked as GitHub issues):
+Mold core/cavity, native threads, Toolbox, part in-context edit, and screw-in
+motion each have a documented workaround or a reason they are unsupported. The
+full list lives on [Limitations](limitations.md).
 
-- Mold core/cavity workflows blocked pending license / parting context
-- Native InsertThread path uses helix + sweep-cut
-- Toolbox not integrated
-- Part in-context edit (`EditPart2`) not supported; subassembly in-context edit is
-- Axial screw-in motion not supported
+## Something is stuck. Where do I look?
 
-See the project README **Known limitations** table for links.
-
-## Is this affiliated with Dassault Systèmes?
-
-**No.** This is an independent community project under the MIT License.
-SolidWorks® is a trademark of Dassault Systèmes or its subsidiaries. cadmcp is
-not affiliated with, endorsed by, or sponsored by Dassault Systèmes.
+[Getting started](getting-started.md) covers setup; [Troubleshooting](troubleshooting.md)
+covers a stuck executor, COM attach failures, ports, and tokens.
 
 ## Where is the source / license?
 
 - Repository: [pakupaku5260/cad-mcp](https://github.com/pakupaku5260/cad-mcp)
 - Package: [pycadmcp on PyPI](https://pypi.org/project/pycadmcp/)
-- License: MIT
+- License and trademark notes: [Legal](legal.md)

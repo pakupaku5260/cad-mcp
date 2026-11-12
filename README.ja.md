@@ -9,9 +9,6 @@ SolidWorks を操作させましょう：自然言語で部品を記述し、モ
 様子を見守り、質量プロパティの照会、アセンブリ、図面作成、エクスポートまで
 — チャットから出ることなく完結します。
 
-> **Dassault Systèmes とは無関係です。** SolidWorks® は Dassault Systèmes または
-> その子会社の商標です。本プロジェクトは独立したコミュニティ向け MCP サーバーです。
-
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
@@ -198,5 +195,5 @@ pip install -e ".[dev]"
 
 [MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
-Dassault Systèmes とは無関係です。SolidWorks® は Dassault Systèmes または
-その子会社の商標です。
+独立したプロジェクトで、Dassault Systèmes とは無関係です · SOLIDWORKS® は
+Dassault Systèmes SolidWorks Corporation の登録商標です。

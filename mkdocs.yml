@@ -10,10 +10,13 @@ edit_uri: ""
 
 docs_dir: website/docs
 site_dir: website/site
+exclude_docs: |
+  _generated/*
 
 theme:
   name: material
   custom_dir: website/overrides
+  favicon: assets/images/favicon.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -29,12 +32,14 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
-  font:
-    text: IBM Plex Sans
-    code: IBM Plex Mono
+  # Fonts are self-hosted: see stylesheets/fonts.css.
+  font: false
   features:
     - navigation.sections
+    - navigation.top
+    - toc.follow
     - search.suggest
+    - search.highlight
     - content.code.copy
   icon:
     repo: fontawesome/brands/github
@@ -50,6 +55,9 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  - pymdownx.snippets:
+      base_path: ["website/docs"]
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
@@ -58,6 +66,7 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 extra_css:
+  - stylesheets/fonts.css
   - stylesheets/extra.css
 
 extra:
@@ -67,13 +76,18 @@ extra:
   generator: false
 
 copyright: >
-  MIT License.
-  Not affiliated with Dassault Systèmes.
-  SolidWorks® is a trademark of Dassault Systèmes or its subsidiaries.
+  MIT License · Independent project, not affiliated with Dassault Systèmes ·
+  SOLIDWORKS® is a registered trademark of Dassault Systèmes SolidWorks Corporation.
 
 nav:
-  - Home: index.md
-  - Getting started: getting-started.md
-  - Tools: tools.md
-  - Architecture: architecture.md
-  - FAQ: faq.md
+  - Start:
+      - Home: index.md
+      - Getting started: getting-started.md
+  - Reference:
+      - Tools: tools.md
+      - Architecture: architecture.md
+  - Help:
+      - FAQ: faq.md
+      - Troubleshooting: troubleshooting.md
+      - Limitations: limitations.md
+      - Legal: legal.md

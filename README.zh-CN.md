@@ -8,8 +8,6 @@
 用自然语言描述零件，看着模型在 SolidWorks 里成形，然后查询质量属性、
 装配、出图、导出——全程不用离开对话。
 
-> **与达索系统无附属关系。** SolidWorks® 为达索系统或其子公司商标。本项目为独立社区 MCP 服务器。
-
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
@@ -187,4 +185,4 @@ pip install -e ".[dev]"
 
 [MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
-与达索系统无附属关系。SolidWorks® 为达索系统或其子公司商标。
+独立项目，与达索系统无附属关系 · SOLIDWORKS® 是 Dassault Systèmes SolidWorks Corporation 的注册商标。

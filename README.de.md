@@ -9,10 +9,6 @@ steuern: Beschreiben Sie ein Bauteil in normaler Sprache, verfolgen Sie, wie
 das Modell entsteht, und fragen Sie dann Masseneigenschaften ab, bauen Sie
 Baugruppen, erstellen Sie Zeichnungen und Exporte — ohne den Chat zu verlassen.
 
-> **Nicht verbunden mit Dassault Systèmes.** SolidWorks® ist eine Marke von
-> Dassault Systèmes oder verbundenen Unternehmen. Dies ist ein unabhängiger
-> Community-MCP-Server.
-
 [![CI](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/pakupaku5260/cad-mcp/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-cad.npanic.com-blue)](https://cad.npanic.com/)
 [![PyPI](https://img.shields.io/pypi/v/pycadmcp.svg)](https://pypi.org/project/pycadmcp/)
@@ -203,5 +199,5 @@ beschrieben; das Systemdesign in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 [MIT](LICENSE) — Copyright (c) 2026 pakupaku5260.
 
-Nicht verbunden mit Dassault Systèmes. SolidWorks® ist eine Marke von
-Dassault Systèmes oder verbundenen Unternehmen.
+Unabhängiges Projekt, nicht verbunden mit Dassault Systèmes · SOLIDWORKS® ist eine
+eingetragene Marke der Dassault Systèmes SolidWorks Corporation.

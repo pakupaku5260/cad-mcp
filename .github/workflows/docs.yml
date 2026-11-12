@@ -35,6 +35,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[docs]"
 
+      - name: Check generated docs
+        run: python scripts/tool_inventory.py --check
+
       - name: Build site
         run: mkdocs build --strict
 
