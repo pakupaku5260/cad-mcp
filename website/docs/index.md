@@ -80,7 +80,7 @@ For real geometry, run SolidWorks 2025 on Windows and switch the backend to
 
 ## Why cadmcp
 
-<div class="grid cards" markdown>
+<div class="grid cards cmdx-cards-2" markdown>
 
 -   :material-creation: **AI-assisted design**
 

@@ -38,29 +38,7 @@
   pointer-events: none;
 }
 
-/* Faded construction mesh behind the left copy */
-.cmdx-hero__mesh {
-  position: absolute;
-  left: max(0.5rem, calc(50% - 30.5rem));
-  top: 48%;
-  z-index: 0;
-  width: min(34rem, 58%);
-  height: 15.5rem;
-  transform: translateY(-50%);
-  background: url("../assets/design-mesh.svg") left center / contain no-repeat;
-  opacity: 0.12;
-  -webkit-mask-image:
-    linear-gradient(90deg, #000 0%, #000 55%, transparent 92%),
-    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
-  mask-image:
-    linear-gradient(90deg, #000 0%, #000 55%, transparent 92%),
-    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  pointer-events: none;
-}
-
-/* Same column logic as footer: shell row for copy */
+/* Same column logic as footer: shell row, copy left / art right */
 .cmdx-hero__row {
   position: relative;
   z-index: 1;
@@ -77,26 +55,43 @@
   color: #f8fafc;
 }
 
-/* Cover photo: larger, right-biased, soft dissolve into navy */
-.cmdx-hero__art {
+/* Mesh sticks to the copy column (same zoom/scale as text) */
+.cmdx-hero__inner::before {
+  content: "";
   position: absolute;
-  right: -4%;
-  top: 50%;
-  z-index: 0;
-  width: min(40rem, 62%);
-  height: 17rem;
-  transform: translateY(-50%);
+  inset: -1.25rem -1.5rem -1.5rem -0.75rem;
+  z-index: -1;
+  background: url("../assets/design-mesh.svg") left center / contain no-repeat;
+  opacity: 0.12;
+  -webkit-mask-image:
+    linear-gradient(90deg, #000 0%, #000 58%, transparent 95%),
+    linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image:
+    linear-gradient(90deg, #000 0%, #000 58%, transparent 95%),
+    linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+/* Cover in the shell flex slot — same layout lock as mesh, prior larger size kept */
+.cmdx-hero__art {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(30rem, 46%);
+  height: 14rem;
+  margin-left: auto;
   background:
-    linear-gradient(90deg, rgba(12, 18, 32, 0.95) 0%, rgba(12, 18, 32, 0.55) 24%, rgba(12, 18, 32, 0.18) 48%, transparent 70%),
-    linear-gradient(180deg, rgba(12, 18, 32, 0.7) 0%, transparent 26%, transparent 74%, rgba(15, 23, 42, 0.78) 100%),
-    url("../assets/hero-cover.jpg") 62% center / cover no-repeat;
+    linear-gradient(90deg, rgba(12, 18, 32, 0.88) 0%, rgba(12, 18, 32, 0.35) 32%, transparent 62%),
+    linear-gradient(180deg, rgba(12, 18, 32, 0.55) 0%, transparent 22%, transparent 78%, rgba(15, 23, 42, 0.65) 100%),
+    url("../assets/hero-cover.jpg") center / cover no-repeat;
   opacity: 0.28;
   -webkit-mask-image:
-    linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%, #000 82%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
   mask-image:
-    linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%, #000 82%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
   pointer-events: none;
@@ -187,8 +182,7 @@
     display: none;
   }
 
-  .cmdx-hero__mesh {
-    width: min(28rem, 88%);
+  .cmdx-hero__inner::before {
     opacity: 0.1;
   }
 
@@ -245,6 +239,17 @@
 
 .cmdx-body .grid.cards > ul > li {
   border-radius: 0.4rem;
+}
+
+/* Why cadmcp: 2×2 instead of Material's auto-fit 3+1 */
+.cmdx-body .grid.cards.cmdx-cards-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media screen and (max-width: 40em) {
+  .cmdx-body .grid.cards.cmdx-cards-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .cmdx-body .grid:last-child,
