@@ -147,5 +147,4 @@ also delete the token file if you no longer need it.
 ## Next steps
 
 - [Tools](tools.md) — profiles, toolset matrix, full inventory
-- [Architecture](architecture.md) — STA, protocol, backends
 - [Troubleshooting](troubleshooting.md) — when doctor says no

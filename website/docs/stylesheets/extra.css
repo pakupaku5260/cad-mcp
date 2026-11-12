@@ -325,54 +325,12 @@
   color: rgba(226, 232, 240, 0.78);
 }
 
-.cmdx-pager {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem 1.25rem;
-  width: 100%;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-.cmdx-pager__link {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  max-width: 48%;
-  color: rgba(226, 232, 240, 0.86) !important;
-  text-decoration: none !important;
-}
-
-.cmdx-pager__link--next {
-  margin-left: auto;
-  text-align: right;
-}
-
-.cmdx-pager__label {
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(148, 163, 184, 0.82);
-}
-
-.cmdx-pager__title {
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.cmdx-pager__link:hover .cmdx-pager__title,
-.cmdx-pager__link:focus .cmdx-pager__title {
-  color: #fbbf24;
-}
-
 .cmdx-footer__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
-  padding-top: 1rem;
 }
 
 .cmdx-footer__inner {
