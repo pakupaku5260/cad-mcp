@@ -110,33 +110,3 @@ For real geometry, run SolidWorks 2025 on Windows and switch the backend to
     as `cadmcp://skill/...`.
 
 </div>
-
-## Guides
-
-<div class="grid cards" markdown>
-
--   :material-rocket-launch: [Getting started](getting-started.md)
-
-    ---
-
-    Install, doctor, serve, and wire an MCP client.
-
--   :material-toolbox: [Tools](tools.md)
-
-    ---
-
-    Profiles, toolset matrix, and the full tool inventory.
-
--   :material-sitemap: [Architecture](architecture.md)
-
-    ---
-
-    Protocol, STA, Fake vs live CAD — product constraints only.
-
--   :material-lifebuoy: [Troubleshooting](troubleshooting.md)
-
-    ---
-
-    Stuck executor, COM attach failures, ports and tokens.
-
-</div>
