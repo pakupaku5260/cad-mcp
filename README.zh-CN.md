@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/cadmcp-logo.png" alt="cadmcp — Bridging AI and CAD." width="560">
+</p>
+
 # cadmcp
 
 **语言：** [English](README.md) · [简体中文](README.zh-CN.md) · [Deutsch](README.de.md) · [日本語](README.ja.md)

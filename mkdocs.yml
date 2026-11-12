@@ -16,6 +16,7 @@ exclude_docs: |
 theme:
   name: material
   custom_dir: website/overrides
+  logo: assets/images/logo.png
   favicon: assets/images/favicon.png
   palette:
     - media: "(prefers-color-scheme: light)"

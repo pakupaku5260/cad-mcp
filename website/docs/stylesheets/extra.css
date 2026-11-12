@@ -267,6 +267,13 @@
   box-shadow: none;
 }
 
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.6rem;
+  width: auto;
+  border-radius: 0.28rem;
+}
+
 .md-header--shadow {
   box-shadow: none;
 }
