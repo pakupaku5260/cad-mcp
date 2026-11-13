@@ -1,0 +1,34 @@
+{
+  "name": "skill_case_3_surface_thicken",
+  "steps": [
+    {"tool": "list_toolboxes", "args": {}, "assert": {"ok": true}},
+    {
+      "tool": "open_toolbox",
+      "args": {"toolsets": ["features_adv"]},
+      "assert": {"ok": true}
+    },
+    {"tool": "new_part", "args": {}, "assert": {"ok": true}},
+    {"tool": "start_sketch", "args": {"plane": "Front Plane"}, "assert": {"ok": true}},
+    {
+      "tool": "sketch_rectangle",
+      "args": {"x1": 0, "y1": 0, "x2": 60, "y2": 40},
+      "assert": {"ok": true}
+    },
+    {"tool": "end_sketch", "args": {}, "assert": {"ok": true}},
+    {
+      "tool": "extrude_surface",
+      "args": {"depth": 15},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "thicken",
+      "args": {"thickness": 2},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "get_mass_properties",
+      "args": {},
+      "assert": {"ok": true, "result_keys": ["volume"]}
+    }
+  ]
+}

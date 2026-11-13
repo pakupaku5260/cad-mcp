@@ -9,15 +9,33 @@ import pytest
 
 from cadmcp.backend.fake.backend import FakeBackend
 from cadmcp.kernel import Kernel
-from cadmcp.recipe import compare_replays
+from cadmcp.recipe import compare_replays, load_recipe, replay_recipe
+from cadmcp.toolbox import ToolVisibility
 from cadmcp.toolsets.core import core_registry
 
 BRACKET = Path(__file__).resolve().parent / "data" / "recipes" / "bracket.json"
 PARAM_SKETCH = Path(__file__).resolve().parent / "data" / "recipes" / "param_sketch_circle.json"
+EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
+SKILL_CASES = (
+    EXAMPLES / "skill_case_1_plate.json",
+    EXAMPLES / "skill_case_2_fillet_pattern.json",
+    EXAMPLES / "skill_case_3_surface_thicken.json",
+)
 
 
 def _k(tmp_path: Path) -> Kernel:
     return Kernel(core_registry(), FakeBackend(), workspace=tmp_path, verify_mutations=True)
+
+
+def _k_with_toolbox(tmp_path: Path) -> Kernel:
+    # part profile initially; recipes may open features_adv via open_toolbox
+    return Kernel(
+        core_registry(),
+        FakeBackend(),
+        workspace=tmp_path,
+        verify_mutations=True,
+        visibility=ToolVisibility(initially_open=("core", "sketch_adv", "features_adv")),
+    )
 
 
 def test_replay_bracket_recipe_twice(tmp_path: Path):
@@ -64,6 +82,16 @@ def test_replay_unknown_tool(tmp_path: Path):
     assert r.result["ok"] is False
     assert r.result["failed_step"] == 0
     assert r.result["steps"][0]["error_code"] == "INVALID_ARGUMENT"
+
+
+@pytest.mark.parametrize("recipe_path", SKILL_CASES, ids=lambda p: p.stem)
+def test_replay_skill_case_examples(tmp_path: Path, recipe_path: Path):
+    assert recipe_path.is_file(), recipe_path
+    dest = tmp_path / recipe_path.name
+    dest.write_text(recipe_path.read_text(encoding="utf-8"), encoding="utf-8")
+    report = replay_recipe(_k_with_toolbox(tmp_path), load_recipe(dest))
+    assert report["ok"] is True, report
+    assert report["failed_step"] is None, report
 
 
 def test_replay_assert_failure_locates_step(tmp_path: Path):

@@ -1,0 +1,53 @@
+{
+  "name": "skill_case_2_fillet_pattern",
+  "steps": [
+    {"tool": "new_part", "args": {}, "assert": {"ok": true}},
+    {"tool": "start_sketch", "args": {"plane": "Front Plane"}, "assert": {"ok": true}},
+    {
+      "tool": "sketch_line",
+      "args": {"x1": 0, "y1": 0, "x2": 40, "y2": 0},
+      "assert": {"ok": true}
+    },
+    {
+      "tool": "sketch_line",
+      "args": {"x1": 40, "y1": 0, "x2": 40, "y2": 20},
+      "assert": {"ok": true}
+    },
+    {
+      "tool": "sketch_line",
+      "args": {"x1": 40, "y1": 20, "x2": 0, "y2": 20},
+      "assert": {"ok": true}
+    },
+    {
+      "tool": "sketch_line",
+      "args": {"x1": 0, "y1": 20, "x2": 0, "y2": 0},
+      "assert": {"ok": true}
+    },
+    {
+      "tool": "add_sketch_relation",
+      "args": {"relation": "horizontal", "entity1": 0},
+      "assert": {"ok": true}
+    },
+    {"tool": "end_sketch", "args": {}, "assert": {"ok": true}},
+    {
+      "tool": "extrude",
+      "args": {"depth": 10},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "fillet",
+      "args": {"radius": 2},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "linear_pattern",
+      "args": {"feature": "Boss-Extrude1", "count": 3, "dx": 50},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "get_geometry",
+      "args": {},
+      "assert": {"ok": true, "result_keys": ["volume"]}
+    }
+  ]
+}

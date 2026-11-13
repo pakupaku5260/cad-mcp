@@ -10,7 +10,7 @@ Rules (v1.2.2 §12.3.5):
     - Interface: removed members, kind changes, signature/default/annotation changes, broken compat imports.
       Must be 0 or exit 1.
     - Structural: member source class changes, new public members in S9.
-      Allowed but require approval in `structural_changes.md`.
+      Allowed but require approval in the internal structural-changes log.
 
 Read-only on two baseline files; does not import backend or modify baselines.
 
@@ -258,7 +258,7 @@ def render_markdown(result: dict) -> str:
             )
         lines += [
             "",
-            "> Confirm structural changes per class in `structural_changes.md`; "
+            "> Confirm structural changes per class in the internal structural-changes log; "
             "interface diffs must be fixed, not waived by approval.",
         ]
     lines.append("")

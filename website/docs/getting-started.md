@@ -40,7 +40,7 @@ Trimmed output from a Fake run:
 ```json
 {
   "ok": true,
-  "cadmcp_version": "0.1.0",
+  "cadmcp_version": "0.2.0",
   "platform": "Windows-AMD64",
   "backend": { "kind": "fake", "available": true, "revision": "33.0", "error": null },
   "executor": { "state": "IDLE", "thread_alive": true, "backend_ready": true, "blocker": null },

@@ -4,4 +4,4 @@ import cadmcp
 
 
 def test_package_importable():
-    assert cadmcp.__version__ == "0.1.0"
+    assert cadmcp.__version__ == "0.2.0"

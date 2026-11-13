@@ -5,6 +5,7 @@ from pathlib import Path
 
 from cadmcp.resources import known_uris
 from cadmcp.skills import (
+    _MAX_BYTES,
     SKILL_IDS,
     load_skill_text,
     mentioned_tool_names,
@@ -19,7 +20,7 @@ def test_skills_exist_under_budget_and_registered():
     assert len(SKILL_IDS) == 3
     for skill_id in SKILL_IDS:
         text = load_skill_text(skill_id)
-        assert len(text.encode("utf-8")) <= 3 * 1024
+        assert len(text.encode("utf-8")) <= _MAX_BYTES
         assert skill_uri(skill_id) in known_uris()
         assert "When to stop" in text or "何时停" in text
 

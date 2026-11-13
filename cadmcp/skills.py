@@ -13,7 +13,7 @@ SKILL_IDS: tuple[str, ...] = (
     "solidworks-recovery",
 )
 
-_MAX_BYTES = 3 * 1024
+_MAX_BYTES = 4096
 _SKILLS_DIR = Path(__file__).resolve().parent / "resources" / "content" / "skills"
 _FRONT_MATTER_RE = re.compile(r"^---\r?\n.*?\r?\n---\r?\n", re.DOTALL)
 _TOOL_NAME_RE = re.compile(r"`([a-z][a-z0-9_]*)`")

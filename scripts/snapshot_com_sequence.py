@@ -3,14 +3,14 @@ S10: compare the split SolidWorks backend against the frozen S0 COM call-sequenc
 
 Usage:
     python scripts/snapshot_com_sequence.py --compare
-    python scripts/snapshot_com_sequence.py --compare --report cadmcp/backend/com_sequence_baseline_diff.md
+    python scripts/snapshot_com_sequence.py --compare --report <internal-report-path>
 
 --compare (S10):
     Rescan the same public methods under `cadmcp/backend/solidworks/`.
     The S0 baseline (`com_sequence_baseline.yaml`) was captured from the pre-split
     monolithic backend and is frozen; this script never regenerates it.
     Compare baseline entry-by-entry on object + method + argument expression (v1.2.2 section 12.5).
-    Diffs must land in `com_sequence_baseline_diff.md` with human approval;
+    Diffs must land in the internal COM-sequence diff report with human approval;
     approvals live in `com_sequence_approvals.yaml` (fingerprinted; re-alerts if sequences change).
 
 Limitations (S0 v1, still used at compare time):

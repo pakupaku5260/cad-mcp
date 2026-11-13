@@ -1,0 +1,23 @@
+{
+  "name": "skill_case_1_plate",
+  "steps": [
+    {"tool": "new_part", "args": {}, "assert": {"ok": true}},
+    {"tool": "start_sketch", "args": {"plane": "Front Plane"}, "assert": {"ok": true}},
+    {
+      "tool": "sketch_rectangle",
+      "args": {"x1": 0, "y1": 0, "x2": 80, "y2": 50},
+      "assert": {"ok": true}
+    },
+    {"tool": "end_sketch", "args": {}, "assert": {"ok": true}},
+    {
+      "tool": "extrude",
+      "args": {"depth": 5},
+      "assert": {"ok": true, "result_keys": ["name"]}
+    },
+    {
+      "tool": "get_mass_properties",
+      "args": {},
+      "assert": {"ok": true, "result_keys": ["volume"]}
+    }
+  ]
+}

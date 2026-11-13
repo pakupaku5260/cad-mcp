@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from cadmcp import __version__
+
 CLIENTS = ("claude", "vscode", "opencode", "cursor")
 
 _SERVER_NAME = "solidworks"
@@ -110,7 +112,7 @@ def write_mcpb_manifest(repo_root: Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
     manifest = {
         "name": "cadmcp",
-        "version": "0.1.0",
+        "version": __version__,
         "description": "CAD MCP server (SolidWorks backend via dedicated STA COM executor)",
         "command": _COMMAND,
         "args": list(_ARGS),

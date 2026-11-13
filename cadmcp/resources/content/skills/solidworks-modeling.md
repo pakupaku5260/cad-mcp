@@ -54,3 +54,23 @@ Retry a mutation only when `error.side_effect == "none"`. If `applied`, re-read 
 - Do not write unimplemented tool names into plans; check `help` topic `limits`.
 - Do not reuse face/edge indexes after mutations without re-fetching coords.
 - Do not expect sketch sizes in `list_dimensions` without `add_sketch_dimension`.
+
+## Cases
+
+### 1. Simple plate
+Pre: `new_part` if no part.
+Seq: `start_sketch` → `sketch_rectangle` → `end_sketch` → `extrude` → `get_mass_properties`.
+Stop: volume matches; `examples/skill_case_1_plate.json`.
+Recover: `NO_ACTIVE_SKETCH` → start; `FEATURE_CREATE_FAILED` → close profile.
+
+### 2. Constraint + fillet pattern
+Pre: open `sketch_adv` if `add_sketch_relation` missing.
+Seq: sketch → `add_sketch_relation` → `extrude` → `fillet` → `linear_pattern` → `get_geometry`.
+Stop: counts stable; `examples/skill_case_2_fillet_pattern.json`.
+Recover: `FEATURE_NOT_FOUND` → `list_features`; stale edges → re-`get_edges`.
+
+### 3. Surface + thicken
+Pre: `list_toolboxes` → `open_toolbox` (`features_adv`).
+Seq: closed sketch → `extrude_surface` → `thicken` → `get_mass_properties`.
+Stop: volume > 0; `examples/skill_case_3_surface_thicken.json`.
+Recover: open sheet → thicken fails; use closed profile.
