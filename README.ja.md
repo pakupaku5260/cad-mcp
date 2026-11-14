@@ -160,7 +160,8 @@ URL ベースのクライアント用の設定：
 | export | 1 | STEP/STL/PDF/DXF |
 
 スキル（`solidworks-modeling`、`solidworks-assembly`、`solidworks-recovery`）は
-`cadmcp://skill/...` リソースとして同梱されます。
+`cadmcp://skill/...` リソースとして同梱されます。`solidworks-modeling` は
+[Agensi](https://www.agensi.io/skills/solidworks-modeling) でも単独公開されています。
 
 ## 既知の制限
 

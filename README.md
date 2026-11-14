@@ -158,7 +158,8 @@ into the workspace and run `replay_recipe`.
 | export | 1 | STEP/STL/PDF/DXF |
 
 Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
-ship as `cadmcp://skill/...` resources.
+ship as `cadmcp://skill/...` resources. `solidworks-modeling` is also published
+standalone on [Agensi](https://www.agensi.io/skills/solidworks-modeling).
 
 ## Known limitations
 

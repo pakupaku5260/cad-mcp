@@ -153,7 +153,8 @@ cadmcp serve --transport http --backend solidworks
 | export | 1 | STEP/STL/PDF/DXF |
 
 技能（`solidworks-modeling`、`solidworks-assembly`、`solidworks-recovery`）
-以 `cadmcp://skill/...` 资源形式分发。
+以 `cadmcp://skill/...` 资源形式分发。其中 `solidworks-modeling` 也在
+[Agensi](https://www.agensi.io/skills/solidworks-modeling) 单独发布。
 
 ## 已知限制
 

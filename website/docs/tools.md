@@ -50,6 +50,9 @@ first, and which operations to avoid:
 - `cadmcp://skill/solidworks-assembly`
 - `cadmcp://skill/solidworks-recovery`
 
+`solidworks-modeling` is also published standalone on
+[Agensi](https://www.agensi.io/skills/solidworks-modeling).
+
 ## Full inventory
 
 The per-tool table (names, parameters, mutating flags) is generated from the

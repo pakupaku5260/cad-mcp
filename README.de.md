@@ -164,7 +164,9 @@ in den Arbeitsbereich kopieren und `replay_recipe` ausführen.
 | export | 1 | STEP/STL/PDF/DXF |
 
 Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
-werden als `cadmcp://skill/...`-Ressourcen ausgeliefert.
+werden als `cadmcp://skill/...`-Ressourcen ausgeliefert. `solidworks-modeling`
+ist zusätzlich eigenständig auf
+[Agensi](https://www.agensi.io/skills/solidworks-modeling) veröffentlicht.
 
 ## Bekannte Einschränkungen
 
