@@ -211,7 +211,10 @@ def main(argv: list[str]) -> int:
     failed = False
     for path, text in targets:
         failed = _check(path, text) or failed
-    failed = _check_roadmap_card(ROADMAP, card) or failed
+    # The roadmap is an internal-only doc, excluded from the public mirror by
+    # scripts/export_public.py. Public CI has no roadmap, so only check it when present.
+    if ROADMAP.exists():
+        failed = _check_roadmap_card(ROADMAP, card) or failed
     if failed:
         print("Run `python scripts/tool_inventory.py` to regenerate", file=sys.stderr)
         return 1
