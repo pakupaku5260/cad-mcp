@@ -28,11 +28,11 @@
     ]
   },
   "summary": {
-    "n_sequences": 121,
-    "n_steps": 1693,
-    "success_rate": 0.8724158298877732,
+    "n_sequences": 127,
+    "n_steps": 1812,
+    "success_rate": 0.8730684326710817,
     "precision": 1.0,
-    "n_numeric_fields": 1133
+    "n_numeric_fields": 1194
   },
   "sequences": {
     "assembly_basic": {
@@ -1227,10 +1227,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -2334,6 +2336,517 @@
         ]
       }
     },
+    "assembly_flexible": {
+      "n_steps": 24,
+      "n_ok": 21,
+      "success_rate": 0.875,
+      "n_numeric_fields": 12,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ],
+                "mass_kg": 0.004000000000000001,
+                "surface_area_mm2": 1600.0000000000002,
+                "volume_mm3": 4000.0000000000005
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  30.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 14,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 15,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  80.0,
+                  0.0,
+                  0.0,
+                  100.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 15,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "set_flexible",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "flexible"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 16,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 16,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "set_flexible",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "flexible"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "set_flexible",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_flexible",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_flexible",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 18,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
     "assembly_linear_pattern": {
       "n_steps": 17,
       "n_ok": 14,
@@ -2670,6 +3183,722 @@
         ]
       }
     },
+    "assembly_mate_cam": {
+      "n_steps": 21,
+      "n_ok": 19,
+      "success_rate": 0.9047619047619048,
+      "n_numeric_fields": 12,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_circle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  -15.0,
+                  -15.0,
+                  0.0,
+                  15.0,
+                  15.0,
+                  10.0
+                ],
+                "mass_kg": 0.007068583470577035,
+                "surface_area_mm2": 2356.194490192345,
+                "volume_mm3": 7068.583470577034
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  10.0,
+                  20.0,
+                  10.0
+                ],
+                "mass_kg": 0.0020000000000000005,
+                "surface_area_mm2": 1000.0000000000001,
+                "volume_mm3": 2000.0000000000002
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 14,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 15,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 16,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  -15.0,
+                  -15.0,
+                  0.0,
+                  15.0,
+                  15.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  50.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "FEATURE_CREATE_FAILED",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "list_mates",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mates"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "FEATURE_CREATE_FAILED",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 18,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
+    "assembly_mate_gear": {
+      "n_steps": 15,
+      "n_ok": 13,
+      "success_rate": 0.8666666666666667,
+      "n_numeric_fields": 7,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_circle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 30.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  -10.0,
+                  -10.0,
+                  0.0,
+                  10.0,
+                  10.0,
+                  30.0
+                ],
+                "mass_kg": 0.009424777960769381,
+                "surface_area_mm2": 2513.274122871835,
+                "volume_mm3": 9424.777960769381
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  -10.0,
+                  -10.0,
+                  0.0,
+                  10.0,
+                  10.0,
+                  30.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  -10.0,
+                  0.0,
+                  60.0,
+                  10.0,
+                  30.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "mate",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mate_type",
+              "name",
+              "ratio_den",
+              "ratio_num"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "list_mates",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mates"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "FEATURE_CREATE_FAILED",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
     "assembly_mate_pose": {
       "n_steps": 19,
       "n_ok": 18,
@@ -2900,10 +4129,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -2975,10 +4206,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -3005,10 +4238,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -3069,6 +4304,289 @@
             "delta_changed": null,
             "rebuild_ok": null,
             "state_version": 14,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
+    "assembly_mate_width": {
+      "n_steps": 14,
+      "n_ok": 13,
+      "success_rate": 0.9285714285714286,
+      "n_numeric_fields": 7,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ],
+                "mass_kg": 0.004000000000000001,
+                "surface_area_mm2": 1600.0000000000002,
+                "volume_mm3": 4000.0000000000005
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  60.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "mate",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mate_type",
+              "name"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "list_mates",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mates"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 12,
             "warning_count": 0,
             "numeric": null
           }
@@ -4422,11 +5940,13 @@
               "angle_deg",
               "axis",
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4490,12 +6010,14 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
               "relative",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4558,12 +6080,14 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
               "relative",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4623,11 +6147,13 @@
               "angle_deg",
               "axis",
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4710,11 +6236,13 @@
               "angle_deg",
               "axis",
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4742,12 +6270,14 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
               "relative",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -4778,11 +6308,13 @@
               "angle_deg",
               "axis",
               "bbox",
+              "flexible",
               "force",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -5699,6 +7231,505 @@
         ]
       }
     },
+    "assembly_replace": {
+      "n_steps": 25,
+      "n_ok": 22,
+      "success_rate": 0.88,
+      "n_numeric_fields": 13,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ],
+                "mass_kg": 0.004000000000000001,
+                "surface_area_mm2": 1600.0000000000002,
+                "volume_mm3": 4000.0000000000005
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 15.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  30.0,
+                  30.0,
+                  15.0
+                ],
+                "mass_kg": 0.0135,
+                "surface_area_mm2": 3600.0,
+                "volume_mm3": 13499.999999999998
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 14,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 15,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 16,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 16,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "replace_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "config",
+              "name",
+              "path",
+              "replaced"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 17,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "suppressed"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 18,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "replace_component",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 18,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "suppressed"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 19,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "replace_component",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 19,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "replace_component",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 19,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 20,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
     "assembly_screw": {
       "n_steps": 14,
       "n_ok": 12,
@@ -5975,6 +8006,425 @@
             "delta_changed": null,
             "rebuild_ok": null,
             "state_version": 12,
+            "warning_count": 0,
+            "numeric": null
+          }
+        ]
+      }
+    },
+    "assembly_suppress": {
+      "n_steps": 20,
+      "n_ok": 17,
+      "success_rate": 0.85,
+      "n_numeric_fields": 10,
+      "precision": 1.0,
+      "fingerprint": {
+        "steps": [
+          {
+            "tool": "new_part",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "configuration",
+              "doc_type",
+              "epoch",
+              "modified",
+              "path",
+              "saved",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 1,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "start_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "plane",
+              "sketch_open"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 2,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "sketch_rectangle",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 3,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "end_sketch",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "entity_count",
+              "name",
+              "plane"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 4,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "extrude",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "depth",
+              "kind",
+              "name",
+              "unit"
+            ],
+            "delta_changed": [
+              "bbox_mm",
+              "edge_count",
+              "face_count",
+              "mass_kg",
+              "surface_area_mm2",
+              "volume_mm3"
+            ],
+            "rebuild_ok": true,
+            "state_version": 5,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "depth": 10.0
+              },
+              "delta_after": {
+                "bbox_mm": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ],
+                "mass_kg": 0.004000000000000001,
+                "surface_area_mm2": 1600.0000000000002,
+                "volume_mm3": 4000.0000000000005
+              }
+            }
+          },
+          {
+            "tool": "save_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "path",
+              "saved"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 6,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 7,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "new_assembly",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "doc_type",
+              "modified",
+              "path",
+              "title",
+              "units"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 8,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 9,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  20.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "insert_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "name",
+              "origin",
+              "path",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  60.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 10,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  60.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "suppressed"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  60.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "mate",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 11,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "component",
+              "suppressed"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "get_component",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "bbox",
+              "flexible",
+              "lightweight",
+              "name",
+              "origin",
+              "path",
+              "suppressed",
+              "unit"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 12,
+            "warning_count": 0,
+            "numeric": {
+              "result": {
+                "bbox": [
+                  40.0,
+                  0.0,
+                  0.0,
+                  60.0,
+                  20.0,
+                  10.0
+                ]
+              }
+            }
+          },
+          {
+            "tool": "mate",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "mate_type",
+              "name"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "set_suppressed",
+            "ok": false,
+            "error_code": "INVALID_ARGUMENT",
+            "error_side_effect": "none",
+            "result_keys": null,
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 13,
+            "warning_count": 0,
+            "numeric": null
+          },
+          {
+            "tool": "close_document",
+            "ok": true,
+            "error_code": null,
+            "error_side_effect": null,
+            "result_keys": [
+              "closed",
+              "discarded",
+              "title"
+            ],
+            "delta_changed": null,
+            "rebuild_ok": null,
+            "state_version": 14,
             "warning_count": 0,
             "numeric": null
           }
@@ -15774,10 +18224,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -15819,10 +18271,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
@@ -15879,10 +18333,12 @@
             "error_side_effect": null,
             "result_keys": [
               "bbox",
+              "flexible",
               "lightweight",
               "name",
               "origin",
               "path",
+              "suppressed",
               "unit"
             ],
             "delta_changed": null,
