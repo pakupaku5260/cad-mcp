@@ -14,10 +14,12 @@ Toolsets declared at register time; unknown toolset rejected; unknown tool name 
 """
 from __future__ import annotations
 
+import inspect
 import json
+import math
 import re
 from collections.abc import Callable, Iterable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 
@@ -32,19 +34,97 @@ TOOLSET_DEFS: dict[str, str] = {
     "features_adv": "Advanced features: thread, helix, sweep, surfaces, thicken, feature ops",
     "view": "View: standard orientations and screenshots",
     "selection": "Selection: face/edge pick, query, GUI pick readback",
+    "verification": "Model verification: geometry, features, mass/bbox, assembly, drawing",
+    "transaction": "Transactions: L1 checkpoint/journal + L2 reload/compensate/discard",
+    "design": "DesignSpec: declarative part/assembly/drawing intent (validate only)",
+    "task": "Task layer: single-job batch execution",
+    "rules": "Machine-checkable model rules (read-only check_rules)",
+    "diagnostics": "Diagnostics: interpret cadmcp doctor JSON (check_doctor_matrix)",
 }
 
-# Per-toolset token budget (estimate_tokens); over budget fails contract tests.
+# --- F8 token budgets (tiered) ---
+# Large tier 6000 / small tier 4000. DEFAULT is the small-tier fallback for unknown toolsets
+# and for ``from cadmcp.registry import DEFAULT_TOOLSET_BUDGET_TOKENS`` compatibility.
 DEFAULT_TOOLSET_BUDGET_TOKENS = 4000
+
+TOOLSET_BUDGET_TOKENS: dict[str, int] = {
+    "core": 6000,
+    "features_adv": 6000,
+    "assembly": 6000,
+    "drawing": 4000,
+    "sketch_adv": 4000,
+    "sheetmetal": 4000,
+    "selection": 4000,
+    "transaction": 4000,
+    "verification": 4000,
+    "export": 4000,
+    "view": 4000,
+    "design": 4000,
+    "task": 4000,
+    "rules": 4000,
+    "diagnostics": 4000,
+}
+
+# Soft headroom: --strict requires tokens <= floor(0.8 * tier) (large ≤4800, small ≤3200).
+TOOLSET_HEADROOM_RATIO = 0.8
+
+# Profile caps: ceil(measured_tokens * 1.08) rounded up to 500 (F8 calibration @ TOTAL=18514),
+# then assembly 9688→10500, drawing 8541→9500, sheetmetal 7709→8500.
+# F13 exception: part 13500→14500 by explicit decision (measured 13871; the formula would give
+# 15000). Raising it further needs the same explicit call, not silent drift.
+# F16 R2: part 14500→15500 by F8 formula on post-F15 measured part≈14247:
+# ceil(14247 * 1.08)=15387 → round up to 500 → 15500 (explicit; not silent drift).
+# ``full`` is warn-only (no hard gate).
+PROFILE_TOKEN_BUDGETS: dict[str, int | None] = {
+    "full": None,
+    "part": 15500,
+    "assembly": 10500,
+    "drawing": 9500,
+    "sheetmetal": 8500,
+}
+
+# TOTAL hard gate (F8): ceil(18514 * 1.10) → 20400 (hundreds).
+# F16 R1: 20400→22400 by F8 formula on post-F15 measured TOTAL≈20301:
+# ceil(20301 * 1.10)=22332 → round up to hundreds → 22400 (explicit).
+TOTAL_TOKEN_BUDGET = 22400
+
+BUDGET_CARD_TEXT = (
+    "分档 6000/4000，20% 余量上限 4800/3200，"
+    "profile 15500/10500/9500/8500（full 仅告警），TOTAL ≤ 22400"
+)
+
+
+def toolset_budget(toolset: str) -> int:
+    """Return tier budget for ``toolset``; unknown names fall back to DEFAULT."""
+    return TOOLSET_BUDGET_TOKENS.get(toolset, DEFAULT_TOOLSET_BUDGET_TOKENS)
+
+
+def toolset_headroom_cap(toolset: str) -> int:
+    """Max tokens allowed under the ≥20% unused-headroom rule."""
+    return int(math.floor(toolset_budget(toolset) * TOOLSET_HEADROOM_RATIO))
+
 
 # Runtime profiles ship only needed toolsets. Each profile must close over dependencies.
 # Counts from core_registry() / docs/TOOL_INVENTORY.md—do not hardcode in tests.
 TOOLSET_PROFILES: dict[str, tuple[str, ...]] = {
+    # Explicit full surface (F20: diagnostics is admin-only — not in bounded profiles).
     "full": tuple(TOOLSET_DEFS),
-    "part": ("core", "sketch_adv", "features_adv", "selection", "view", "export"),
-    "assembly": ("core", "assembly", "selection", "view", "export"),
-    "drawing": ("core", "drawing", "view", "export"),
-    "sheetmetal": ("core", "sheetmetal", "selection", "view", "export"),
+    "part": (
+        "core",
+        "sketch_adv",
+        "features_adv",
+        "selection",
+        "view",
+        "export",
+        "verification",
+        "transaction",
+        "design",
+        "task",
+        "rules",
+    ),
+    "assembly": ("core", "assembly", "selection", "view", "export", "verification", "transaction"),
+    "drawing": ("core", "drawing", "view", "export", "verification", "transaction"),
+    "sheetmetal": ("core", "sheetmetal", "selection", "view", "export", "verification", "transaction"),
 }
 
 
@@ -67,6 +147,11 @@ def resolve_toolsets(
 
 TIMEOUT_CLASSES: frozenset[str] = frozenset({"fast", "normal", "slow"})
 
+# Call-granularity layers (F14). Not an MCP schema field — metadata only.
+# primitive = backend atomic call; domain = domain capability; task = one call carries
+# a full intent (call-granularity atomic; internals are not transaction-atomic).
+TOOL_LAYERS: tuple[str, ...] = ("primitive", "domain", "task")
+
 
 @dataclass(frozen=True)
 class ToolSpec:
@@ -80,6 +165,7 @@ class ToolSpec:
     timeout_class: str = "normal"
     examples: tuple[str, ...] = field(default_factory=tuple)
     bypass_queue: bool = False  # read-only, not queued (status); see module docstring
+    layer: str = "domain"  # TOOL_LAYERS; default keeps existing tools as domain
 
 
 class ToolRegistry:
@@ -97,6 +183,10 @@ class ToolRegistry:
             raise ValueError(f"Unknown toolset {spec.toolset!r}: declare in TOOLSET_DEFS first")
         if spec.timeout_class not in TIMEOUT_CLASSES:
             raise ValueError(f"Unknown timeout_class {spec.timeout_class!r}; choose {sorted(TIMEOUT_CLASSES)}")
+        if spec.layer not in TOOL_LAYERS:
+            raise ValueError(
+                f"Unknown layer {spec.layer!r} for tool {spec.name}: choose {list(TOOL_LAYERS)}"
+            )
         if spec.bypass_queue and spec.mutating:
             raise ValueError(
                 f"Tool {spec.name} has bypass_queue but is mutating: inline would bypass busy reject and queue"
@@ -140,6 +230,54 @@ def make_schema(properties: dict, required: list[str] | None = None) -> dict:
     if required:
         schema["required"] = required
     return schema
+
+
+# F6: compact optional doc-context guards (semantics in WRONG_DOCUMENT hint / docs).
+EXPECT_TITLE = "expect_title"
+EXPECT_PATH = "expect_path"
+_EXPECT_PROPS: dict = {
+    EXPECT_TITLE: {"type": ["string", "null"], "default": None},
+    EXPECT_PATH: {"type": ["string", "null"], "default": None},
+}
+
+
+def with_doc_guard(spec: ToolSpec) -> ToolSpec:
+    """Inject expect_title/expect_path into mutating tool schema + handler signature.
+
+    Kernel validates and pops these before side effects; the wrapper only keeps
+    schema↔handler contract alignment (defaults apply when Kernel strips them).
+    """
+    if not spec.mutating:
+        return spec
+    props = dict(spec.input_schema.get("properties") or {})
+    if EXPECT_TITLE in props and EXPECT_PATH in props:
+        return spec
+    props = {**props, **_EXPECT_PROPS}
+    schema = {**spec.input_schema, "properties": props}
+
+    orig = spec.handler
+    orig_sig = inspect.signature(orig)
+    params = list(orig_sig.parameters.values())
+    insert_at = len(params)
+    for i, p in enumerate(params):
+        if p.kind == inspect.Parameter.VAR_KEYWORD:
+            insert_at = i
+            break
+    extra = [
+        inspect.Parameter(EXPECT_TITLE, inspect.Parameter.KEYWORD_ONLY, default=None),
+        inspect.Parameter(EXPECT_PATH, inspect.Parameter.KEYWORD_ONLY, default=None),
+    ]
+    new_sig = orig_sig.replace(parameters=params[:insert_at] + extra + params[insert_at:])
+
+    def guarded_handler(*args, **kwargs):
+        ba = new_sig.bind(*args, **kwargs)
+        ba.apply_defaults()
+        return orig(**{name: ba.arguments[name] for name in orig_sig.parameters})
+
+    guarded_handler.__signature__ = new_sig  # type: ignore[attr-defined]
+    guarded_handler.__name__ = getattr(orig, "__name__", "handler")
+    guarded_handler.__doc__ = getattr(orig, "__doc__", None)
+    return replace(spec, input_schema=schema, handler=guarded_handler)
 
 
 def estimate_tokens(text: str) -> int:

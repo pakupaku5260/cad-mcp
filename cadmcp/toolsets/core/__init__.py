@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Collection
 
-from cadmcp.registry import ToolRegistry, ToolSpec
+from cadmcp.registry import ToolRegistry, ToolSpec, with_doc_guard
 
 from .document import SPECS as _DOCUMENT_SPECS
 from .features import SPECS as _FEATURE_SPECS
@@ -31,10 +31,16 @@ _CORE_SPECS: tuple[ToolSpec, ...] = (
 
 def register_core(registry: ToolRegistry, toolsets: Collection[str] | None = None) -> None:
     from cadmcp.toolsets.assembly import ASSEMBLY_SPECS
+    from cadmcp.toolsets.design import DESIGN_SPECS
+    from cadmcp.toolsets.diagnostics import DIAGNOSTICS_SPECS
     from cadmcp.toolsets.drawing import DRAWING_SPECS
     from cadmcp.toolsets.export import EXPORT_SPECS
     from cadmcp.toolsets.features_adv import FEATURES_ADV_SPECS
+    from cadmcp.toolsets.rules import RULES_SPECS
     from cadmcp.toolsets.sheetmetal import SHEETMETAL_SPECS
+    from cadmcp.toolsets.task import BATCH_SPECS
+    from cadmcp.toolsets.transaction import TRANSACTION_SPECS
+    from cadmcp.toolsets.verification import VERIFICATION_SPECS
 
     allowed = None if toolsets is None else set(toolsets)
     specs = [
@@ -44,11 +50,17 @@ def register_core(registry: ToolRegistry, toolsets: Collection[str] | None = Non
         *SHEETMETAL_SPECS,
         *DRAWING_SPECS,
         *EXPORT_SPECS,
+        *VERIFICATION_SPECS,
+        *TRANSACTION_SPECS,
+        *DESIGN_SPECS,
+        *BATCH_SPECS,
+        *RULES_SPECS,
+        *DIAGNOSTICS_SPECS,
     ]
     for spec in specs:
         if allowed is not None and spec.toolset not in allowed:
             continue
-        registry.register(spec)
+        registry.register(with_doc_guard(spec))
 
 
 def core_registry(toolsets: Collection[str] | None = None) -> ToolRegistry:

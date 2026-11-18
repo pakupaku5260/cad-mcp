@@ -1,0 +1,20 @@
+{
+  "sequence": "list_part_strategies",
+  "steps": [
+    {
+      "tool": "list_part_strategies",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "count",
+        "ok",
+        "strategies"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 0,
+      "warning_count": 0
+    }
+  ]
+}

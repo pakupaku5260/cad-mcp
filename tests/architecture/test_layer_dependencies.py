@@ -78,3 +78,32 @@ def test_layer_dependencies():
     """INDEX.yaml dependency rules. S1: INDEX incomplete, warn-only."""
     # S1: INDEX.yaml not complete yet — skip strict check
     pytest.skip("S1: INDEX.yaml incomplete; strict check enabled at S2")
+
+
+# F4: top-level package layering (transaction must not reach backends directly)
+_CADMCP = ROOT / "cadmcp"
+_TX_FORBIDDEN_PREFIXES = (
+    "cadmcp.backend.solidworks",
+    "cadmcp.backend.fake",
+)
+
+
+def test_transaction_package_does_not_import_backends():
+    """cadmcp.transaction and toolsets.transaction stay above backend concretes."""
+    targets = [
+        _CADMCP / "transaction.py",
+        _CADMCP / "toolsets" / "transaction.py",
+    ]
+    errors: list[str] = []
+    for path in targets:
+        for lineno, module in _iter_imports(path):
+            if any(module == p or module.startswith(p + ".") for p in _TX_FORBIDDEN_PREFIXES):
+                errors.append(f"{path.relative_to(ROOT)}:{lineno}: forbidden import {module}")
+    assert not errors, "\n".join(errors)
+
+
+def test_transaction_toolset_depends_on_transaction_module():
+    """toolsets.transaction must go through cadmcp.transaction (not reimplement journal)."""
+    path = _CADMCP / "toolsets" / "transaction.py"
+    imports = {mod for _, mod in _iter_imports(path)}
+    assert "cadmcp.transaction" in imports

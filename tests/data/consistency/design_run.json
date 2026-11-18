@@ -1,0 +1,44 @@
+{
+  "sequence": "design_run",
+  "steps": [
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "configuration",
+        "doc_type",
+        "epoch",
+        "modified",
+        "path",
+        "saved",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "design_run",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "checkpoints",
+        "failed_step",
+        "ok",
+        "outputs",
+        "spec",
+        "steps",
+        "verification"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 7,
+      "warning_count": 0
+    }
+  ]
+}

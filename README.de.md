@@ -149,19 +149,25 @@ in den Arbeitsbereich kopieren und `replay_recipe` ausführen.
 
 ## Funktionsübersicht
 
-**134 Werkzeuge** in 9 Toolsets (siehe [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
+**163 Werkzeuge** in 15 Toolsets (siehe [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
 
 | Toolset | Anzahl | Schwerpunkt |
 |---|---|---|
-| core | 45 | Dokumente, Skizzen, Grundfeatures, Abfragen |
-| features_adv | 25 | Gewinde, Helix, Sweep, Flächen, Feature-Operationen |
-| assembly | 20 | Einfügen, Paarungen, Komponentenoperationen |
-| drawing | 16 | Ansichten, Beschriftungen, DrawingSpec |
+| core | 48 | Dokumente, Skizzen, Grundfeatures, Abfragen |
+| features_adv | 27 | Gewinde, Helix, Sweep, Flächen, Feature-Operationen |
+| assembly | 24 | Einfügen, Paarungen, Komponentenoperationen (Cam-Paarung BLOCKED) |
+| drawing | 21 | Ansichten, Beschriftungen, DrawingSpec, Verifikation |
 | sketch_adv | 12 | Splines, Versatz/Trimmen, Bedingungen, Maße |
-| sheetmetal | 7 | Grundflansch/Hemmkante, Abwicklung |
+| sheetmetal | 8 | Grundflansch/Hemmkante/Gehrung, Abwicklung, DXF |
 | selection | 6 | Flächen-/Kanten-Auswahlhilfen |
+| transaction | 4 | L1-Checkpoint/Journal + L2-Reload/Kompensation/Discard |
+| task | 3 | Batch-Aufgabenausführung |
+| design | 3 | DesignSpec-Absicht (nur Validierung) |
+| export | 2 | STEP/STL + PDF/DXF |
 | view | 2 | Ausrichtungen / Screenshots |
-| export | 1 | STEP/STL/PDF/DXF |
+| rules | 1 | Maschinell prüfbare Modellregeln |
+| verification | 1 | Modellverifikation |
+| diagnostics | 1 | `cadmcp doctor`-JSON auswerten |
 
 Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
 werden als `cadmcp://skill/...`-Ressourcen ausgeliefert. `solidworks-modeling`
@@ -173,7 +179,7 @@ ist zusätzlich eigenständig auf
 | Einschränkung | Hinweise |
 |---|---|
 | Formkern/Kavität | Blockiert bis zuverlässige Trennflächen / Lizenzkontext — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
-| Native InsertThread-API | Stattdessen Helix + Sweep-Cut — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| Gewinde-Feature (Geometrie) | Als `create_thread` geliefert (SW2025 `IThreadFeatureData` / `swFmSweepThread`). Annotationen: `insert_cosmetic_thread`. Kein Member-Name `InsertThread`. — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
 | SolidWorks Toolbox | Nicht integriert — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
 | Bauteilbearbeitung im Kontext (`EditPart2`) | Nicht unterstützt; Teilbaugruppenbearbeitung ja — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | Axiale Schraub-/Vorschub-Paarungsbewegung | Nicht unterstützt |

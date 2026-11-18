@@ -16,8 +16,10 @@ from cadmcp.selectors import (
     TOL_NEAR_M,
     Ref,
     filter_by_kind,
+    nearest_candidates,
     resolve,
     resolve_mate_index,
+    resolve_ref_id,
 )
 from cadmcp.units import UnitContext
 
@@ -133,3 +135,44 @@ def test_filter_by_kind_keeps_global_index():
     assert [f.index for f in only] == [1]
     idx = resolve_mate_index(0, None, pool, component="p-1", kind="face", filter_kind="cylinder")
     assert idx == 0
+
+
+# ---------- F1.4: persist ref_id ----------
+
+
+def test_resolve_ref_id_exact_hit():
+    pool = [
+        FaceRef(index=0, kind="plane", centroid_m=(0.0, 0.0, 0.0), ref_id="fake:aaa"),
+        FaceRef(index=1, kind="plane", centroid_m=(0.05, 0.0, 0.0), ref_id="fake:bbb"),
+    ]
+    r = resolve_ref_id("fake:bbb", pool)
+    assert r.quality == "exact" and r.entity.index == 1
+
+
+def test_resolve_ref_id_stale_returns_candidates_capped():
+    pool = [
+        FaceRef(index=i, kind="plane", centroid_m=(float(i) * 0.01, 0.0, 0.0), ref_id=f"fake:{i}")
+        for i in range(8)
+    ]
+    with pytest.raises(CadMcpError) as ei:
+        resolve_ref_id("fake:missing", pool, anchor_m=(0.0, 0.0, 0.0))
+    err = ei.value
+    assert err.code == "REF_STALE"
+    assert err.side_effect.value == "none"
+    cands = err.context["candidates"]
+    assert 1 <= len(cands) <= 5
+    assert cands[0]["index"] == 0
+    assert "centroid_m" in cands[0] and "kind" in cands[0]
+
+
+def test_resolve_ref_id_unsupported_when_pool_lacks_refs():
+    with pytest.raises(CadMcpError) as ei:
+        resolve_ref_id("fake:x", FACES)
+    assert ei.value.code == "REF_UNSUPPORTED"
+    assert ei.value.side_effect.value == "none"
+
+
+def test_nearest_candidates_edge_schema():
+    rows = nearest_candidates(EDGES, (0.0, 0.0, 0.0), limit=5)
+    assert len(rows) == 1
+    assert rows[0]["index"] == 0 and "midpoint_m" in rows[0]

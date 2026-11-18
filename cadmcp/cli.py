@@ -282,11 +282,17 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     try:
         executor.start(wait_s=15)
         backend = executor.backend()
+        mbd = False
+        try:
+            mbd = bool(backend.mbd_step242_available())
+        except Exception:  # noqa: BLE001 — doctor never raises
+            mbd = False
         report["backend"] = {
             "kind": args.backend,
             "available": True,
             "revision": backend.revision(),
             "error": None,
+            "mbd_step242": mbd,
         }
         # detail=True: doctor is local; include window list and blockers (W8 real-machine smoke entry)
         report["executor"] = executor.health(detail=True).model_dump()

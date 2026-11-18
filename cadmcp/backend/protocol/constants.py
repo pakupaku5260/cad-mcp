@@ -44,6 +44,15 @@ GDT_FRAME_SYMBOLS: dict[str, str] = {
     "perpendicularity": "<PERP>",
     "concentricity": "<CONC>",
 }
+# Weld symbols (IWeldSymbol / gtol.sym subset). Probe 2026-11-17: FILL SetText green.
+WELD_SYMBOLS: tuple[str, ...] = ("FILL", "BUTT", "BUSV", "SPOT")
+# swAnnotationType_e style value observed on SW2025 weld annotations
+WELD_ANNOTATION_TYPE: int = 8
+# swWeldSymbolTextTypes_e — GetText(which); NOT 0-based / not GetTextCount indices.
+# Probe E1: Top=True → slot 2 holds Symbol; Top=False → slot 6.
+WELD_TEXT_ABOVE_SYMBOL: int = 2
+WELD_TEXT_BELOW_SYMBOL: int = 6
+WELD_TEXT_PROCESS: int = 9
 DRAWING_PAPER_CODES: dict[str, int] = {
     "A0": 8,
     "A1": 9,
@@ -70,6 +79,29 @@ EXTRUDE_DEPTHLESS: frozenset[str] = frozenset(
 )
 COMBINE_OPS: tuple[str, ...] = ("add", "cut", "common")
 HOLE_WIZARD_ENDS: tuple[str, ...] = ("blind", "through_all")
+
+# Cosmetic thread (InsertCosmeticThread3) — probed SW2025:
+# external Metric Die standard=1; internal Metric Tap standard=8.
+COSMETIC_THREAD_EXTERNAL: tuple[int, str] = (1, "Metric Die")
+COSMETIC_THREAD_INTERNAL: tuple[int, str] = (8, "Metric Tap")
+THREAD_PROP_SPEC = "THREAD_SPEC"
+THREAD_PROP_SIDE = "THREAD_SIDE"
+THREAD_PROP_SIZE = "THREAD_SIZE"
+THREAD_PROP_KEYS: tuple[str, ...] = (THREAD_PROP_SPEC, THREAD_PROP_SIDE, THREAD_PROP_SIZE)
+
+# Native Thread Feature (CreateDefinition(swFmSweepThread) → IThreadFeatureData → CreateFeature).
+# swFmSweepThread = 87 probed on SW2025 (InitializeThreadData present; GetTypeName2=SweepThread).
+SW_FM_SWEEP_THREAD = 87
+SW_THREAD_METHOD_CUT = 0
+SW_THREAD_METHOD_EXTRUDE = 1
+THREAD_METHODS: tuple[str, ...] = ("cut", "extrude")
+THREAD_METHOD_IDS: dict[str, int] = {
+    "cut": SW_THREAD_METHOD_CUT,
+    "extrude": SW_THREAD_METHOD_EXTRUDE,
+}
+# Default profile names under Thread Profiles (File Locations); not full .SLDLFP paths.
+THREAD_PROFILE_EXTERNAL = "Metric Die"
+THREAD_PROFILE_INTERNAL = "Metric Tap"
 SW_COMBINE_ADD = 15903
 SW_COMBINE_CUT = 15902
 SW_COMBINE_COMMON = 15901
@@ -122,7 +154,17 @@ DEFAULT_PLANE_FRAMES: dict[str, tuple[
     "Right Plane": ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0)),
 }
 
-MATE_TYPES = ("concentric", "coincident", "distance", "angle", "tangent", "screw")
+MATE_TYPES = (
+    "concentric",
+    "coincident",
+    "distance",
+    "angle",
+    "tangent",
+    "screw",
+    "gear",
+    "width",
+    "cam",
+)
 _MATE_REF_HINT = (
     "Reference plane as '<plane>@<component instance>', e.g. 'Top Plane@p1-1'; "
     "face as '<component>#face:<index>', optionally with coordinates "
@@ -137,6 +179,9 @@ _CLOSEST_DEFAULT_MATES = frozenset({"coincident", "concentric", "tangent"})
 _MATE_ENTITY_NEED = {
     "concentric": "Concentric mate needs two cylindrical faces (#cylinder:0) or two circular edges (#circle:0)",
     "screw": "Screw mate needs two cylindrical faces or two circular edges",
+    "gear": "Gear mate needs two cylindrical faces or two circular edges (axes)",
+    "width": "Width mate needs two bounding faces plus one tab face/edge (entity1/2/3)",
+    "cam": "Cam mate needs a cam body face (#face/#plane) and a follower face or cylinder",
     "coincident": "Coincident mate needs two planes (#plane:0 or Top Plane@instance)",
     "distance": "Distance mate needs two planes",
     "angle": "Angle mate needs two planes",

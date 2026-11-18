@@ -20,17 +20,24 @@ import logging
 import math
 import traceback
 from collections.abc import Sequence
+from typing import Any
 
 from cadmcp.backend.protocol.constants import (
     COMBINE_OPS,
+    COSMETIC_THREAD_EXTERNAL,
+    COSMETIC_THREAD_INTERNAL,
     HOLE_WIZARD_ENDS,
     SW_COMBINE_OP,
     SW_END_BLIND,
     SW_END_THROUGH_ALL,
-)
-from cadmcp.backend.protocol.geometry_engine import (
-    thread_length_m,
-    thread_profile_xy,
+    SW_FM_SWEEP_THREAD,
+    THREAD_METHOD_IDS,
+    THREAD_METHODS,
+    THREAD_PROFILE_EXTERNAL,
+    THREAD_PROFILE_INTERNAL,
+    THREAD_PROP_SIDE,
+    THREAD_PROP_SIZE,
+    THREAD_PROP_SPEC,
 )
 from cadmcp.backend.protocol.models import FeatureInfo
 from cadmcp.errors import CadMcpError, fail
@@ -513,17 +520,27 @@ class ModifyMixin:
                     "Solid has no usable edges",
                     "Create a body with edges, then use get_edges for indexes",
                 )
-            edge_idxs: list[int]
+            # Omit edges → boundary loop of pull_face (not all solid edges).
+            # All-edges PL cannot support radiate parting_surface (MOLD-03 / P3c).
+            edge_idxs: list[int] | None
             if edges is None:
-                edge_idxs = list(range(len(edge_pool)))
+                edge_idxs = None
             else:
                 if not edges:
                     raise fail(
                         "INVALID_ARGUMENT",
                         "edges cannot be empty",
-                        "Omit edges to select all, or pass get_edges indexes",
+                        "Omit edges for pull-face boundary loop, or pass get_edges indexes",
                     )
                 edge_idxs = [int(x) for x in edges]
+                for ei in edge_idxs:
+                    if ei < 0 or ei >= len(edge_pool):
+                        raise fail(
+                            "INVALID_ARGUMENT",
+                            f"Edge index out of range: {ei}",
+                            f"Use get_edges; valid range 0..{len(edge_pool) - 1}",
+                            index=ei,
+                        )
             before = {
                 str(_get(f, "Name"))
                 for f in self._features_of(doc)
@@ -536,14 +553,19 @@ class ModifyMixin:
                     f"Cannot select pull direction face {pull_face}",
                     "Check index with get_faces",
                 )
-            n_edge = self._select_edge_indexes_marked(
-                doc, edge_idxs, mark=4, clear=False,
-            )
+            if edge_idxs is None:
+                n_edge = self._select_face_boundary_edges_marked(
+                    doc, int(pull_face), mark=4, clear=False,
+                )
+            else:
+                n_edge = self._select_edge_indexes_marked(
+                    doc, edge_idxs, mark=4, clear=False,
+                )
             if n_edge < 1:
                 raise fail(
                     "SELECT_FAILED",
                     "Cannot select parting edges",
-                    "Check indexes with get_edges; cube can omit edges",
+                    "Omit edges for pull-face loop, or pass get_edges indexes for a closed parting chain",
                 )
             feat = None
             try:
@@ -569,6 +591,49 @@ class ModifyMixin:
             return FeatureInfo(name=self._register("PartingLine", real), kind="parting_line")
 
         return self._call(_fn, timeout=180.0)
+
+    def _select_face_boundary_edges_marked(
+        self, doc: Any, face_index: int, *, mark: int, clear: bool,
+    ) -> int:
+        """Select GetEdges of a solid face with the given mark (parting-line default loop)."""
+        faces = self._part_face_objects(doc)
+        if not faces:
+            return 0
+        if face_index < 0 or face_index >= len(faces):
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Face index out of range: {face_index}",
+                f"Use get_faces; valid range 0..{len(faces) - 1}",
+                index=face_index,
+            )
+        raw = _get(faces[face_index], "GetEdges")
+        if callable(raw):
+            try:
+                raw = raw()
+            except TypeError:
+                raw = ()
+        edge_objs = [e for e in list(raw or ()) if e is not None]
+        if not edge_objs:
+            return 0
+        sm = _get(doc, "SelectionManager")
+        data = _get(sm, "CreateSelectData")
+        data.Mark = int(mark)
+        if clear:
+            doc.ClearSelection2(True)
+        count = 0
+        for edge in edge_objs:
+            try:
+                if edge.Select4(True, data):
+                    count += 1
+                    continue
+            except Exception:
+                log.debug("Face-boundary Select4 failed: %s", traceback.format_exc())
+            try:
+                if edge.Select2(True, int(mark)):
+                    count += 1
+            except Exception:
+                log.debug("Face-boundary Select2 failed: %s", traceback.format_exc())
+        return count
 
     def parting_surface(
         self,
@@ -628,6 +693,7 @@ class ModifyMixin:
                     "Confirm parting line is still in the feature tree",
                 )
             # TLB: Radiate/Smooth=I4, Reverse*/Knit=BOOL, Offset/Angle/SmoothDistance=R8
+            feat = None
             try:
                 feat = doc.FeatureManager.InsertMoldPartingSurface(
                     1 if radiate else 0,
@@ -642,19 +708,30 @@ class ModifyMixin:
             except Exception as exc:
                 log.debug("InsertMoldPartingSurface failed: %s", traceback.format_exc())
                 raise self._map_error(exc) from exc
-            if feat is None:
-                created = [
-                    f
-                    for f in self._features_of(doc)
-                    if str(_get(f, "GetTypeName2") or "") == "MoldPartingGeom"
-                    and str(_get(f, "Name")) not in before
-                ]
-                feat = created[-1] if created else None
-            if feat is None:
+            # MOLD-03: COM may return a ghost MoldPartingGeom (Name/Type/ID) that never
+            # enters FeatureManager. Live success requires feature_tree_visible.
+            created = [
+                f
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "MoldPartingGeom"
+                and str(_get(f, "Name")) not in before
+            ]
+            if created:
+                feat = created[-1]
+            else:
+                ghost = None
+                if feat is not None:
+                    try:
+                        ghost = str(_get(feat, "Name") or "") or None
+                    except Exception:
+                        ghost = None
+                msg = "InsertMoldPartingSurface did not register MoldPartingGeom in the feature tree"
+                if ghost:
+                    msg = f"{msg} (ghost {ghost!r})"
                 raise fail(
                     "FEATURE_CREATE_FAILED",
-                    "InsertMoldPartingSurface returned None",
-                    "Confirm valid parting line; complex molds may need shut-off surfaces",
+                    msg,
+                    "Use closed-loop parting_line (omit edges = pull-face loop) + radiate=true with offset>0",
                 )
             real = self._feature_real_name(feat, "PartingSurface")
             return FeatureInfo(name=self._register("PartingSurface", real), kind="parting_surface")
@@ -749,6 +826,258 @@ class ModifyMixin:
             return FeatureInfo(name=self._register("ShutOff", real), kind="shut_off_surface")
 
         return self._call(_fn, timeout=180.0)
+
+    def tooling_split(
+        self,
+        sketch: str | None = None,
+        *,
+        depth1_m: float = 0.1,
+        depth2_m: float = 0.1,
+        setback: bool = False,
+        angle_rad: float = 0.05235987755982989,
+        core_sheet: str | None = None,
+        cavity_sheet: str | None = None,
+        parting_sheet: str | None = None,
+    ) -> FeatureInfo:
+        def _fn() -> FeatureInfo:
+            import pythoncom
+            from win32com.client import VARIANT
+
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create a part first")
+            self._require_part_doc(doc, "Use a part document for mold tooling split")
+            if depth1_m <= 0 or depth2_m <= 0:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Tooling-split depths must be positive (meters): {depth1_m}, {depth2_m}",
+                    "Pass depth1/depth2 > 0",
+                )
+            if angle_rad < 0:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Tooling-split angle cannot be negative (radians): {angle_rad}",
+                    "Pass angle_deg ≥ 0",
+                )
+            lines = [
+                f
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "MoldPartingLine"
+            ]
+            surfs = [
+                f
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "MoldPartingGeom"
+            ]
+            if not lines:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "No parting line available",
+                    "parting_line then parting_surface, then tooling_split",
+                )
+            if not surfs:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "No parting surface available",
+                    "parting_surface (radiate recommended), then tooling_split",
+                )
+
+            sketches = [
+                f
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "ProfileFeature"
+            ]
+            if sketch is not None:
+                sk_feat = self._find_feature(doc, str(sketch))
+                if sk_feat is None or str(_get(sk_feat, "GetTypeName2") or "") != "ProfileFeature":
+                    raise fail(
+                        "FEATURE_NOT_FOUND",
+                        f"Mold-block sketch not found: {sketch!r}",
+                        "Pass an ended sketch name, or omit for latest ProfileFeature",
+                        requested=sketch,
+                    )
+                sk_name = str(_get(sk_feat, "Name") or sketch)
+            else:
+                if not sketches:
+                    raise fail(
+                        "FEATURE_CREATE_FAILED",
+                        "No mold-block sketch available",
+                        "Draw a rectangle larger than the part (perpendicular to pull), end_sketch, then tooling_split",
+                    )
+                sk_name = str(_get(sketches[-1], "Name") or "")
+
+            sheet_names = self._mold_sheet_body_names(doc)
+            core = core_sheet or self._pick_mold_sheet(sheet_names, role="core")
+            cav = cavity_sheet or self._pick_mold_sheet(sheet_names, role="cavity")
+            part = parting_sheet or self._pick_mold_sheet(sheet_names, role="parting")
+            if not core or not cav or not part:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "Need core, cavity, and parting sheet bodies",
+                    "After parting_surface, Surface Bodies should include [2]/[3]/分型面*; or pass core_sheet/cavity_sheet/parting_sheet",
+                )
+
+            before_names = {
+                str(_get(f, "Name"))
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "MoldCoreCavitySolids"
+            }
+            solids0 = self._body_count(doc, sheet=False)
+
+            callout = VARIANT(pythoncom.VT_DISPATCH, None)
+            ext = doc.Extension
+            # Macro gold path: activate sketch, then segment mark0 + sheets 1/2/4
+            doc.ClearSelection2(True)
+            try:
+                ext.SelectByID2(sk_name, "SKETCH", 0.0, 0.0, 0.0, False, 0, callout, 0)
+                doc.ActivateSelectedFeature()
+            except Exception:
+                log.debug("tooling_split sketch activate skipped: %s", traceback.format_exc())
+
+            doc.ClearSelection2(True)
+            if not self._select_sketch_segment_mark0(doc, sk_name, callout):
+                raise fail(
+                    "SELECT_FAILED",
+                    f"Cannot select a sketch segment on {sk_name!r}",
+                    "Use a closed rectangle block sketch; COM needs EXTSKETCHSEGMENT mark 0 (not whole SKETCH)",
+                )
+            for name, mark in ((core, 1), (cav, 2), (part, 4)):
+                try:
+                    ok = bool(
+                        ext.SelectByID2(
+                            str(name), "SURFACEBODY", 0.0, 0.0, 0.0, True, int(mark), callout, 0
+                        )
+                    )
+                except Exception as exc:
+                    log.debug("SURFACEBODY select %s mark=%s failed: %s", name, mark, traceback.format_exc())
+                    raise fail(
+                        "SELECT_FAILED",
+                        f"Cannot select sheet body {name!r} (mark {mark})",
+                        "Confirm Surface Bodies folder names; parting sheet uses mark 4",
+                    ) from exc
+                if not ok:
+                    raise fail(
+                        "SELECT_FAILED",
+                        f"Cannot select sheet body {name!r} (mark {mark})",
+                        "Confirm Surface Bodies folder names; parting sheet uses mark 4",
+                    )
+
+            feat = None
+            try:
+                feat = doc.FeatureManager.InsertMoldCoreCavitySolids(
+                    float(depth1_m),
+                    float(depth2_m),
+                    bool(setback),
+                    float(angle_rad),
+                )
+            except Exception as exc:
+                log.debug("InsertMoldCoreCavitySolids failed: %s", traceback.format_exc())
+                raise self._map_error(exc) from exc
+
+            created = [
+                f
+                for f in self._features_of(doc)
+                if str(_get(f, "GetTypeName2") or "") == "MoldCoreCavitySolids"
+                and str(_get(f, "Name")) not in before_names
+            ]
+            if created:
+                feat = created[-1]
+            else:
+                ghost = None
+                if feat is not None:
+                    try:
+                        ghost = str(_get(feat, "Name") or "") or None
+                    except Exception:
+                        ghost = None
+                msg = "InsertMoldCoreCavitySolids did not register MoldCoreCavitySolids in the feature tree"
+                if ghost:
+                    msg = f"{msg} (ghost {ghost!r})"
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    msg,
+                    "Need EXTSKETCHSEGMENT mark0 + SURFACEBODY marks 1/2/4; see MOLD-04/P7 macro recipe",
+                )
+
+            solids1 = self._body_count(doc, sheet=False)
+            if solids1 <= solids0:
+                real_tmp = self._feature_real_name(feat, "ToolingSplit")
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Tooling split {real_tmp!r} did not increase solid body count ({solids0}→{solids1})",
+                    "Confirm core/cavity/parting sheets and block sketch enclose the part",
+                )
+
+            real = self._feature_real_name(feat, "ToolingSplit")
+            return FeatureInfo(name=self._register("ToolingSplit", real), kind="tooling_split")
+
+        return self._call(_fn, timeout=180.0)
+
+    def _body_count(self, doc: Any, *, sheet: bool) -> int:
+        typ = 1 if sheet else 0
+        try:
+            raw = doc.GetBodies2(typ, True) or ()
+        except TypeError:
+            try:
+                raw = doc.GetBodies2(typ) or ()
+            except Exception:
+                return 0
+        except Exception:
+            return 0
+        return sum(1 for b in list(raw or ()) if b is not None)
+
+    def _mold_sheet_body_names(self, doc: Any) -> list[str]:
+        try:
+            raw = doc.GetBodies2(1, True) or ()
+        except TypeError:
+            try:
+                raw = doc.GetBodies2(1) or ()
+            except Exception:
+                return []
+        except Exception:
+            return []
+        names: list[str] = []
+        for body in list(raw or ()):
+            if body is None:
+                continue
+            try:
+                names.append(str(body.Name))
+            except Exception:
+                continue
+        return names
+
+    @staticmethod
+    def _pick_mold_sheet(names: Sequence[str], *, role: str) -> str | None:
+        if role == "core":
+            hit = next((n for n in names if n.endswith("[2]")), None)
+            if hit:
+                return hit
+            return next((n for n in names if "型心" in n or "型芯" in n or "Core" in n), None)
+        if role == "cavity":
+            hit = next((n for n in names if n.endswith("[3]")), None)
+            if hit:
+                return hit
+            return next((n for n in names if "型腔" in n or "Cavity" in n), None)
+        # parting
+        hit = next(
+            (n for n in names if ("分型面" in n or "Parting" in n) and not n.endswith("]")),
+            None,
+        )
+        if hit:
+            return hit
+        return next((n for n in names if "分型面" in n or "Parting" in n), None)
+
+    def _select_sketch_segment_mark0(self, doc: Any, sk_name: str, callout: Any) -> bool:
+        ext = doc.Extension
+        for i in range(1, 9):
+            seg = f"Line{i}@{sk_name}"
+            try:
+                if bool(
+                    ext.SelectByID2(seg, "EXTSKETCHSEGMENT", 0.0, 0.0, 0.0, False, 0, callout, 0)
+                ):
+                    return True
+            except Exception:
+                log.debug("EXTSKETCHSEGMENT %s failed: %s", seg, traceback.format_exc())
+        return False
 
     def hole_wizard(
         self,
@@ -847,43 +1176,267 @@ class ModifyMixin:
 
         return self._call(_fn, timeout=180.0)
 
-    def insert_thread(
+    def _write_thread_props(self, doc: Any, *, spec: str, side: str, size: str) -> dict[str, str]:
+        """Write THREAD_SPEC / THREAD_SIDE / THREAD_SIZE on the active part config."""
+        try:
+            cpm = doc.Extension.CustomPropertyManager("")
+        except Exception as exc:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "Cannot get CustomPropertyManager for thread properties",
+                "Confirm active document is a part",
+            ) from exc
+        values = {
+            THREAD_PROP_SPEC: spec,
+            THREAD_PROP_SIDE: side,
+            THREAD_PROP_SIZE: size,
+        }
+        written: dict[str, str] = {}
+        for key, text in values.items():
+            ok = False
+            try:
+                cpm.Add3(key, 30, text, 1)
+                ok = True
+            except Exception:
+                log.debug("Add3 %s failed: %s", key, traceback.format_exc())
+            if not ok:
+                try:
+                    cpm.Set2(key, text)
+                    ok = True
+                except Exception:
+                    try:
+                        cpm.Set(key, text)
+                        ok = True
+                    except Exception:
+                        log.debug("Set property %s failed: %s", key, traceback.format_exc())
+            if ok:
+                written[key] = text
+        if len(written) < len(values):
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "Failed to write THREAD_* custom properties",
+                "Confirm part custom properties are writable",
+                written=written,
+            )
+        return written
+
+    def insert_cosmetic_thread(
         self,
+        size: str,
         diameter_m: float,
-        pitch_m: float,
         length_m: float | None = None,
+        edge: int | None = None,
         internal: bool = False,
+        spec: str | None = None,
     ) -> FeatureInfo:
+        """SW2025 InsertCosmeticThread3 + THREAD_* props. No cut geometry (annotation only)."""
+
         def _fn() -> FeatureInfo:
             doc = self.sw.ActiveDoc
             if doc is None:
-                raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create a part first and extrude a cylinder")
+                raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create a part first and extrude a cylinder or tube")
+            self._require_part_doc(doc, "Use a part document for cosmetic thread")
             if self._sketch_open:
                 raise fail(
                     "SKETCH_OP_FAILED",
                     "Sketch is still open; close it before creating a feature",
-                    "Call end_sketch to close the sketch, then insert_thread",
+                    "Call end_sketch, then insert_cosmetic_thread",
                 )
+            size_s = str(size).strip()
+            if not size_s:
+                raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+            if diameter_m <= 0:
+                raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+            depth = float(length_m) if length_m is not None else 1.5 * float(diameter_m)
+            if depth <= 0:
+                raise fail("INVALID_ARGUMENT", "Thread length must be positive", "Pass length > 0")
             if not self._has_solid(doc):
                 raise fail(
                     "FEATURE_CREATE_FAILED",
-                    "No material to cut (no solid features yet)",
-                    "Extrude cylinder at nominal diameter, then insert_thread",
+                    "No solid for cosmetic thread",
+                    "Extrude a cylinder (external) or tube (internal), then insert_cosmetic_thread",
                 )
-            length = thread_length_m(pitch_m, length_m)
-            pts = thread_profile_xy(diameter_m, pitch_m, internal=internal)
-            r = diameter_m / 2.0
-            self.begin_sketch("Front Plane")
-            self.draw_circle(0.0, 0.0, r)
-            self.end_sketch()
-            self.create_helix(pitch_m, height_m=length)
-            self.begin_sketch("Front Plane")
-            for i in range(3):
-                a, b = pts[i], pts[(i + 1) % 3]
-                self.sketch_line(a[0], a[1], b[0], b[1])
-            self.end_sketch()
-            cut = self.sweep_cut()
-            return FeatureInfo(name=cut.name, kind="thread")
+            std, std_name = COSMETIC_THREAD_INTERNAL if internal else COSMETIC_THREAD_EXTERNAL
+            side = "internal" if internal else "external"
+            spec_s = str(spec).strip() if spec else size_s
+            if edge is None:
+                selected = self._select_edges(doc, None)
+                if selected == 0:
+                    raise fail(
+                        "FEATURE_CREATE_FAILED",
+                        "No edge to attach cosmetic thread",
+                        "Pass edge from get_edges (prefer a circular rim)",
+                    )
+            else:
+                if self._select_edge_indexes(doc, [int(edge)]) == 0:
+                    raise fail(
+                        "SELECT_FAILED",
+                        f"Cannot select edge {edge}",
+                        "Check index with get_edges",
+                    )
+            try:
+                # InsertCosmeticThread3(standard, standardName, size, diameter, endCondition, depth, note)
+                # endCondition 0 = blind (probed SW2025)
+                feat = doc.FeatureManager.InsertCosmeticThread3(
+                    int(std),
+                    str(std_name),
+                    size_s,
+                    float(diameter_m),
+                    0,
+                    float(depth),
+                    "",
+                )
+            except Exception as exc:
+                log.debug("InsertCosmeticThread3 failed: %s", traceback.format_exc())
+                raise self._map_error(exc) from exc
+            finally:
+                try:
+                    doc.ClearSelection2(True)
+                except Exception:
+                    pass
+            if feat is None:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Cosmetic thread failed for size {size_s!r}",
+                    "Use a chart size (e.g. M10x1.5); select a circular edge on the cylinder/hole",
+                )
+            self._write_thread_props(doc, spec=spec_s, side=side, size=size_s)
+            real = self._feature_real_name(feat, "CosmeticThread")
+            return FeatureInfo(name=self._register("CosmeticThread", real), kind="cosmetic_thread")
+
+        return self._call(_fn, timeout=120.0)
+
+    def create_thread(
+        self,
+        size: str,
+        depth_m: float,
+        edge: int | None = None,
+        method: str = "cut",
+        internal: bool = False,
+        thread_type: str | None = None,
+        right_handed: bool = True,
+        diameter_m: float | None = None,
+        pitch_m: float | None = None,
+    ) -> FeatureInfo:
+        """SW2025 Thread Feature via CreateDefinition(swFmSweepThread) + CreateFeature (changes geometry)."""
+
+        def _fn() -> FeatureInfo:
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                raise fail(
+                    "NO_ACTIVE_DOCUMENT",
+                    "No active document",
+                    "Create a part first and extrude a cylinder or tube",
+                )
+            self._require_part_doc(doc, "Use a part document for thread feature")
+            if self._sketch_open:
+                raise fail(
+                    "SKETCH_OP_FAILED",
+                    "Sketch is still open; close it before creating a feature",
+                    "Call end_sketch, then create_thread",
+                )
+            size_s = str(size).strip()
+            if not size_s:
+                raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+            if depth_m <= 0:
+                raise fail("INVALID_ARGUMENT", "Thread depth must be positive", "Pass depth > 0")
+            method_s = str(method).strip().lower()
+            if method_s not in THREAD_METHODS:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Unknown thread method: {method!r}",
+                    f"method: {', '.join(THREAD_METHODS)}",
+                )
+            if diameter_m is not None and diameter_m <= 0:
+                raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+            if pitch_m is not None and pitch_m <= 0:
+                raise fail("INVALID_ARGUMENT", "Thread pitch must be positive", "Pass pitch > 0")
+            if not self._has_solid(doc):
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "No solid for thread feature",
+                    "Extrude a cylinder (external) or tube (internal), then create_thread",
+                )
+            type_s = (
+                str(thread_type).strip()
+                if thread_type
+                else (THREAD_PROFILE_INTERNAL if internal else THREAD_PROFILE_EXTERNAL)
+            )
+            if not type_s:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    "Thread type must be non-empty",
+                    "Pass thread_type e.g. Metric Die / Metric Tap, or a .SLDLFP path",
+                )
+            pool = self._part_edge_objects(doc)
+            if not pool:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "No edge to attach thread feature",
+                    "Pass edge from get_edges (prefer a circular rim)",
+                )
+            if edge is None:
+                edge_obj = pool[0]
+                edge_i = 0
+            else:
+                edge_i = int(edge)
+                if edge_i < 0 or edge_i >= len(pool):
+                    raise fail(
+                        "INVALID_ARGUMENT",
+                        f"Edge index out of range: {edge_i}",
+                        f"Use get_edges; valid range 0..{len(pool) - 1}",
+                        index=edge_i,
+                    )
+                edge_obj = pool[edge_i]
+            fm = doc.FeatureManager
+            try:
+                # Probed SW2025: CreateDefinition(87) → IThreadFeatureData with InitializeThreadData.
+                td = fm.CreateDefinition(int(SW_FM_SWEEP_THREAD))
+            except Exception as exc:
+                log.debug("CreateDefinition(swFmSweepThread) failed: %s", traceback.format_exc())
+                raise self._map_error(exc) from exc
+            if td is None:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "CreateDefinition(swFmSweepThread) returned None",
+                    "Confirm SolidWorks Thread Feature is licensed and Thread Profiles are configured",
+                )
+            try:
+                td.InitializeThreadData()
+                td.Edge = edge_obj
+                td.ThreadMethod = int(THREAD_METHOD_IDS[method_s])
+                td.EndCondition = int(SW_END_BLIND)
+                td.BlindDepth = float(depth_m)
+                td.RightHanded = bool(right_handed)
+                td.Type = type_s
+                td.Size = size_s
+                if diameter_m is not None:
+                    td.DiameterOverride = True
+                    td.Diameter = float(diameter_m)
+                if pitch_m is not None:
+                    td.PitchOverride = True
+                    td.Pitch = float(pitch_m)
+                feat = fm.CreateFeature(td)
+            except Exception as exc:
+                log.debug("ThreadFeature CreateFeature failed: %s", traceback.format_exc())
+                raise self._map_error(exc) from exc
+            finally:
+                try:
+                    doc.ClearSelection2(True)
+                except Exception:
+                    pass
+            if feat is None:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Thread feature failed for size {size_s!r} method={method_s}",
+                    "Use a Thread Profiles chart size (e.g. M10x1.5); select a circular rim; "
+                    "confirm Tools→Options→File Locations→Thread Profiles",
+                    edge=edge_i,
+                    method=method_s,
+                    thread_type=type_s,
+                )
+            real = self._feature_real_name(feat, "Thread")
+            return FeatureInfo(name=self._register("Thread", real), kind="thread")
 
         return self._call(_fn, timeout=180.0)
 

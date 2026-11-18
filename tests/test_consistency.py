@@ -30,7 +30,9 @@ def _load_golden(name: str) -> dict:
 
 @pytest.mark.parametrize("name", sorted(SEQUENCES))
 def test_fake_matches_golden(name: str, tmp_path: Path):
-    results = run_sequence(FakeBackend, SEQUENCES[name], workspace=tmp_path)
+    results = run_sequence(
+        FakeBackend, SEQUENCES[name], workspace=tmp_path, sequence_name=name
+    )
     diffs = diff_fingerprints(_load_golden(name), structural_fingerprint(results))
     assert not diffs, f"{name} mismatches golden structure:\n" + "\n".join(diffs)
 
@@ -38,7 +40,12 @@ def test_fake_matches_golden(name: str, tmp_path: Path):
 @pytest.mark.sw
 @pytest.mark.parametrize("name", sorted(SEQUENCES))
 def test_real_matches_golden(name: str, tmp_path: Path):
-    results = run_sequence(_com_factory_or_skip(), SEQUENCES[name], workspace=tmp_path)
+    results = run_sequence(
+        _com_factory_or_skip(),
+        SEQUENCES[name],
+        workspace=tmp_path,
+        sequence_name=name,
+    )
     diffs = diff_fingerprints(_load_golden(name), structural_fingerprint(results))
     assert not diffs, f"Real {name} vs golden (fix fake or golden):\n" + "\n".join(diffs)
 

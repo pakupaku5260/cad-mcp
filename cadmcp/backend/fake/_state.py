@@ -182,19 +182,26 @@ class _Doc:
         "component_local_bbox", "component_R", "component_local_faces", "component_local_edges",
         "nested_children", "nested_paths", "nested_local_origin", "nested_local_R",
         "component_lightweight",
+        "component_suppressed",
+        "component_flexible",
         "color",
         "material", "config_names", "active_config",
         "drawing_views", "drawing_model", "bom_inserted", "component_material", "bom_rows",
         "drawing_paper", "drawing_scale", "drawing_tolerances", "drawing_annotations",
         "drawing_sheets", "drawing_active_sheet", "title_block", "drawing_datums", "drawing_gdts",
+        "drawing_welds",
         "drawing_layers", "drawing_current_layer",
+        "drawing_dimensions", "drawing_toleranced", "drawing_tol_failed",
+        "custom_props",
         "exploded_views", "exploded",
         "dimensions", "equations", "planes", "axes",
+        "generation",
     )
 
     def __init__(self, title: str, path: Path | None = None, doc_type: str = "part") -> None:
         self.title = title
         self.doc_type = doc_type
+        self.generation = 1
         self.components: dict[str, str] = {}  # instance name -> part path (assembly only)
         self.instance_seq: dict[str, int] = {}  # file name -> inserted instance count
         self.mates: list[MateInfo] = []
@@ -211,6 +218,8 @@ class _Doc:
         self.nested_local_origin: dict[str, tuple[float, float, float]] = {}
         self.nested_local_R: dict[str, tuple] = {}
         self.component_lightweight: set[str] = set()
+        self.component_suppressed: set[str] = set()
+        self.component_flexible: set[str] = set()
         self.color: tuple[float, float, float] | None = None
         self.material = ""
         self.config_names: list[str] = ["Default"]
@@ -225,10 +234,15 @@ class _Doc:
         ]
         self.drawing_active_sheet: str = "Sheet1"
         self.title_block: dict[str, str] = {}
+        self.custom_props: dict[str, str] = {}
         self.drawing_datums: list[dict] = []
         self.drawing_gdts: list[dict] = []
+        self.drawing_welds: list[dict] = []
         self.drawing_layers: list[dict] = [{"name": "0", "color": 0}]
         self.drawing_current_layer: str = "0"
+        self.drawing_dimensions: list[str] = []
+        self.drawing_toleranced: set[str] = set()
+        self.drawing_tol_failed: list[str] = []
         self.exploded_views: list[str] = []
         self.exploded = False
         self.drawing_model: str | None = None

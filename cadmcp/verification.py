@@ -18,6 +18,9 @@ from cadmcp.result import (
     VerificationEvidence,
 )
 
+# Shared vocabulary for verify_model and DesignSpec.verify.groups (F10).
+VERIFY_GROUPS = ("geometry", "features", "mass_bbox", "assembly", "drawing")
+
 
 def build_mutation_verification(
     *,
@@ -79,6 +82,7 @@ def _finalize(
 
 
 __all__ = [
+    "VERIFY_GROUPS",
     "attach_file_evidence",
     "build_mutation_verification",
     "build_task_verification",

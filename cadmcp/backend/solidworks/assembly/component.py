@@ -43,6 +43,7 @@ from __future__ import annotations
 import logging
 import math
 import traceback
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +58,7 @@ from cadmcp.backend.protocol.parsers import component_name_keys, linear_pattern_
 from cadmcp.backend.protocol.validators import fail_if_component_mated
 from cadmcp.errors import fail
 
+from .._constants import _DELETE_ABSORBED, _DELETE_CHILDREN
 from .._helpers import _doc_type_for, _get
 
 log = logging.getLogger(__name__)
@@ -156,6 +158,8 @@ class ComponentMixin:
             origin_m=origin,
             bbox_m=bbox,
             lightweight=self._component_is_lightweight(comp),
+            suppressed=self._component_is_suppressed(comp),
+            flexible=self._component_is_flexible(comp),
         )
 
     # ---------- S6-3a-2: simple public methods ----------
@@ -186,6 +190,96 @@ class ComponentMixin:
                     component=name,
                 )
             return self._component_ref_of(comp, name)
+
+        return self._call(_fn)
+
+    def delete_component(self, name: str) -> None:
+        def _fn() -> None:
+            asm = self.sw.ActiveDoc
+            self._require_assembly_doc(asm, "Use new_assembly before deleting a component")
+            comp = self._component_by_name(asm, name)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {name!r}",
+                    "Instance name from insert_component return value",
+                    component=name,
+                )
+            if not self._select_component(asm, comp):
+                raise fail(
+                    "SELECT_FAILED",
+                    f"Cannot select component {name!r}",
+                    "Confirm the instance exists and no dialog is open",
+                    component=name,
+                )
+            try:
+                ok = bool(asm.Extension.DeleteSelection2(_DELETE_ABSORBED | _DELETE_CHILDREN))
+            except Exception as exc:
+                raise self._map_error(exc) from exc
+            finally:
+                try:
+                    asm.ClearSelection2(True)
+                except Exception:
+                    pass
+            if not ok:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Failed to delete component: {name!r}",
+                    "Delete mates first, or confirm the component is not locked",
+                    component=name,
+                )
+
+        return self._call(_fn)
+
+    def get_component_transform(self, name: str) -> list[float]:
+        def _fn() -> list[float]:
+            asm = self.sw.ActiveDoc
+            self._require_assembly_doc(asm, "Use new_assembly before reading a component transform")
+            comp = self._component_by_name(asm, name)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {name!r}",
+                    "Instance name from insert_component / list_components",
+                    component=name,
+                )
+            try:
+                xf = _get(comp, "Transform2")
+                raw = list(_get(xf, "ArrayData"))
+            except Exception as exc:
+                raise self._map_error(exc) from exc
+            vals = [float(v) for v in raw] + [0.0] * max(0, 16 - len(raw))
+            return vals[:16]
+
+        return self._call(_fn)
+
+    def set_component_transform(self, name: str, array16: Sequence[float]) -> None:
+        def _fn() -> None:
+            asm = self.sw.ActiveDoc
+            self._require_assembly_doc(asm, "Use new_assembly before writing a component transform")
+            comp = self._component_by_name(asm, name)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {name!r}",
+                    "Instance name from insert_component / list_components",
+                    component=name,
+                )
+            data = [float(v) for v in array16]
+            if len(data) < 16:
+                data = data + [0.0] * (16 - len(data))
+            self._unfix_component(asm, comp)
+            if not self._write_comp_transform(comp, data[:16]):
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Could not restore transform for {name!r}",
+                    "Delete mates first, or pass force=true on pose tools",
+                    component=name,
+                )
+            try:
+                _get(asm, "EditRebuild3")
+            except Exception:
+                log.debug("Post-set_component_transform rebuild failed: %s", traceback.format_exc())
 
         return self._call(_fn)
 
@@ -271,6 +365,8 @@ class ComponentMixin:
 
     def set_lightweight(self, name: str, lightweight: bool) -> str:
         def _fn() -> str:
+            from .._constants import _SW_COMP_LIGHTWEIGHT, _SW_COMP_RESOLVED
+
             doc = self.sw.ActiveDoc
             self._require_assembly_doc(doc, "Use new_assembly before changing lightweight state")
             raw = str(name).strip()
@@ -284,7 +380,14 @@ class ComponentMixin:
                     "Instance name from insert_component / list_components",
                     component=raw,
                 )
-            state = 1 if lightweight else 2  # LIGHTWEIGHT / RESOLVED
+            if self._component_is_suppressed(comp):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is suppressed: {raw!r}",
+                    "Call set_suppressed(..., suppressed=false) before set_lightweight",
+                    component=raw,
+                )
+            state = _SW_COMP_LIGHTWEIGHT if lightweight else _SW_COMP_RESOLVED
             try:
                 rc = int(_get(comp, "SetSuppression2", state))
             except Exception as exc:
@@ -294,6 +397,184 @@ class ComponentMixin:
                     "FEATURE_CREATE_FAILED",
                     "Failed to change component lightweight state",
                     "Confirm the instance is not suppressed and no modal dialog is blocking",
+                    component=raw,
+                )
+            return str(_get(comp, "Name2") or raw)
+
+        return self._call(_fn)
+
+    def set_suppressed(self, name: str, suppressed: bool) -> str:
+        def _fn() -> str:
+            from .._constants import _SW_COMP_RESOLVED, _SW_COMP_SUPPRESSED
+
+            doc = self.sw.ActiveDoc
+            self._require_assembly_doc(doc, "Use new_assembly before changing suppression")
+            raw = str(name).strip()
+            if not raw:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    "Component name cannot be empty",
+                    "Pass an instance name from list_components",
+                )
+            comp = self._component_by_name(doc, raw)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {raw!r}",
+                    "Instance name from insert_component / list_components",
+                    component=raw,
+                )
+            state = _SW_COMP_SUPPRESSED if suppressed else _SW_COMP_RESOLVED
+            try:
+                rc = int(_get(comp, "SetSuppression2", state))
+            except Exception as exc:
+                raise self._map_error(exc) from exc
+            if rc == 0 or self._component_is_suppressed(comp) != bool(suppressed):
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "Failed to change component suppression",
+                    "Confirm no modal dialog is blocking",
+                    component=raw,
+                )
+            return str(_get(comp, "Name2") or raw)
+
+        return self._call(_fn)
+
+    def replace_component(self, name: str, path: Path, config: str = "") -> ComponentRef:
+        def _fn() -> ComponentRef:
+            from .._constants import _REPLACE_MATCH_NAME
+
+            asm = self.sw.ActiveDoc
+            self._require_assembly_doc(asm, "Use new_assembly before replacing a component")
+            raw = str(name).strip()
+            if not raw:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    "Component name cannot be empty",
+                    "Pass an instance name from list_components",
+                )
+            comp = self._component_by_name(asm, raw)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {raw!r}",
+                    "Instance name from insert_component / list_components",
+                    component=raw,
+                )
+            if self._component_is_suppressed(comp):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is suppressed: {raw!r}",
+                    "Unsuppress before replace_component",
+                    component=raw,
+                )
+            p = Path(path)
+            if not p.is_absolute():
+                p = (Path.cwd() / p).resolve()
+            if not p.exists():
+                raise fail("OPEN_FAILED", f"Replacement file does not exist: {p}", "Confirm the path is correct")
+            if not self._select_component(asm, comp):
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Could not select component for replace: {raw!r}",
+                    "Confirm the instance is visible and not lightweight-only",
+                    component=raw,
+                )
+            try:
+                ok = bool(
+                    _get(
+                        asm,
+                        "ReplaceComponents2",
+                        str(p),
+                        str(config or ""),
+                        False,
+                        _REPLACE_MATCH_NAME,
+                        True,
+                    )
+                )
+            except Exception as exc:
+                raise self._map_error(exc) from exc
+            finally:
+                self._clear_selection(asm)
+            if not ok:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"Failed to replace component {raw!r}",
+                    "Confirm the replacement file is a compatible part/assembly and no modal dialog is blocking",
+                    component=raw,
+                )
+            try:
+                _get(asm, "EditRebuild3")
+            except Exception:
+                log.debug("Post-replace rebuild failed: %s", traceback.format_exc())
+            # SW typically renames to <newstem>-N; prefer path match, then old name.
+            for n, c in self._assembly_component_objs(asm, top_level_only=False):
+                try:
+                    cp = str(_get(c, "GetPathName") or "")
+                except Exception:
+                    cp = ""
+                if cp and Path(cp).resolve() == p.resolve():
+                    return self._component_ref_of(c, n, path=str(p))
+            replaced = self._component_by_name(asm, raw)
+            if replaced is not None:
+                return self._component_ref_of(replaced, raw, path=str(p))
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                f"Replace succeeded but component {raw!r} could not be re-resolved",
+                "Call list_components to inspect the new instance name",
+                component=raw,
+            )
+
+        return self._call(_fn)
+
+    def set_flexible(self, name: str, flexible: bool) -> str:
+        def _fn() -> str:
+            from .._constants import _SW_COMP_FLEXIBLE, _SW_COMP_RIGID
+
+            doc = self.sw.ActiveDoc
+            self._require_assembly_doc(doc, "Use new_assembly before changing flexible state")
+            raw = str(name).strip()
+            if not raw:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    "Component name cannot be empty",
+                    "Pass an instance name from list_components",
+                )
+            comp = self._component_by_name(doc, raw)
+            if comp is None:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component not found: {raw!r}",
+                    "Instance name from insert_component / list_components",
+                    component=raw,
+                )
+            if self._component_is_suppressed(comp):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is suppressed: {raw!r}",
+                    "Unsuppress before set_flexible",
+                    component=raw,
+                )
+            if not self._component_is_assembly(comp):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is not a subassembly: {raw!r}",
+                    "set_flexible only applies to .sldasm instances",
+                    component=raw,
+                )
+            solving = _SW_COMP_FLEXIBLE if flexible else _SW_COMP_RIGID
+            try:
+                if hasattr(comp, "SetSolving"):
+                    _get(comp, "SetSolving", solving)
+                else:
+                    comp.Solving = solving
+            except Exception as exc:
+                raise self._map_error(exc) from exc
+            if self._component_is_flexible(comp) != bool(flexible):
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "Failed to change subassembly flexible state",
+                    "Confirm SetSolving is available and no modal dialog is blocking",
                     component=raw,
                 )
             return str(_get(comp, "Name2") or raw)
@@ -423,6 +704,13 @@ class ComponentMixin:
                 "INVALID_ARGUMENT",
                 f"Component not found: {name!r}",
                 "Instance name from insert_component return value, e.g. p1-1",
+                component=name,
+            )
+        if self._component_is_suppressed(comp):
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {name!r}",
+                "Call set_suppressed(..., suppressed=false) before moving",
                 component=name,
             )
         if not force:

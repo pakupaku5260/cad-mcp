@@ -295,15 +295,40 @@ def test_call_is_reentrant_on_sta_thread(monkeypatch):
     assert backend._call(lambda: 42) == 42
 
 
-def test_call_maps_server_gone_to_sw_not_running(monkeypatch):
+def test_call_maps_server_gone_to_com_lost(monkeypatch):
     class _Gone(Exception):
         hresult = -2147417848  # RPC_E_DISCONNECTED
 
     backend = _real_call_backend(monkeypatch)
+    backend._had_session = True
     _serve_once(backend, "err", _Gone())
     with pytest.raises(CadMcpError) as exc:
         backend._call(lambda: None)
-    assert exc.value.code == "SW_NOT_RUNNING"
+    assert exc.value.code == "COM_LOST"
+    assert exc.value.side_effect is SideEffect.UNKNOWN  # mid-call: unknown side effects
+    assert backend._com_lost is True
+
+
+def test_call_maps_dead_proxy_attribute_error_to_com_lost(monkeypatch):
+    """pywin32 often raises AttributeError('SldWorks.Application.X') after Kill."""
+    backend = _real_call_backend(monkeypatch)
+    backend._had_session = True
+    _serve_once(backend, "err", AttributeError("SldWorks.Application.ActiveDoc"))
+    with pytest.raises(CadMcpError) as exc:
+        backend._call(lambda: None)
+    assert exc.value.code == "COM_LOST"
+    assert backend._com_lost is True
+
+
+def test_call_pre_dispatch_com_lost_is_none_side_effect(monkeypatch):
+    backend = _real_call_backend(monkeypatch)
+    backend._had_session = True
+    backend._com_lost = True
+    backend.sw = None
+    with pytest.raises(CadMcpError) as exc:
+        backend._call(lambda: None)
+    assert exc.value.code == "COM_LOST"
+    assert exc.value.side_effect is SideEffect.NONE
 
 
 def test_call_rejects_when_modal_dialog_present(monkeypatch):

@@ -309,6 +309,7 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
 
     # Selector v1 (W7): dual-handle query + GUI pick fallback (fake has no pick → empty list;
     # residual selection on real machine is adjudicated per step in W9 — factory pre-state reset should stay empty)
+    # F1.4: successful select steps carry additive ref_id (fake geometric signature for this box).
     "selector_refs": [
         ("new_part", {}),
         ("start_sketch", {"plane": "Front Plane"}),
@@ -316,9 +317,27 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
         ("end_sketch", {}),
         ("extrude", {"depth": 20}),
         ("get_entities", {}),
-        ("select_face", {"index": 0, "x": 20, "y": 20, "z": 0}),
+        (
+            "select_face",
+            {
+                "index": 0,
+                "x": 20,
+                "y": 20,
+                "z": 0,
+                "ref_id": "fake:20376d0d7a4c3f79949e87f01a8a5908",
+            },
+        ),
         ("select_face", {"index": 0, "x": 200, "y": 200, "z": 200}),
-        ("select_edge", {"index": 0, "x": 0, "y": 0, "z": 10}),
+        (
+            "select_edge",
+            {
+                "index": 0,
+                "x": 0,
+                "y": 0,
+                "z": 10,
+                "ref_id": "fake:e64595208e9fb3e7c31c570cfacf6c7f",
+            },
+        ),
         ("get_selection", {}),
     ],
 
@@ -395,5 +414,53 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
         ("export", {"path": "bad_ap.stl", "step_ap": 214}),
         ("export", {"path": "bad_q.step", "stl_quality": "fine"}),
         ("close_document", {"discard": True}),
+    ],
+
+    # STEP sidecar meta + controlled properties.
+    "export_meta": [
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 30, "y2": 20}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 8}),
+        (
+            "set_properties",
+            {
+                "entries": [
+                    {"key": "PartNo", "value": "META-1"},
+                    {"key": "Material", "value": "Steel"},
+                ]
+            },
+        ),
+        ("export", {"path": "meta.step", "step_ap": 214}),
+        ("close_document", {"discard": True}),
+    ],
+
+    # Serial export_batch (two parts).
+    "export_batch_basic": [
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 20, "y2": 20}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 5}),
+        ("save_document", {"path": "batch_a.sldprt"}),
+        ("close_document", {"discard": True}),
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 25, "y2": 15}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 6}),
+        ("save_document", {"path": "batch_b.sldprt"}),
+        ("close_document", {"discard": True}),
+        (
+            "export_batch",
+            {
+                "items": [
+                    {"path": "batch_a.sldprt", "out": "batch_a.step", "step_ap": 214},
+                    {"path": "batch_b.sldprt", "out": "batch_b.step", "step_ap": 203},
+                ],
+                "overwrite": True,
+            },
+        ),
     ],
 }

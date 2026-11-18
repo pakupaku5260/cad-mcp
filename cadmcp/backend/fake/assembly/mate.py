@@ -68,6 +68,9 @@ class FakeAssemblyMateMixin:
         "angle": ("Angle", "Angle"),
         "tangent": ("Tangent", "Tangent"),
         "screw": ("Screw", "Screw"),
+        "gear": ("Gear", "Gear"),
+        "width": ("Width", "Width"),
+        "cam": ("Cam", "Cam"),
     }
 
     def _init_state(self) -> None:
@@ -128,15 +131,45 @@ class FakeAssemblyMateMixin:
     # ---------- Mate common path ----------
 
     def _mate(
-        self, mate_type: str, entity1: str, entity2: str, align: str | None = None
+        self,
+        mate_type: str,
+        entity1: str,
+        entity2: str,
+        align: str | None = None,
+        *,
+        entity3: str | None = None,
     ) -> MateInfo:
         """Mate common path: check order matches com_backend._mate_common (isomorphic errors)."""
+        from cadmcp.backend.protocol.parsers import parse_mate_ref
+
         doc = self._require_assembly("Create an assembly with new_assembly, then add mates")
-        ref1, ref2 = parse_mate_pair(entity1, entity2)
+        ref1, ref2 = parse_mate_pair(
+            entity1, entity2, allow_same_component=entity3 is not None
+        )
+        ref3 = parse_mate_ref(entity3) if entity3 is not None else None
+        if (
+            ref3 is not None
+            and ref1.component == ref2.component
+            and ref3.component == ref1.component
+        ):
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Width tab entity3 must be on a different component than {ref1.component!r}",
+                "entity1/entity2 are the width faces; entity3 is the tab on the other part",
+            )
         resolve_mate_align(align, mate_type)
+        comps = [ref1.component, ref2.component] + ([ref3.component] if ref3 is not None else [])
+        for c in comps:
+            if c in doc.component_suppressed:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is suppressed: {c!r}",
+                    "Call set_suppressed(..., suppressed=false) before mating or moving",
+                    component=c,
+                )
         known = set(doc.components) | set(doc.nested_paths)
         missing = [
-            c for c in (ref1.component, ref2.component)
+            c for c in comps
             if c not in known and not any(
                 component_name_keys(c) & component_name_keys(k) for k in known
             )
@@ -148,16 +181,29 @@ class FakeAssemblyMateMixin:
                 "Component instance from insert_component; face/edge indexes from get_component_faces / get_component_edges",
             )
         prefix, label = self._MATE_LABELS[mate_type]
+        refs = [ref1, ref2] + ([ref3] if ref3 is not None else [])
         kinds = []
-        for ref in (ref1, ref2):
+        for ref in refs:
             if ref.kind == "plane":
                 kinds.append("plane")
             elif ref.kind == "edge":
                 kinds.append(self._edge_kind(doc, ref))
             else:
                 kinds.append(self._face_kind(doc, ref))
-        if mate_type in ("concentric", "screw"):
-            allowed = kinds in (["cylinder", "cylinder"], ["circle", "circle"])
+        if mate_type in ("concentric", "screw", "gear"):
+            allowed = kinds[:2] in (["cylinder", "cylinder"], ["circle", "circle"]) and (
+                mate_type != "gear" or len(kinds) == 2
+            )
+        elif mate_type == "width":
+            # Two bounding faces + tab face/edge; planes or planar faces.
+            allowed = len(kinds) == 3 and kinds[0] in ("plane",) and kinds[1] in ("plane",)
+        elif mate_type == "cam":
+            # Unreachable via mate_cam (S0 refuses native claim); keep kind gate for shared _mate.
+            allowed = (
+                len(kinds) == 2
+                and kinds[0] == "cylinder"
+                and kinds[1] in ("plane", "cylinder")
+            )
         elif mate_type == "coincident":
             allowed = kinds in (["plane", "plane"], ["circle", "circle"])
         else:
@@ -172,10 +218,11 @@ class FakeAssemblyMateMixin:
         info = MateInfo(
             name=f"{prefix}{n}",
             mate_type=mate_type,
-            components=(ref1.component, ref2.component),
+            components=tuple(comps),
         )
         doc.mates.append(info)
-        self._solve_mate(doc, mate_type, ref1, ref2, align)
+        if mate_type not in ("gear", "width", "cam"):
+            self._solve_mate(doc, mate_type, ref1, ref2, align)
         doc.modified = True
         return info
 
@@ -405,6 +452,101 @@ class FakeAssemblyMateMixin:
         if pitch_m <= 0:
             raise fail("INVALID_ARGUMENT", "Pitch must be positive", "Pass pitch > 0")
         return self._mate("screw", entity1, entity2, align)
+
+    def mate_gear(
+        self,
+        entity1: str,
+        entity2: str,
+        ratio_num: int,
+        ratio_den: int,
+        align: str | None = None,
+    ) -> MateInfo:
+        self._enter(
+            "mate_gear",
+            entity1=entity1,
+            entity2=entity2,
+            ratio_num=ratio_num,
+            ratio_den=ratio_den,
+            align=align,
+        )
+        if int(ratio_num) <= 0 or int(ratio_den) <= 0:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Gear ratio numerator and denominator must be positive integers",
+                "Pass ratio_num > 0 and ratio_den > 0",
+            )
+        return self._mate("gear", entity1, entity2, align)
+
+    def mate_width(
+        self,
+        entity1: str,
+        entity2: str,
+        entity3: str,
+        align: str | None = None,
+    ) -> MateInfo:
+        self._enter(
+            "mate_width",
+            entity1=entity1,
+            entity2=entity2,
+            entity3=entity3,
+            align=align,
+        )
+        return self._mate("width", entity1, entity2, align, entity3=entity3)
+
+    def mate_cam(
+        self, entity1: str, entity2: str, align: str | None = None
+    ) -> MateInfo:
+        """Validate refs/kinds only — do not invent a native cam mate (CAM-02 BLOCKED / S0)."""
+        self._enter("mate_cam", entity1=entity1, entity2=entity2, align=align)
+        # Run shared validation (doc/assembly/entities/kinds) without recording a mate.
+        # Wrong kinds → same FEATURE_CREATE_FAILED status 2 as COM; valid kinds → status 0
+        # matching CreateMate returning None on SW2025 (not a Fake success).
+        doc = self._require_assembly("Create an assembly with new_assembly, then add mates")
+        ref1, ref2 = parse_mate_pair(entity1, entity2)
+        resolve_mate_align(align, "cam")
+        for c in (ref1.component, ref2.component):
+            if c in doc.component_suppressed:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Component is suppressed: {c!r}",
+                    "Call set_suppressed(..., suppressed=false) before mating or moving",
+                    component=c,
+                )
+        known = set(doc.components) | set(doc.nested_paths)
+        for c in (ref1.component, ref2.component):
+            if c not in known and not any(
+                component_name_keys(c) & component_name_keys(k) for k in known
+            ):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Could not select mate entities ({entity1!r} / {entity2!r}): Component not found: {c}",
+                    "Component instance from insert_component; face/edge indexes from get_component_faces / get_component_edges",
+                )
+        kinds: list[str] = []
+        for ref in (ref1, ref2):
+            if ref.kind == "plane":
+                kinds.append("plane")
+            elif ref.kind == "edge":
+                kinds.append(self._edge_kind(doc, ref))
+            else:
+                kinds.append(self._face_kind(doc, ref))
+        allowed = (
+            len(kinds) == 2
+            and kinds[0] == "cylinder"
+            and kinds[1] in ("plane", "cylinder")
+        )
+        if not allowed:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "Failed to create Cam mate (status code 2)",
+                mate_need_hint("cam", kinds),
+            )
+        raise fail(
+            "FEATURE_CREATE_FAILED",
+            "Failed to create cam mate (status code 0)",
+            "Cam follower mate is BLOCKED on SolidWorks 2025 COM (CAM-02); "
+            "Fake does not invent a native cam feature — see docs/internal/cam-capability-matrix.md",
+        )
 
     def list_mates(self) -> list[MateInfo]:
         self._enter("list_mates")

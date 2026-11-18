@@ -39,3 +39,17 @@ jobs:
         env:
           PYTHONPATH: "."
         run: python scripts/tool_inventory.py --check
+
+      - name: Token budget (strict)
+        env:
+          PYTHONPATH: "."
+          PYTHONUTF8: "1"
+          PYTHONIOENCODING: "utf-8"
+        run: python scripts/token_report.py --strict
+
+      - name: Bench (numeric regression)
+        env:
+          PYTHONPATH: "."
+          PYTHONUTF8: "1"
+          PYTHONIOENCODING: "utf-8"
+        run: python scripts/bench.py

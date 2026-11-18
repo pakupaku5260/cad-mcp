@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 
+from cadmcp.assembly_dof import assess, not_applicable_payload
 from cadmcp.backend.protocol.constants import POSE_PIVOTS, REVOLVE_AXES
 from cadmcp.backend.protocol.parsers import linear_pattern_offset_m, mate_entity_to_si
 from cadmcp.errors import fail
@@ -74,6 +75,8 @@ def _pose_payload(ref, uc: UnitContext) -> dict:
         "origin": list(uc.tuple_from_m(origin)),
         "bbox": list(uc.tuple_from_m(bbox)),
         "lightweight": bool(getattr(ref, "lightweight", False)),
+        "suppressed": bool(getattr(ref, "suppressed", False)),
+        "flexible": bool(getattr(ref, "flexible", False)),
     }
 
 
@@ -149,6 +152,16 @@ def get_component(ctx: OpContext, component: str, unit: str = "mm") -> dict:
 def set_lightweight(ctx: OpContext, component: str, lightweight: bool) -> dict:
     name = ctx.backend.set_lightweight(component, lightweight)
     return {"component": name, "lightweight": bool(lightweight)}
+
+
+def set_suppressed(ctx: OpContext, component: str, suppressed: bool) -> dict:
+    name = ctx.backend.set_suppressed(component, suppressed)
+    return {"component": name, "suppressed": bool(suppressed)}
+
+
+def set_flexible(ctx: OpContext, component: str, flexible: bool) -> dict:
+    name = ctx.backend.set_flexible(component, flexible)
+    return {"component": name, "flexible": bool(flexible)}
 
 
 def _explode_payload(name: str | None, names: list[str], exploded: bool) -> dict:
@@ -296,7 +309,17 @@ def check_interference(
     }
 
 
-MATE_TYPES = ("concentric", "coincident", "distance", "angle", "tangent", "screw")
+MATE_TYPES = (
+    "concentric",
+    "coincident",
+    "distance",
+    "angle",
+    "tangent",
+    "screw",
+    "gear",
+    "width",
+    "cam",
+)
 
 
 def mate(
@@ -307,6 +330,9 @@ def mate(
     distance: float | None = None,
     angle_deg: float | None = None,
     pitch: float | None = None,
+    ratio_num: int | None = None,
+    ratio_den: int | None = None,
+    entity3: str | None = None,
     align: str | None = None,
     unit: str = "mm",
 ) -> dict:
@@ -316,10 +342,21 @@ def mate(
             f"Unknown mate type: {type}",
             f"Use: {', '.join(MATE_TYPES)}",
         )
-    allowed = {"distance": {"distance"}, "angle": {"angle_deg"}, "screw": {"pitch"}}
+    allowed = {
+        "distance": {"distance"},
+        "angle": {"angle_deg"},
+        "screw": {"pitch"},
+        "gear": {"ratio_num", "ratio_den"},
+        "width": {"entity3"},
+    }
     keep = allowed.get(type, set())
     for name, value in (
-        ("distance", distance), ("angle_deg", angle_deg), ("pitch", pitch)
+        ("distance", distance),
+        ("angle_deg", angle_deg),
+        ("pitch", pitch),
+        ("ratio_num", ratio_num),
+        ("ratio_den", ratio_den),
+        ("entity3", entity3),
     ):
         if name not in keep and value is not None:
             raise fail(
@@ -345,19 +382,103 @@ def mate(
         info = ctx.backend.mate_angle(e1, e2, math.radians(angle_deg), align)
     elif type == "tangent":
         info = ctx.backend.mate_tangent(e1, e2, align)
-    else:  # screw
+    elif type == "screw":
         if pitch is None:
             raise fail("INVALID_ARGUMENT", "screw mate requires pitch", "Pass pitch > 0")
         if pitch <= 0:
             raise fail("INVALID_ARGUMENT", "Pitch must be positive", "Pass pitch > 0")
         info = ctx.backend.mate_screw(e1, e2, uc.to_m(pitch), align)
+    elif type == "gear":
+        if ratio_num is None or ratio_den is None:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "gear mate requires ratio_num and ratio_den",
+                "Pass positive integers for the tooth ratio",
+            )
+        info = ctx.backend.mate_gear(e1, e2, int(ratio_num), int(ratio_den), align)
+    elif type == "width":
+        if not entity3:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "width mate requires entity3",
+                "Pass two width faces (entity1/2) and the tab face/edge (entity3)",
+            )
+        e3 = _si_entity(ctx, entity3, unit)
+        info = ctx.backend.mate_width(e1, e2, e3, align)
+    else:  # cam
+        info = ctx.backend.mate_cam(e1, e2, align)
 
     payload = _mate_payload(info)
     if type in {"distance", "screw"}:
         payload["unit"] = uc.external_unit
     elif type == "angle":
         payload["angle_deg"] = angle_deg
+    elif type == "gear":
+        payload["ratio_num"] = int(ratio_num)
+        payload["ratio_den"] = int(ratio_den)
     return payload
+
+
+def replace_component(
+    ctx: OpContext, component: str, path: str, config: str = ""
+) -> dict:
+    resolved = ensure_input_path(path, roots=ctx.workspace, extensions=_COMP_EXTS)
+    ref = ctx.backend.replace_component(component, resolved, config=config or "")
+    return {
+        "name": ref.name,
+        "path": ref.path,
+        "replaced": True,
+        "config": config or "",
+    }
+
+
+_CHECK_DOF_DESCRIPTION = (
+    "Heuristic assembly DOF estimate from component count and mate-type weights "
+    "(lower bound; not a SolidWorks DOF solver). Read-only; does not call "
+    "verify_model or bump state_version. Non-assembly documents return "
+    "status=not_applicable without listing mates/components. "
+    "Returns verification, dof_estimate, assembly_order, mates, "
+    "unknown_mate_types, assumptions, risk. "
+    "Read cadmcp://help/assembly_dof before interpreting the estimate."
+)
+
+
+def _dispatch_payload(ctx: OpContext, name: str, args: dict | None = None) -> dict | None:
+    if ctx.dispatch is None:
+        return None
+    result = ctx.dispatch(name, args or {})
+    if not result.ok or result.result is None:
+        return None
+    return result.result
+
+
+def check_assembly_dof(ctx: OpContext) -> dict:
+    """Readonly heuristic DOF report for the active assembly."""
+    active = _dispatch_payload(ctx, "get_active_document", {})
+    if active is None or active.get("doc_type") != "assembly":
+        return not_applicable_payload(
+            reason="active document is missing or not an assembly",
+        )
+
+    components_payload = _dispatch_payload(ctx, "list_components", {})
+    mates_payload = _dispatch_payload(ctx, "list_mates", {})
+    if components_payload is None or mates_payload is None:
+        return not_applicable_payload(
+            reason="list_components or list_mates fact unavailable",
+        )
+
+    names = [
+        str(item.get("name") or "")
+        for item in (components_payload.get("components") or [])
+        if item.get("name")
+    ]
+    mates = list(mates_payload.get("mates") or [])
+    if not names:
+        payload = not_applicable_payload(reason="assembly has no components")
+        # Empty assembly: keep not_applicable; verification stays unverified.
+        return payload
+
+    return assess(names, mates)
 
 
 ASSEMBLY_SPECS: list[ToolSpec] = [
@@ -396,11 +517,8 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         name="move_component",
         toolset="assembly",
         description=(
-            "Move an assembly component so its part origin sits at x,y,z "
-            "(assembly coordinates). relative=true adds x,y,z to the current origin. "
-            "Fails with FEATURE_CREATE_FAILED if the instance already has mates; "
-            "delete_mate first, or pass force=true to write the transform anyway. "
-            "Fixed (grounded) instances are unfixed."
+            "Move component origin to x,y,z (asm coords); relative=true adds offset. "
+            "Mated → force=true; grounded instances are unfixed."
         ),
         input_schema=make_schema(
             {
@@ -429,10 +547,8 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         name="rotate_component",
         toolset="assembly",
         description=(
-            "Rotate an assembly component about a model axis (degrees). "
-            "Relative by default; absolute=true replaces the 3x3 from identity and keeps translation. "
-            "about=origin (default) through the part origin; about=world through (0,0,0). "
-            "pivot=[x,y,z] overrides about. Fails if the instance has mates unless force=true."
+            "Rotate component about axis (deg). relative default; absolute resets 3x3. "
+            "about=origin|world; pivot=[x,y,z] overrides. Mated → force=true."
         ),
         input_schema=make_schema(
             {
@@ -512,15 +628,45 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
     ToolSpec(
         name="set_lightweight",
         toolset="assembly",
-        description="Set a component lightweight or fully resolved (SetSuppression2). Does not suppress.",
+        description="Lightweight or fully resolve a component (not suppress).",
         input_schema=make_schema(
             {
-                "component": {"type": "string", "description": "Instance name from list_components."},
-                "lightweight": {"type": "boolean", "description": "true=lightweight, false=fully resolved."},
+                "component": {"type": "string"},
+                "lightweight": {"type": "boolean"},
             },
             ["component", "lightweight"],
         ),
         handler=set_lightweight,
+        mutating=True,
+        timeout_class="slow",
+    ),
+    ToolSpec(
+        name="set_suppressed",
+        toolset="assembly",
+        description="Suppress or fully resolve a component (not lightweight).",
+        input_schema=make_schema(
+            {
+                "component": {"type": "string"},
+                "suppressed": {"type": "boolean"},
+            },
+            ["component", "suppressed"],
+        ),
+        handler=set_suppressed,
+        mutating=True,
+        timeout_class="slow",
+    ),
+    ToolSpec(
+        name="set_flexible",
+        toolset="assembly",
+        description="Set subassembly flexible/rigid; parts rejected.",
+        input_schema=make_schema(
+            {
+                "component": {"type": "string"},
+                "flexible": {"type": "boolean"},
+            },
+            ["component", "flexible"],
+        ),
+        handler=set_flexible,
         mutating=True,
         timeout_class="slow",
     ),
@@ -666,20 +812,21 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         name="mate",
         toolset="assembly",
         description=(
-            "Create a mate between two entities. type=concentric|coincident|distance|"
-            "angle|tangent|screw. Entities: '#face:N', '#edge:N', '#cylinder:N', "
-            "'#cone:N', '#circle:N' (optional ':x,y,z'), or 'Top Plane@component'. "
-            "distance (length) only for distance, angle_deg only for angle, "
-            "pitch (length per revolution) only for screw."
+            "Mate: concentric|coincident|distance|angle|tangent|screw|gear|width|cam. "
+            "Refs '#face:N'/'#cylinder:N'. gear:ratio_*; width:entity3; "
+            "cam=BLOCKED on SW2025 COM (may FEATURE_CREATE_FAILED)."
         ),
         input_schema=make_schema(
             {
                 "type": {"type": "string", "enum": list(MATE_TYPES)},
                 "entity1": {"type": "string"},
                 "entity2": {"type": "string"},
+                "entity3": {"type": "string", "description": "Width tab face/edge."},
                 "distance": {"type": "number", "exclusiveMinimum": 0},
                 "angle_deg": {"type": "number"},
                 "pitch": {"type": "number", "exclusiveMinimum": 0},
+                "ratio_num": {"type": "integer", "exclusiveMinimum": 0},
+                "ratio_den": {"type": "integer", "exclusiveMinimum": 0},
                 "align": {"type": "string", "enum": _ALIGN_ENUM, "description": _ALIGN_DESC},
                 "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
             },
@@ -687,6 +834,22 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         ),
         handler=mate,
         mutating=True,
+    ),
+    ToolSpec(
+        name="replace_component",
+        toolset="assembly",
+        description="Replace instance with another .sldprt/.sldasm; name becomes <stem>-N.",
+        input_schema=make_schema(
+            {
+                "component": {"type": "string"},
+                "path": {"type": "string"},
+                "config": {"type": "string"},
+            },
+            ["component", "path"],
+        ),
+        handler=replace_component,
+        mutating=True,
+        timeout_class="slow",
     ),
     ToolSpec(
         name="list_mates",
@@ -731,5 +894,16 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         handler=check_interference,
         mutating=False,
         timeout_class="slow",
+    ),
+    ToolSpec(
+        name="check_assembly_dof",
+        toolset="assembly",
+        description=_CHECK_DOF_DESCRIPTION,
+        input_schema=make_schema({}),
+        handler=check_assembly_dof,
+        mutating=False,
+        bypass_queue=True,
+        timeout_class="fast",
+        layer="domain",
     ),
 ]

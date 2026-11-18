@@ -1444,6 +1444,7 @@ scope:
   - unit_test
   - com_real_machine
   - baseline_compare
+  notes: replaced by ModifyMixin.insert_cosmetic_thread (2026-11-16 baseline-change)
 - id: M-0161
   original: com_backend.py:ComBackend.delete_feature
   category: method
@@ -3526,7 +3527,7 @@ scope:
   - baseline_compare
 - id: M-0379
   original: fake_backend.py:FakeBackend.insert_thread
-  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.insert_thread
+  planned_target: cadmcp.backend.fake.features.helix.FakeHelixMixin.insert_cosmetic_thread
   category: thread
   public: true
   coverage_type: fake_only
@@ -3534,6 +3535,7 @@ scope:
   - unit_test
   - fake_verification
   - baseline_compare
+  notes: replaced by FakeHelixMixin.insert_cosmetic_thread (2026-11-16 baseline-change)
 - id: M-0380
   original: fake_backend.py:FakeBackend.delete_feature
   planned_target: cadmcp.backend.fake.features.manage.FakeFeatureManageMixin.delete_feature

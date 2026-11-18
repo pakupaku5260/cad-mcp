@@ -1,0 +1,58 @@
+{
+  "sequence": "verify_empty_body",
+  "steps": [
+    {
+      "tool": "new_part",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "configuration",
+        "doc_type",
+        "epoch",
+        "modified",
+        "path",
+        "saved",
+        "title",
+        "units"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "verify_model",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "doc_type",
+        "fingerprint",
+        "groups_run",
+        "skipped_groups",
+        "unit",
+        "verification"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 1,
+      "warning_count": 0
+    },
+    {
+      "tool": "close_document",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "closed",
+        "discarded",
+        "title"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 2,
+      "warning_count": 0
+    }
+  ]
+}

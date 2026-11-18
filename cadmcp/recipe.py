@@ -12,6 +12,9 @@ from cadmcp.errors import fail
 from cadmcp.kernel import Kernel
 from cadmcp.result import OpResult
 
+# Shared with DesignSpec feature.assert (F10); keep a single vocabulary.
+ASSERT_KEYS = frozenset({"ok", "error_code", "result_keys", "delta_changed"})
+
 
 def load_recipe(path: Path) -> dict[str, Any]:
     if not path.is_file():
@@ -45,8 +48,8 @@ def load_recipe(path: Path) -> dict[str, Any]:
     return data
 
 
-def _check_assert(step_index: int, assertion: dict[str, Any], result: OpResult) -> str | None:
-    """Return failure reason; None means pass."""
+def check_assert(assertion: dict[str, Any], result: OpResult) -> str | None:
+    """Return failure reason; None means pass. Shared by recipe replay and design_run."""
     if "ok" in assertion and bool(assertion["ok"]) != result.ok:
         return f"ok expected {assertion['ok']!r} got {result.ok!r}"
     if "error_code" in assertion:
@@ -86,7 +89,7 @@ def replay_recipe(kernel: Kernel, recipe: dict[str, Any]) -> dict[str, Any]:
         }
         assertion = step.get("assert")
         if isinstance(assertion, dict) and assertion:
-            reason = _check_assert(i, assertion, result)
+            reason = check_assert(assertion, result)
             entry["assert_ok"] = reason is None
             if reason is not None:
                 entry["assert_detail"] = reason
@@ -121,4 +124,10 @@ def compare_replays(a: dict[str, Any], b: dict[str, Any]) -> list[str]:
     return diffs
 
 
-__all__ = ["compare_replays", "load_recipe", "replay_recipe"]
+__all__ = [
+    "ASSERT_KEYS",
+    "check_assert",
+    "compare_replays",
+    "load_recipe",
+    "replay_recipe",
+]

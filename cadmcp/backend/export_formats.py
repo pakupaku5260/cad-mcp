@@ -66,8 +66,9 @@ def ensure_doc_type(fmt: str, doc_type: str) -> None:
         )
 
 
-# EXP3: STEP AP / STL quality. AP242 still writes AP203 on SW2025 local probe, so not exposed.
-STEP_AP_ALLOWED: frozenset[int] = frozenset({203, 214})
+# STEP AP: 203/214 via SaveAs3 + preference; 242 via PublishSTEP242File (MBD) only.
+STEP_AP_ALLOWED: frozenset[int] = frozenset({203, 214, 242})
+STEP_AP_DEFAULT: int = 214
 STL_QUALITY_CODES: dict[str, int] = {"coarse": 1, "fine": 2}
 
 
@@ -90,7 +91,7 @@ def validate_export_options(
             raise fail(
                 "INVALID_ARGUMENT",
                 f"Unsupported STEP AP: {step_ap}",
-                "step_ap must be 203 or 214",
+                "step_ap must be 203, 214, or 242",
                 step_ap=step_ap,
             )
     if stl_quality is not None:

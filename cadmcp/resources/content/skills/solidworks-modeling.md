@@ -5,7 +5,7 @@ description: Part modeling stop conditions, first checks, common errors, and for
 
 # SolidWorks modeling
 
-Use this skill for single-part prismatic / revolved / loft / sheet-metal work.
+Use this skill for single-part prismatic/revolved/loft/sheet-metal work.
 Read `cadmcp://help/workflow` for the canonical call order; do not invent parallel APIs.
 
 Default server profile is `part` (`cadmcp serve` / install). If a needed tool is missing from
@@ -47,10 +47,10 @@ Retry a mutation only when `error.side_effect == "none"`. If `applied`, re-read 
 
 ## Forbidden
 
-- Do not call Toolbox / native `InsertThread` / bolt generators — not available.
+- Do not call Toolbox / bolt generators — not available. Do not call a member named `InsertThread` (absent); use `create_thread`.
 - Do not use `thin` together with `up_to_surface` / `up_to_next` / `up_to_vertex`.
 - Do not put non-zero `z`/`cz` on a 2D sketch; use `start_sketch(plane=3D)` for 3D paths.
-- Do not treat approximate `insert_thread` as a tolerance-class standard thread.
+- For geometry threads use `create_thread` (cut/extrude Thread Feature). For callouts only use `insert_cosmetic_thread` + `THREAD_*`, or insert a library fastener.
 - Do not write unimplemented tool names into plans; check `help` topic `limits`.
 - Do not reuse face/edge indexes after mutations without re-fetching coords.
 - Do not expect sketch sizes in `list_dimensions` without `add_sketch_dimension`.

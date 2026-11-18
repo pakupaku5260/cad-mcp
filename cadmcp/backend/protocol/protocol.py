@@ -38,6 +38,14 @@ class CADBackend(Protocol):
         """SolidWorks version string, e.g. '33.0' (SW2025)."""
         ...
 
+    def reattach(self) -> dict:
+        """Rebuild COM connection after COM_LOST without restarting the server process.
+
+        Must not auto-reopen documents. Returns keys such as reattached /
+        unsaved_at_disconnect. Raises SW_NOT_RUNNING / COM_ATTACH_FAILED / COM_LOST on failure.
+        """
+        ...
+
     # --- Document domain ---
     def new_part(self, template: str | None = None) -> DocInfo: ...
 
@@ -49,12 +57,20 @@ class CADBackend(Protocol):
         """Save to a sandbox-validated path. Default no-overwrite policy is enforced by the tool gate."""
         ...
 
+    def save_copy_as(self, path: Path) -> None:
+        """Write a checkpoint copy without changing the active document path/title (SaveAsCopy)."""
+        ...
+
     def close_document(self, discard: bool) -> None:
         """Close the active document. Unsaved-change prompts are handled by the tool layer; the backend must not repeat that logic.
         The backend must ensure the document is actually closed on return, or raise CadMcpError."""
         ...
 
     def active_document(self) -> DocInfo | None: ...
+
+    def list_open_documents(self) -> list[DocInfo]:
+        """Snapshot of currently open documents (order not significant to callers; tools sort stably)."""
+        ...
 
     def list_configurations(self) -> tuple[str, list[str]]:
         """(active configuration name, all configuration names). Parts/assemblies only; drawings raise INVALID_ARGUMENT."""
@@ -70,6 +86,18 @@ class CADBackend(Protocol):
 
     def set_material(self, name: str) -> tuple[str, str]:
         """Set material on the active part configuration by grade name."""
+        ...
+
+    def set_properties(self, props: dict[str, str]) -> dict:
+        """Write part/assembly custom properties (active configuration). Returns keys written."""
+        ...
+
+    def get_properties(self, keys: list[str] | None = None) -> dict:
+        """Read part/assembly custom properties; default controlled key set when keys omitted."""
+        ...
+
+    def mbd_step242_available(self) -> bool:
+        """True when PublishSTEP242File / SOLIDWORKS MBD is available for AP242 export."""
         ...
 
     def new_drawing(self, template: str | None = None) -> DocInfo:
@@ -163,6 +191,24 @@ class CADBackend(Protocol):
         """Insert GD&T frame (DRW3 L3-C). symbol per GDT_SYMBOLS; edge same as insert_datum."""
         ...
 
+    def insert_weld_symbol(
+        self,
+        symbol: str,
+        x_m: float = 0.1,
+        y_m: float = 0.1,
+        edge: int | None = None,
+    ) -> str:
+        """Insert weld symbol (subset WELD_SYMBOLS). COM: InsertWeldSymbol3 + SetText; edge preselect like datum."""
+        ...
+
+    def get_weld_annotations(self) -> list[dict]:
+        """Enumerate drawing weld annotations (GetType==WELD_ANNOTATION_TYPE). No semantic GetText."""
+        ...
+
+    def inspect_weld_symbol(self, index: int = 0) -> dict:
+        """Semantic readback for weld at index via GetSpecificAnnotation + GetText(1..9)."""
+        ...
+
     def export_document(
         self,
         path: Path,
@@ -170,9 +216,10 @@ class CADBackend(Protocol):
         *,
         step_ap: int | None = None,
         stl_quality: str | None = None,
-    ) -> None:
+    ) -> dict:
         """Export the active document to a validated path. fmt: step/stl (part/assembly) or pdf/dxf (drawing).
-        Optional step_ap (203/214) and stl_quality (coarse/fine). Export is copy semantics."""
+        Optional step_ap (203/214/242) and stl_quality (coarse/fine). Export is copy semantics.
+        Returns ``{step_ap?, export_path?, stl_quality?}`` with ring-3 verified step_ap when fmt=step."""
         ...
 
     def get_bom(self) -> tuple[str, list[BomRow]]:
@@ -529,7 +576,7 @@ class CADBackend(Protocol):
         flip: bool = False,
     ) -> FeatureInfo:
         """Mold parting line. pull_face is get_faces index (pull direction); edges from get_edges;
-        omit for all edges (box probe). flip reverses pull."""
+        omit edges = boundary loop of pull_face (not all solid edges). flip reverses pull."""
         ...
 
     def parting_surface(
@@ -541,12 +588,32 @@ class CADBackend(Protocol):
         knit: bool = False,
     ) -> FeatureInfo:
         """Mold parting surface. Omit parting_line for latest MoldPartingLine.
-        radiate=True radiates by offset_m; knit stitches result sheets."""
+        Live: prefer radiate=True with offset_m>0 after a closed-loop parting_line.
+        Live success requires MoldPartingGeom in the feature tree (not COM ghost alone)."""
         ...
 
     def shut_off_surface(self, edges: Sequence[int] | None = None) -> FeatureInfo:
         """Mold shut-off surface. Requires parting_line; edges from get_edges;
         omit for all edges (box probe). Return marshaling often fails—trust feature tree."""
+        ...
+
+    def tooling_split(
+        self,
+        sketch: str | None = None,
+        *,
+        depth1_m: float = 0.1,
+        depth2_m: float = 0.1,
+        setback: bool = False,
+        angle_rad: float = 0.05235987755982989,
+        core_sheet: str | None = None,
+        cavity_sheet: str | None = None,
+        parting_sheet: str | None = None,
+    ) -> FeatureInfo:
+        """Mold tooling split (GUI 切削分割 / InsertMoldCoreCavitySolids).
+
+        Requires parting_line + parting_surface sheets + a mold-block sketch.
+        Live success needs MoldCoreCavitySolids in the feature tree and more solids
+        (macro recipe: EXTSKETCHSEGMENT mark0 + SURFACEBODY marks 1/2/4)."""
         ...
 
     def hole_wizard(
@@ -611,13 +678,38 @@ class CADBackend(Protocol):
         """Read bend table (SM2). Empty list when no table."""
         ...
 
-    def insert_thread(
+    def insert_cosmetic_thread(
         self,
+        size: str,
         diameter_m: float,
-        pitch_m: float,
         length_m: float | None = None,
+        edge: int | None = None,
         internal: bool = False,
-    ) -> FeatureInfo: ...
+        spec: str | None = None,
+    ) -> FeatureInfo:
+        """Insert SolidWorks cosmetic thread (annotation, no cut geometry) and write THREAD_* props.
+        size e.g. M10x1.5; diameter_m is major diameter; omit length for 1.5×diameter; edge from get_edges.
+        """
+        ...
+
+    def create_thread(
+        self,
+        size: str,
+        depth_m: float,
+        edge: int | None = None,
+        method: str = "cut",
+        internal: bool = False,
+        thread_type: str | None = None,
+        right_handed: bool = True,
+        diameter_m: float | None = None,
+        pitch_m: float | None = None,
+    ) -> FeatureInfo:
+        """Native Thread Feature (SW2025: CreateDefinition(swFmSweepThread) → IThreadFeatureData → CreateFeature).
+        Changes solid geometry (cut removes / extrude adds). size e.g. M10x1.5; depth_m blind length;
+        method cut|extrude; internal selects Metric Tap vs Metric Die unless thread_type overrides;
+        edge from get_edges (circular rim). Optional diameter_m/pitch_m override chart values.
+        """
+        ...
 
     def delete_feature(self, name: str) -> None: ...
 
@@ -664,8 +756,28 @@ class CADBackend(Protocol):
         """Get **mate-solved** pose by instance name. Not found → INVALID_ARGUMENT."""
         ...
 
+    def delete_component(self, name: str) -> None:
+        """Remove a component instance (transaction compensator). Not found → INVALID_ARGUMENT."""
+        ...
+
+    def get_component_transform(self, name: str) -> list[float]:
+        """Return Transform2 ArrayData (16 floats) for pose compensation."""
+        ...
+
+    def set_component_transform(self, name: str, array16: Sequence[float]) -> None:
+        """Write Transform2 ArrayData (16 floats); used by transaction compensators."""
+        ...
+
     def set_lightweight(self, name: str, lightweight: bool) -> str:
-        """Lightweight or fully resolve component. Returns instance name. Suppressed not implemented."""
+        """Lightweight or fully resolve component. Returns instance name. Not for suppress (use set_suppressed)."""
+        ...
+
+    def set_suppressed(self, name: str, suppressed: bool) -> str:
+        """Suppress or fully resolve a component. Returns instance name. Mutually exclusive with lightweight."""
+        ...
+
+    def set_flexible(self, name: str, flexible: bool) -> str:
+        """Set a subassembly instance flexible or rigid. Part instances → INVALID_ARGUMENT."""
         ...
 
     def explode_view(self) -> tuple[str, list[str]]:
@@ -735,6 +847,37 @@ class CADBackend(Protocol):
     def mate_screw(
         self, entity1: str, entity2: str, pitch_m: float, align: str | None = None
     ) -> MateInfo: ...
+
+    def mate_gear(
+        self,
+        entity1: str,
+        entity2: str,
+        ratio_num: int,
+        ratio_den: int,
+        align: str | None = None,
+    ) -> MateInfo:
+        """Gear mate with positive integer tooth ratio num/den. Does not simulate drive motion."""
+        ...
+
+    def mate_width(
+        self,
+        entity1: str,
+        entity2: str,
+        entity3: str,
+        align: str | None = None,
+    ) -> MateInfo:
+        """Width mate: two bounding faces + one tab face/edge. Fake does not solve centering."""
+        ...
+
+    def mate_cam(
+        self, entity1: str, entity2: str, align: str | None = None
+    ) -> MateInfo:
+        """Cam-follower mate (BLOCKED on SW2025 COM — CAM-02). May raise FEATURE_CREATE_FAILED."""
+        ...
+
+    def replace_component(self, name: str, path: Path, config: str = "") -> ComponentRef:
+        """Replace an instance with another part/assembly file. Instance name follows SW `<stem>-N`."""
+        ...
 
     def list_mates(self) -> list[MateInfo]:
         """Mate list in active assembly (name + type)."""

@@ -143,19 +143,25 @@ into the workspace and run `replay_recipe`.
 
 ## Capability overview
 
-**134 tools** across 9 toolsets (see [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
+**163 tools** across 15 toolsets (see [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)):
 
 | Toolset | Count | Focus |
 |---|---|---|
-| core | 45 | Documents, sketches, basic features, queries |
-| features_adv | 25 | Thread, helix, sweep, surfaces, feature ops |
-| assembly | 20 | Insert, mates, component ops |
-| drawing | 16 | Views, annotations, DrawingSpec |
+| core | 48 | Documents, sketches, basic features, queries |
+| features_adv | 27 | Thread, helix, sweep, surfaces, feature ops |
+| assembly | 24 | Insert, mates, component ops (cam mate BLOCKED) |
+| drawing | 21 | Views, annotations, DrawingSpec, verification |
 | sketch_adv | 12 | Splines, offset/trim, constraints, dims |
-| sheetmetal | 7 | Base/flange/hem, flat pattern |
+| sheetmetal | 8 | Base/flange/miter, hems, flat pattern, DXF |
 | selection | 6 | Face/edge pick helpers |
+| transaction | 4 | L1 checkpoint/journal + L2 reload/compensate/discard |
+| task | 3 | Batch task execution |
+| design | 3 | DesignSpec intent (validate only) |
+| export | 2 | STEP/STL + PDF/DXF |
 | view | 2 | Orientations / screenshots |
-| export | 1 | STEP/STL/PDF/DXF |
+| rules | 1 | Machine-checkable model rules |
+| verification | 1 | Model verification checks |
+| diagnostics | 1 | Interpret `cadmcp doctor` JSON |
 
 Skills (`solidworks-modeling`, `solidworks-assembly`, `solidworks-recovery`)
 ship as `cadmcp://skill/...` resources. `solidworks-modeling` is also published
@@ -166,7 +172,7 @@ standalone on [Agensi](https://www.agensi.io/skills/solidworks-modeling).
 | Limitation | Notes |
 |---|---|
 | Mold Core/Cavity | Blocked pending reliable parting-surface / license context — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
-| Native InsertThread API | Helix + sweep cut path is used instead — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| Thread Feature (geometry) | Shipped as `create_thread` (SW2025 `IThreadFeatureData` / `swFmSweepThread`). Cosmetic callouts use `insert_cosmetic_thread`. There is no `InsertThread` member name. — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
 | SolidWorks Toolbox | Not integrated — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
 | Part in-context edit (`EditPart2`) | Not supported; subassembly edit is — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | Axial screw-in / feed mate motion | Not supported |

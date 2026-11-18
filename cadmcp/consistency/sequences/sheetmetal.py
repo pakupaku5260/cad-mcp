@@ -3,7 +3,20 @@ from __future__ import annotations
 
 from cadmcp.consistency._types import SequenceStep
 
+# F19: pure BA estimate (mm). thickness=2, radius=10, k=0.5, 90° → SI BA = π/2×0.011 m.
+_BEND_ALLOWANCE_ARGS = {
+    "thickness": 2.0,
+    "k_factor": 0.5,
+    "bends": [{"angle_deg": 90.0, "radius": 10.0}],
+    "unit": "mm",
+}
+
 SEQUENCES: dict[str, list[SequenceStep]] = {
+    # F19: explicit-parameter BA; no model / unfold / bend table.
+    "bend_allowance_calc": [
+        ("calc_bend_allowance", _BEND_ALLOWANCE_ARGS),
+    ],
+
     # Stage SM: closed rectangle base flange, edge flange, unfold; invalid edge / no sheet metal / thickness 0 fail.
     "sheet_metal": [
         ("new_part", {}),

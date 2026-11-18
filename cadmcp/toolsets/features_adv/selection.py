@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from cadmcp.backend.protocol.models import FaceRef
+from cadmcp.backend.protocol.models import EdgeRef, FaceRef
 from cadmcp.errors import fail
 from cadmcp.kernel import OpContext
 from cadmcp.registry import ToolSpec, make_schema
-from cadmcp.selectors import FACE_FILTER_KINDS, FACE_QUERIES, Ref, resolve
+from cadmcp.selectors import (
+    FACE_FILTER_KINDS,
+    FACE_QUERIES,
+    Ref,
+    resolve,
+    resolve_ref_id,
+)
 from cadmcp.toolsets.paging import paginate
 
 from ._common import _UNIT_DESC, _UNIT_ENUM, _unit_ctx
@@ -23,6 +29,54 @@ def _select_xyz(
     return float(x), float(y), float(z)
 
 
+def _anchor_m(
+    entities: list[FaceRef] | list[EdgeRef],
+    index: int,
+    xyz_m: tuple[float, float, float] | None,
+) -> tuple[float, float, float] | None:
+    if xyz_m is not None:
+        return xyz_m
+    if 0 <= index < len(entities):
+        ent = entities[index]
+        return ent.centroid_m if isinstance(ent, FaceRef) else ent.midpoint_m
+    return None
+
+
+def _backend_persist_index(backend: object, ref_id: str, kind: str) -> int | None:
+    """Fake typed reverse lookup, then SW STA-wrapped ``_index_by_persist_ref``."""
+    typed = "_face_by_persist_ref" if kind == "face" else "_edge_by_persist_ref"
+    fn = getattr(backend, typed, None)
+    if callable(fn):
+        hit = fn(ref_id)
+        if hit is not None:
+            return int(hit.index)
+    fn = getattr(backend, "_index_by_persist_ref", None)
+    if callable(fn):
+        return fn(ref_id, kind=kind)
+    return None
+
+
+def _select_by_ref_id(
+    ctx: OpContext,
+    *,
+    kind: str,
+    ref_id: str,
+    index: int,
+    xyz_m: tuple[float, float, float] | None,
+) -> int:
+    """ref_id exact (string) → backend reverse lookup → REF_STALE / REF_UNSUPPORTED."""
+    entities = ctx.backend.list_faces() if kind == "face" else ctx.backend.list_edges()
+    for ent in entities:
+        if ent.ref_id == ref_id:
+            return ent.index
+    backend_idx = _backend_persist_index(ctx.backend, ref_id, kind)
+    if backend_idx is not None:
+        return backend_idx
+    # Raises REF_UNSUPPORTED / REF_STALE / REF_NOT_FOUND (never returns).
+    resolve_ref_id(ref_id, entities, anchor_m=_anchor_m(entities, index, xyz_m))
+    raise AssertionError("resolve_ref_id must raise on miss")
+
+
 def select_face(
     ctx: OpContext,
     index: int,
@@ -30,13 +84,26 @@ def select_face(
     y: float | None = None,
     z: float | None = None,
     unit: str = "mm",
+    ref_id: str | None = None,
 ) -> dict:
     xyz = _select_xyz(x, y, z)
+    uc = _unit_ctx(ctx, unit) if (ref_id is not None or xyz is not None) else None
+    xyz_m = None if xyz is None or uc is None else (uc.to_m(xyz[0]), uc.to_m(xyz[1]), uc.to_m(xyz[2]))
+
+    # Order: ref_id exact → index + coords (resolve) → bare index. ref_id wins when both given.
+    if ref_id is not None:
+        selected = _select_by_ref_id(ctx, kind="face", ref_id=ref_id, index=index, xyz_m=xyz_m)
+        ctx.backend.select_face(selected)
+        out: dict = {"selected_face": selected, "quality": "persist"}
+        if uc is not None:
+            out["unit"] = uc.external_unit
+        return out
+
     if xyz is None:
         ctx.backend.select_face(index)
         return {"selected_face": index, "quality": "index"}
-    uc = _unit_ctx(ctx, unit)
-    hit = resolve(Ref(index, uc.to_m(xyz[0]), uc.to_m(xyz[1]), uc.to_m(xyz[2])), ctx.backend.list_faces())
+    assert uc is not None and xyz_m is not None
+    hit = resolve(Ref(index, xyz_m[0], xyz_m[1], xyz_m[2]), ctx.backend.list_faces())
     ctx.backend.select_face(hit.entity.index)
     return {
         "selected_face": hit.entity.index,
@@ -52,13 +119,25 @@ def select_edge(
     y: float | None = None,
     z: float | None = None,
     unit: str = "mm",
+    ref_id: str | None = None,
 ) -> dict:
     xyz = _select_xyz(x, y, z)
+    uc = _unit_ctx(ctx, unit) if (ref_id is not None or xyz is not None) else None
+    xyz_m = None if xyz is None or uc is None else (uc.to_m(xyz[0]), uc.to_m(xyz[1]), uc.to_m(xyz[2]))
+
+    if ref_id is not None:
+        selected = _select_by_ref_id(ctx, kind="edge", ref_id=ref_id, index=index, xyz_m=xyz_m)
+        ctx.backend.select_edge(selected)
+        out: dict = {"selected_edge": selected, "quality": "persist"}
+        if uc is not None:
+            out["unit"] = uc.external_unit
+        return out
+
     if xyz is None:
         ctx.backend.select_edge(index)
         return {"selected_edge": index, "quality": "index"}
-    uc = _unit_ctx(ctx, unit)
-    hit = resolve(Ref(index, uc.to_m(xyz[0]), uc.to_m(xyz[1]), uc.to_m(xyz[2])), ctx.backend.list_edges())
+    assert uc is not None and xyz_m is not None
+    hit = resolve(Ref(index, xyz_m[0], xyz_m[1], xyz_m[2]), ctx.backend.list_edges())
     ctx.backend.select_edge(hit.entity.index)
     return {
         "selected_edge": hit.entity.index,
@@ -82,6 +161,7 @@ def get_faces(
             "index": f.index,
             "kind": f.kind,
             "centroid": list(uc.tuple_from_m(f.centroid_m)),
+            "ref_id": f.ref_id,
         }
         if f.normal_m is not None:
             row["normal"] = [float(v) for v in f.normal_m]
@@ -109,6 +189,7 @@ def get_edges(
             "index": e.index,
             "kind": e.kind,
             "midpoint": list(u.tuple_from_m(e.midpoint_m)),
+            "ref_id": e.ref_id,
         }
         for e in ctx.backend.get_edges()
     ]
@@ -131,6 +212,7 @@ def get_vertices(
         {
             "index": v.index,
             "position": list(uc.tuple_from_m(v.position_m)),
+            "ref_id": v.ref_id,
         }
         for v in ctx.backend.get_vertices()
     ]
@@ -160,6 +242,7 @@ def get_selection(ctx: OpContext) -> dict:
             "kind": hit.entity.kind,
             "coords": list(u.tuple_from_m(hit_coords)),
             "quality": hit.quality,
+            "ref_id": hit.entity.ref_id,
         }
         if is_face and hit.entity.normal_m is not None:
             item["normal"] = [float(v) for v in hit.entity.normal_m]
@@ -173,8 +256,8 @@ SPECS: list[ToolSpec] = [
         toolset="selection",
         description=(
             "Select a face by index from get_faces/get_entities. "
-            "After geometry changes pass x,y,z (centroid) — re-resolves a stale "
-            "index within 2mm; bare index alone is unsafe."
+            "Prefer optional ref_id when both given; else pass x,y,z (centroid) after edits "
+            "(re-resolves within 2mm); bare index alone is unsafe."
         ),
         input_schema=make_schema(
             {
@@ -183,6 +266,10 @@ SPECS: list[ToolSpec] = [
                 "y": {"type": "number"},
                 "z": {"type": "number"},
                 "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+                "ref_id": {
+                    "type": "string",
+                    "description": "Opaque persist ref from get_entities; wins over index when both given.",
+                },
             },
             ["index"],
         ),
@@ -194,8 +281,8 @@ SPECS: list[ToolSpec] = [
         toolset="selection",
         description=(
             "Select an edge by index from get_edges/get_entities. "
-            "After geometry changes pass x,y,z (midpoint) — re-resolves a stale "
-            "index within 2mm; bare index alone is unsafe."
+            "Prefer optional ref_id when both given; else pass x,y,z (midpoint) after edits "
+            "(re-resolves within 2mm); bare index alone is unsafe."
         ),
         input_schema=make_schema(
             {
@@ -204,6 +291,10 @@ SPECS: list[ToolSpec] = [
                 "y": {"type": "number"},
                 "z": {"type": "number"},
                 "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+                "ref_id": {
+                    "type": "string",
+                    "description": "Opaque persist ref from get_entities; wins over index when both given.",
+                },
             },
             ["index"],
         ),
@@ -214,7 +305,7 @@ SPECS: list[ToolSpec] = [
         name="get_faces",
         toolset="selection",
         description=(
-            "List faces (index, centroid, plane normal, cylinder axis). "
+            "List faces (index, centroid, plane normal, cylinder axis, ref_id). "
             "kind=plane|cylinder|cone filters; query=max_z|min_z|max_x|min_x|max_y|min_y "
             "picks extreme centroids; query=axis_z|axis_x|axis_y picks cylinders parallel to that axis. "
             "limit/offset paginate; indexes stay global."
@@ -243,7 +334,7 @@ SPECS: list[ToolSpec] = [
         name="get_vertices",
         toolset="selection",
         description=(
-            "List solid-body vertices (index + position). "
+            "List solid-body vertices (index + position + ref_id). "
             "Use index with extrude direction=up_to_vertex."
         ),
         input_schema=make_schema(
@@ -259,7 +350,7 @@ SPECS: list[ToolSpec] = [
     ToolSpec(
         name="get_edges",
         toolset="selection",
-        description="List all edges with index and midpoint handles; limit/offset paginate.",
+        description="List all edges with index, midpoint, ref_id; limit/offset paginate.",
         input_schema=make_schema(
             {
                 "limit": {"type": "integer", "minimum": 1},

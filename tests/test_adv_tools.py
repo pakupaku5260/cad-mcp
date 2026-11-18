@@ -427,7 +427,8 @@ def test_screw_nut_assembly_mates(kernel, workspace: Path):
     kernel.dispatch("end_sketch", {})
     kernel.dispatch("extrude", {"depth": 16})
     assert kernel.dispatch(
-        "insert_thread", {"diameter": 10, "pitch": 1.5, "length": 6}
+        "insert_cosmetic_thread",
+        {"size": "M10x1.5", "diameter": 10, "length": 6, "spec": "M10x1.5-6g"},
     ).ok
     assert kernel.dispatch("save_document", {"path": "screw.sldprt"}).ok
     kernel.dispatch("close_document", {"discard": True})
@@ -438,8 +439,8 @@ def test_screw_nut_assembly_mates(kernel, workspace: Path):
     kernel.dispatch("end_sketch", {})
     kernel.dispatch("extrude", {"depth": 8})
     assert kernel.dispatch(
-        "insert_thread",
-        {"diameter": 10, "pitch": 1.5, "length": 6, "internal": True},
+        "insert_cosmetic_thread",
+        {"size": "M10x1.5", "diameter": 10, "length": 6, "internal": True, "spec": "M10x1.5-6H"},
     ).ok
     assert kernel.dispatch("save_document", {"path": "nut.sldprt"}).ok
     kernel.dispatch("close_document", {"discard": True})
@@ -700,6 +701,34 @@ def test_parting_surface(kernel):
     assert surf.result["kind"] == "parting_surface"
     mp = kernel.dispatch("get_mass_properties", {})
     assert mp.result["volume"] == pytest.approx(8000.0, rel=1e-6)
+
+
+def test_tooling_split(kernel):
+    assert kernel.dispatch("new_part", {}).ok
+    missing = kernel.dispatch("tooling_split", {})
+    assert not missing.ok and missing.error.code == "FEATURE_CREATE_FAILED"
+    assert kernel.dispatch("start_sketch", {"plane": "Front Plane"}).ok
+    assert kernel.dispatch("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 40, "y2": 20}).ok
+    assert kernel.dispatch("end_sketch", {}).ok
+    assert kernel.dispatch("extrude", {"depth": 10}).ok
+    assert kernel.dispatch("parting_line", {"pull_face": 0}).ok
+    no_ps = kernel.dispatch("tooling_split", {})
+    assert not no_ps.ok and no_ps.error.code == "FEATURE_CREATE_FAILED"
+    assert kernel.dispatch("parting_surface", {}).ok
+    no_sk = kernel.dispatch("tooling_split", {})
+    assert not no_sk.ok and no_sk.error.code == "FEATURE_CREATE_FAILED"
+    assert kernel.dispatch("start_sketch", {"plane": "Top Plane"}).ok
+    assert kernel.dispatch("sketch_rectangle", {"x1": -20, "y1": -20, "x2": 60, "y2": 40}).ok
+    assert kernel.dispatch("end_sketch", {}).ok
+    nosuch = kernel.dispatch("tooling_split", {"sketch": "NoSuch"})
+    assert not nosuch.ok and nosuch.error.code == "FEATURE_NOT_FOUND"
+    bad_depth = kernel.dispatch("tooling_split", {"depth1": 0})
+    assert not bad_depth.ok and bad_depth.error.code == "INVALID_ARGUMENT"
+    feat = kernel.dispatch("tooling_split", {})
+    assert feat.ok, feat.error
+    assert feat.result["kind"] == "tooling_split"
+    assert feat.result["depth1"] == 100.0
+    assert feat.result["angle_deg"] == 3.0
 
 
 def test_sketch_3d_sweep_path(kernel):
@@ -1216,36 +1245,43 @@ def test_sweep_accepts_localized_sketch_name(kernel):
     assert r.ok, r.error
 
 
-def test_insert_thread_external_on_cylinder(kernel):
+def test_insert_cosmetic_thread_external_on_cylinder(kernel):
     kernel.dispatch("new_part", {})
     kernel.dispatch("start_sketch", {"plane": "Front Plane"})
     assert kernel.dispatch("sketch_circle", {"cx": 0, "cy": 0, "r": 5}).ok
     kernel.dispatch("end_sketch", {})
     assert kernel.dispatch("extrude", {"depth": 20}).ok
-    r = kernel.dispatch("insert_thread", {"diameter": 10, "pitch": 1.5, "length": 6})
+    r = kernel.dispatch(
+        "insert_cosmetic_thread",
+        {"size": "M10x1.5", "diameter": 10, "length": 6, "spec": "M10x1.5-6g"},
+    )
     assert r.ok, r.error
-    assert r.result["kind"] == "thread"
+    assert r.result["kind"] == "cosmetic_thread"
+    assert r.result["spec"] == "M10x1.5-6g"
+    assert r.result["properties"]["THREAD_SIDE"] == "external"
+    # Cosmetic: volume unchanged vs solid cylinder π*r²*h
     mp = kernel.dispatch("get_mass_properties", {})
-    assert mp.ok and mp.result["volume"] < 1570.8
+    assert mp.ok, mp.error
+    assert mp.result["volume"] == pytest.approx(math.pi * 5.0**2 * 20.0, abs=1e-3)
 
 
-def test_insert_thread_requires_solid(kernel):
+def test_insert_cosmetic_thread_requires_solid(kernel):
     kernel.dispatch("new_part", {})
-    r = kernel.dispatch("insert_thread", {"diameter": 10, "pitch": 1.5})
+    r = kernel.dispatch("insert_cosmetic_thread", {"size": "M10x1.5", "diameter": 10})
     assert not r.ok and r.error.code == "FEATURE_CREATE_FAILED"
 
 
-def test_insert_thread_rejects_huge_pitch(kernel):
+def test_insert_cosmetic_thread_rejects_empty_size(kernel):
     kernel.dispatch("new_part", {})
     kernel.dispatch("start_sketch", {"plane": "Front Plane"})
     kernel.dispatch("sketch_circle", {"cx": 0, "cy": 0, "r": 5})
     kernel.dispatch("end_sketch", {})
     kernel.dispatch("extrude", {"depth": 20})
-    huge = kernel.dispatch("insert_thread", {"diameter": 2, "pitch": 10})
-    assert not huge.ok and huge.error.code == "INVALID_ARGUMENT"
+    bad = kernel.dispatch("insert_cosmetic_thread", {"size": "  ", "diameter": 10})
+    assert not bad.ok and bad.error.code == "INVALID_ARGUMENT"
 
 
-def test_insert_thread_internal_on_tube(kernel):
+def test_insert_cosmetic_thread_internal_on_tube(kernel):
     kernel.dispatch("new_part", {})
     kernel.dispatch("start_sketch", {"plane": "Front Plane"})
     assert kernel.dispatch("sketch_circle", {"cx": 0, "cy": 0, "r": 9}).ok
@@ -1253,10 +1289,48 @@ def test_insert_thread_internal_on_tube(kernel):
     kernel.dispatch("end_sketch", {})
     assert kernel.dispatch("extrude", {"depth": 20}).ok
     r = kernel.dispatch(
-        "insert_thread", {"diameter": 10, "pitch": 1.5, "length": 6, "internal": True}
+        "insert_cosmetic_thread",
+        {"size": "M10x1.5", "diameter": 10, "length": 6, "internal": True, "spec": "M10x1.5-6H"},
+    )
+    assert r.ok, r.error
+    assert r.result["kind"] == "cosmetic_thread"
+    assert r.result["side"] == "internal"
+
+
+def test_create_thread_cut_reduces_volume(kernel):
+    kernel.dispatch("new_part", {})
+    kernel.dispatch("start_sketch", {"plane": "Front Plane"})
+    assert kernel.dispatch("sketch_circle", {"cx": 0, "cy": 0, "r": 5}).ok
+    kernel.dispatch("end_sketch", {})
+    assert kernel.dispatch("extrude", {"depth": 20}).ok
+    before = kernel.dispatch("get_mass_properties", {})
+    assert before.ok, before.error
+    r = kernel.dispatch(
+        "create_thread",
+        {"size": "M10x1.5", "depth": 12, "method": "cut"},
     )
     assert r.ok, r.error
     assert r.result["kind"] == "thread"
+    assert r.result["method"] == "cut"
+    after = kernel.dispatch("get_mass_properties", {})
+    assert after.ok, after.error
+    assert after.result["volume"] < before.result["volume"]
+
+
+def test_create_thread_requires_solid(kernel):
+    kernel.dispatch("new_part", {})
+    r = kernel.dispatch("create_thread", {"size": "M10x1.5", "depth": 10})
+    assert not r.ok and r.error.code == "FEATURE_CREATE_FAILED"
+
+
+def test_create_thread_rejects_bad_method(kernel):
+    kernel.dispatch("new_part", {})
+    kernel.dispatch("start_sketch", {"plane": "Front Plane"})
+    kernel.dispatch("sketch_circle", {"cx": 0, "cy": 0, "r": 5})
+    kernel.dispatch("end_sketch", {})
+    kernel.dispatch("extrude", {"depth": 20})
+    bad = kernel.dispatch("create_thread", {"size": "M10x1.5", "depth": 10, "method": "tap"})
+    assert not bad.ok and bad.error.code == "INVALID_ARGUMENT"
 
 
 #---------- 特征操作 ----------

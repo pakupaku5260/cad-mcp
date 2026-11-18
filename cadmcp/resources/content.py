@@ -18,16 +18,43 @@ error envelope, and reference handles.
 """
 from __future__ import annotations
 
-from typing import NamedTuple
+from collections.abc import Callable
+
+from cadmcp.errors import render_errors_help
 
 MIME_TYPE = "text/markdown"
 
 
-class Topic(NamedTuple):
-    """One topic: one-line resources/list description + Markdown body."""
+class Topic:
+    """One topic: one-line resources/list description + Markdown body.
 
-    description: str
-    text: str
+    ``text`` may be a static string or a zero-arg loader (F3: errors help from CATALOG).
+    ``help(topic)`` / ``resources/read`` both read ``.text`` — same source.
+    """
+
+    __slots__ = ("description", "_text", "_text_loader")
+
+    def __init__(
+        self,
+        description: str,
+        text: str | None = None,
+        *,
+        text_loader: Callable[[], str] | None = None,
+    ) -> None:
+        if text is None and text_loader is None:
+            raise ValueError("Topic requires text or text_loader")
+        if text is not None and text_loader is not None:
+            raise ValueError("Topic accepts either text or text_loader, not both")
+        self.description = description
+        self._text = text
+        self._text_loader = text_loader
+
+    @property
+    def text(self) -> str:
+        if self._text_loader is not None:
+            return self._text_loader()
+        assert self._text is not None
+        return self._text
 
 
 TOPICS: dict[str, Topic] = {
@@ -69,8 +96,12 @@ Canonical sequence for a new part:
    `rib(thickness)` from an ended line sketch; `draft(angle_deg, faces, neutral)` with get_faces indexes;
    `combine(op=add|cut|common)` on multi-body parts (disjoint extrudes);
    `split_body(plane)` cuts a solid with a reference plane into multiple bodies;
-   `parting_line(pull_face, edges?)` mold parting line (omit edges = all solid edges);
-   `parting_surface(parting_line?)` mold parting surface from a parting line;
+   `parting_line(pull_face, edges?)` mold parting line
+   (omit edges = pull-face boundary loop; pass edges for a custom closed chain);
+   `parting_surface(parting_line?, radiate?, offset?)` mold parting surface
+   (Live: radiate=true + offset>0 recommended; tree-visible only);
+   `tooling_split(sketch?, depth1?, depth2?, angle_deg?)` mold tooling split / 切削分割
+   (needs parting_line + parting_surface sheets + mold-block sketch);
 
    `hole_wizard(face, diameter, end=through_all|blind)` ISO drill on a planar face
    (omit x,y to place at the face centroid; blind needs `depth`);
@@ -95,8 +126,8 @@ Canonical sequence for a new part:
    `edit_component` enters in-context edit of a **subassembly** instance (`Edit Assembly`);
    `get_edit_target` reports the instance or `editing=false` at the top;
    `end_edit` returns to the parent. Part in-context edit is not supported.
-   `set_lightweight(component, lightweight)` toggles lightweight vs fully resolved
-   (`list_components` / `get_component` echo `lightweight`). Does not suppress.
+   `set_lightweight` / `set_suppressed` / `set_flexible` (subasm only); pose echoes
+   `lightweight`/`suppressed`/`flexible`. `mate` adds `gear` (ratio_*) and `width` (entity3).
    `explode_view` creates an exploded view; `show_exploded(show)` collapses or shows it;
    `list_exploded_views` lists names. Axial feed / screw-in is not supported.
    `get_faces(kind, query)` picks max_z planes or axis_z cylinders without guessing indexes.
@@ -136,29 +167,12 @@ Rules:
 """,
     ),
     "errors": Topic(
-        description="OpResult envelope: ok/result/error shape, hint, side_effect retry rules.",
-        text="""# Result and error envelope
-
-Every tool answers one JSON envelope; a domain error is a normal result carrying
-`isError=true` and `ok=false` (not a protocol failure).
-
-- `ok=true` -> `result` holds the payload; the envelope may also carry `delta`,
-  `rebuild`, `state_version`, `warnings`.
-- `ok=false` -> `error = {code, message, hint, side_effect, context}`:
-  - `message` explains why; `hint` is the next action, written to be actionable
-    (it often names the exact tool or argument to change) - follow it.
-  - `side_effect`: `none` = nothing happened, safe to retry as-is;
-    `applied` = the change happened but a complete result was not read back - do NOT
-    retry blindly, re-read state (`get_geometry` / `list_features`) first.
-  - `context` = machine-readable detail (nearest distance, candidate indexes, ...).
-
-Frequent codes: `INVALID_ARGUMENT` (fix the argument per hint), `NO_ACTIVE_DOCUMENT`
-(call `new_part` or `open_document` first), `NO_ACTIVE_SKETCH`, `EXECUTOR_BUSY`
-(one operation runs at a time; wait briefly, then retry), `REF_NOT_FOUND` /
-`REF_AMBIGUOUS` (refresh handles via `get_entities`), `PATH_OUTSIDE_SANDBOX` /
-`PATH_OVERWRITE_DENIED` (workspace sandbox: file paths stay inside the workspace,
-overwrite only with explicit `overwrite=true`).
-""",
+        description=(
+            "OpResult envelope: ok/result/error shape, hint, side_effect retry rules, "
+            "and per-code remediation (auto/action/requires_confirmation)."
+        ),
+        # Lazy: generated from CATALOG so help(errors) ≡ resources/read(cadmcp://help/errors).
+        text_loader=render_errors_help,
     ),
     "selectors": Topic(
         description="Face/edge handle format, exact/proximity tolerance rules, staleness.",
@@ -200,6 +214,364 @@ inspect and remove mates by name. `check_interference` reports overlapping compo
 API cannot tell contact from solid overlap.
 """,
     ),
+    "task_layer": Topic(
+        description="Three call layers (primitive/domain/task) and synchronous task limits.",
+        text="""# Task layer
+
+## Layers (`TOOL_LAYERS`)
+
+- **primitive** — backend atomic call (single COM/API step).
+- **domain** — domain capability (default for most tools).
+- **task** — one MCP call carries a full intent (`design_run`, `batch`, `task_status`,
+  `task_list`). Call-granularity is atomic; internals are **not** transaction-atomic
+  (wrap with `tx_*` when rollback is required).
+
+## Synchronous only
+
+The task layer is **synchronous**. There is **no** cancel, priority, per-document
+lock/epoch, or async job queue in this release. `task_status` / `task_list` read an
+in-process ledger (last 100 jobs, FIFO); state does not survive process restart.
+
+## Tools
+
+- `batch` — serial tool steps with step/duration caps
+- `design_run` — DesignSpec controlled run (also layer=task)
+- `task_status(job_id)` / `task_list(limit, offset)` — read-only job queries
+""",
+    ),
+    "design_spec": Topic(
+        description="DesignSpec schema_version 1: kind/doc/params/variants/features/checkpoints/verify/outputs.",
+        text="""# DesignSpec (schema_version 1)
+
+Declarative modeling intent. Validate with `design_spec_validate` (read-only).
+Execute with `design_run` (optional `variant` selects a design-table row).
+
+## Required
+
+- `schema_version`: must be `1`
+- `kind`: `part` | `assembly` | `drawing`
+- `doc.title`: non-empty string
+- `doc.units`: `mm` | `inch`
+- `features`: non-empty array of objects with:
+  - `name` (unique, non-empty)
+  - `tool` (non-empty string; registry check at run time)
+  - `args` (object)
+
+## Optional
+
+- `params`: map of number | bool | string (base design-table row)
+- `variants`: object map `{row_name: {param: scalar}}` — compact design table.
+  Each row overrides matching `params` keys when `design_run(variant=row_name)`.
+  Omit `variant` or leave `variants` empty → base `params` only (current behaviour).
+  Unknown `variant` / empty table with a name → `INVALID_ARGUMENT` (precheck, zero
+  side effects). Payload does **not** echo the selected variant.
+- `features[].assert`: object; keys ⊆ `ok` | `error_code` | `result_keys` | `delta_changed`
+- `features[].depends_on`: array of feature names (must exist, no cycles)
+- `checkpoints`: subset of feature names; successful steps capture L1 snapshots
+- `verify.groups`: subset of `geometry` | `features` | `mass_bbox` | `assembly` | `drawing`
+- `verify.thresholds`: object (same vocabulary as `verify_model`)
+- `outputs[]`: `{kind: step|stl|pdf|dxf, path}` — kind must match file suffix;
+  exported after steps+verify (`overwrite=false`)
+
+## Param placeholders (design_run)
+
+Anywhere inside `features[].args`, replace a value with `{"$param": "<name>"}` to
+pull from effective params (base ∪ selected variant). Nested objects/arrays are
+walked recursively. Unknown names or non-scalar `$param` values → `INVALID_ARGUMENT`
+with a JSON path (e.g. `design_spec.features[1].args.diameter`).
+
+## Tools
+
+- `design_spec_validate` — read-only load + validate
+- `design_run` — topological execute (not atomic; use `tx_*` for rollback). Optional
+  `variant` selects a design-table row.
+
+## Minimal example
+
+```json
+{
+  "schema_version": 1,
+  "kind": "part",
+  "doc": {"title": "Base plate", "units": "mm"},
+  "params": {"thickness": 8.0},
+  "variants": {"thick": {"thickness": 12.0}, "thin": {"thickness": 4.0}},
+  "features": [
+    {"name": "base", "tool": "extrude", "args": {"depth": {"$param": "thickness"}}, "assert": {"ok": true}},
+    {"name": "holes", "tool": "hole_wizard", "args": {"diameter": 6.0}, "depends_on": ["base"]}
+  ],
+  "checkpoints": ["base"],
+  "verify": {"groups": ["geometry", "features"], "thresholds": {}},
+  "outputs": [{"kind": "step", "path": "out/base.step"}]
+}
+```
+
+Errors use `INVALID_ARGUMENT` with a JSON path (e.g. `design_spec.features[2].tool`
+or `design_spec.variants.thick.thickness`) or path sandbox codes from
+`ensure_input_path`.
+""",
+    ),
+    "rules": Topic(
+        description="Machine-checkable model rules via check_rules (not doctor).",
+        text="""# Model rules (`check_rules`)
+
+Read-only domain tool (`toolset=rules`, `bypass_queue`). Collects a fact snapshot
+via inline dispatch of existing query tools, then evaluates pure rules in
+`cadmcp.rules`. Reuses the `Verification` carrier (`status`/`checks`/`evidence`);
+does **not** change outer `OpResult.ok`.
+
+This is **not** `cmd_doctor` / install diagnostics (#23).
+
+## Tool
+
+`check_rules(rules=null)` — `rules=null` runs all ten; a string array runs a
+subset. Unknown names → `INVALID_ARGUMENT`. Payload keys:
+`{verification, rules_run, skipped}` (no raw facts, no timestamps).
+
+## Skip semantics
+
+When a required fact is unavailable (query failed / not applicable), the rule
+goes to `skipped: [{name, reason}]` and is **not** a failed check. Non-assembly
+documents skip `no_interference` with reason `not an assembly`.
+
+## Rules (fixed list of 10)
+
+| name | fact keys | pass when |
+|---|---|---|
+| `active_document` | `active_document` | fact present |
+| `units_declared` | `active_document.units` | `mm` or `inch` |
+| `feature_tree_present` | `active_document` + `features` | part/assembly and feature count ≥ 1 |
+| `positive_dimensions` | `part_parameters.dimensions` | every `value` > 0 |
+| `equations_nonempty` | `part_parameters.equations` | every equation RHS non-empty |
+| `configuration_present` | `part_parameters.configurations` | count ≥ 1 |
+| `sketches_constrained` | `sketch_statuses[].state` | no `under_defined` |
+| `no_unsaved_edits` | `active_document.modified` | `modified == false` |
+| `no_interference` | `interference.count` | assembly and `count == 0` |
+| `document_saved` | `active_document.saved` | `saved == true` |
+
+Fact sources (readonly only; never `verify_model`): `get_active_document`,
+`list_features`, `part_parameters`, `sketch_status`, `check_interference`.
+""",
+    ),
+    "assembly_dof": Topic(
+        description="Heuristic assembly DOF estimate via check_assembly_dof (not a true solver).",
+        text="""# Assembly DOF (`check_assembly_dof`)
+
+Read-only domain tool (`toolset=assembly`, `bypass_queue`). Collects
+`get_active_document` / `list_components` / `list_mates`, then evaluates pure
+heuristics in `cadmcp.assembly_dof`. Reuses the `Verification` carrier; does
+**not** change outer `OpResult.ok`. Never calls `verify_model`.
+
+**risk: unverified** — heuristic lower bound, **not** a SolidWorks DOF solver.
+Overconstraint, redundancy, and constraint coupling are not modeled.
+
+## Non-assembly / empty
+
+If the active document is missing or not an assembly, the tool returns
+`status=not_applicable` **without** calling `list_mates` / `list_components`
+(avoids `INVALID_ARGUMENT` from those tools). An assembly with zero components
+is also `not_applicable` (verification `unverified`).
+
+## Mate-type weights (heuristic)
+
+| mate_type | constrained DOF | note |
+|---|---|---|
+| coincident | 3 | 1 translation + 2 rotation |
+| concentric | 4 | 2 translation + 2 rotation |
+| distance | 1 | 1 translation |
+| angle | 1 | 1 rotation |
+| tangent | 1 | 1 translation |
+| screw | 2 | translation/rotation coupling |
+
+Unknown `mate_type` → `constrained_dof=null`, listed in `unknown_mate_types`
+(contributes 0).
+
+## remaining formula
+
+`total_dof = 6 × n_components`  
+`constrained = Σ MATE_DOF[t]`  
+`remaining = max(0, total_dof − constrained)`
+
+`unmated_components` is a coarse spanning-tree deficit
+`max(0, n_components − 1 − n_mates)` because `list_mates` does not expose
+mate↔component links (do not treat it as exact).
+
+## assembly_order
+
+`order` = `list_components` enumeration order (`basis:
+component_enumeration_order`). This is an insertion / GetComponents proxy,
+**not** a mate-graph topological order (would need `MateInfo.components`).
+
+## Payload keys
+
+`status`, `verification`, `dof_estimate`, `assembly_order`, `mates`,
+`unknown_mate_types`, `assumptions`, `risk`.
+""",
+    ),
+    "drawing_preflight": Topic(
+        description="DrawingSpec text preflight via check_drawing_spec (not verify_model).",
+        text="""# DrawingSpec preflight (`check_drawing_spec`)
+
+Read-only domain tool (`toolset=drawing`, `bypass_queue`). Parses a DrawingSpec
+JSON with `load_drawing_spec`, then runs pure checks in `cadmcp.drawing_preflight`.
+Reuses the `Verification` carrier; does **not** change outer `OpResult.ok`.
+Never opens/creates a drawing and never calls `verify_model`.
+
+**Not** `verify_model` `drawing.completeness` (publish readiness of an existing
+drawing) and **not** `inspect_drawing` (live drawing fact snapshot).
+
+**risk: unverified** — text self-consistency only; does not guarantee
+`create_drawing` succeeds on live SolidWorks.
+
+## Skip semantics
+
+Optional fields omitted → that check goes to `skipped: [{name, reason}]` and is
+**not** a failed check (same idea as F16 rules).
+
+## Checks (fixed list of 8)
+
+| name | pass when | skip when |
+|---|---|---|
+| `spec_loadable` | `load_drawing_spec` succeeded | — |
+| `has_sheets` | `sheets` length ≥ 1 | `sheets` omitted (L2 form) |
+| `has_views` | ≥1 view across sheets / top-level | `views` omitted |
+| `valid_view_orientations` | each `orient`/`orientation` ∈ front/back/left/right/top/bottom/isometric | views omitted |
+| `valid_gdt_symbols` | each `gdt.symbol` ∈ `GDT_SYMBOLS` | `gdts` omitted |
+| `valid_bom_types` | `bom.type` ∈ `BOM_TYPES` | `bom` omitted |
+| `title_block_keys_wellformed` | keys ⊆ `TITLE_BLOCK_DEFAULT_KEYS`, no dupes | `title_block` omitted |
+| `no_duplicate_sheet_names` | sheet names unique | `sheets` omitted |
+
+Enum sources: `cadmcp.backend.protocol.constants` (`GDT_SYMBOLS`, `BOM_TYPES`,
+`TITLE_BLOCK_DEFAULT_KEYS`) plus `VIEW_ORIENTATIONS` aligned with `drawing_spec`.
+
+## Payload keys
+
+`status`, `verification`, `checks_run`, `skipped`, `assumptions`, `risk`.
+""",
+    ),
+    "bend_allowance": Topic(
+        description="Pure bend-allowance estimate via calc_bend_allowance (not unfold).",
+        text="""# Bend allowance (`calc_bend_allowance`)
+
+Read-only domain tool (`toolset=sheetmetal`, `bypass_queue`). Computes a
+neutral-axis bend allowance from **explicit** thickness, K-factor, and bend
+angle/radius parameters in `cadmcp.sheetmetal_calc`. Reuses the `Verification`
+carrier; does **not** change outer `OpResult.ok`. Never reads the model and
+never calls `sheet_metal_unfold` or `sheet_metal_bend_table`.
+
+**Not** a SolidWorks flat-pattern / unfold. **risk: unverified**.
+
+## Formula (SI meters inside the pure module)
+
+`BA = radians(angle_deg) × (radius + k_factor × thickness)`
+
+Tool layer converts lengths with `unit` (default mm) to/from meters.
+
+## Checks (fixed list of 6)
+
+| name | pass when |
+|---|---|
+| `thickness_positive` | thickness > 0 |
+| `k_factor_in_range` | 0 < k_factor < 1 |
+| `bends_nonempty` | ≥ 1 bend |
+| `angles_in_range` | every bend 0 < angle_deg ≤ 180 |
+| `radii_nonnegative` | every bend radius ≥ 0 |
+| `values_finite` | all numeric inputs finite |
+
+If any check fails → `status=failed` and `bend_allowances=[]` (no partial BA).
+
+## Assumptions
+
+- Formula estimate only; not a live SolidWorks unfold / flat-pattern
+- K-factor commonly 0.3–0.5 for mild steel; caller supplies the value
+- radius is the inside bend radius
+- flat length ≈ straight segments + `total_bend_allowance` (straights not summed here)
+
+## Payload keys
+
+`status`, `verification`, `bend_allowances`, `total_bend_allowance`, `unit`,
+`assumptions`, `risk`.
+""",
+    ),
+    "doctor_matrix": Topic(
+        description="Interpret cadmcp doctor JSON via check_doctor_matrix (not live doctor).",
+        text="""# Doctor matrix (`check_doctor_matrix`)
+
+Read-only domain tool (`toolset=diagnostics`, `bypass_queue`, profile **full** only).
+Interprets a caller-supplied `cadmcp doctor` JSON object with the declarative
+matrix in `cadmcp.doctor_matrix`. Reuses the `Verification` carrier; does **not**
+change outer `OpResult.ok`.
+
+**Does not** run `cadmcp doctor`, Executor, backend, or COM. **Not** the
+`status` / `/health` live executor snapshot.
+
+**risk: unverified** — report interpretation only.
+
+## Skip semantics
+
+Missing `source_path` → that row goes to `skipped: [{name, reason}]` and is
+**not** a failed Verification check.
+
+## Severity
+
+`blocker` / `warning` / `info` appear on each `matrix[]` row as metadata only.
+Severity does **not** change `Verification` / `status` calculation.
+
+## Checks (fixed list of 14)
+
+| id | source_path | pass when |
+|---|---|---|
+| `env.python` | `python` | nonempty |
+| `env.platform` | `platform` | nonempty |
+| `env.workspace` | `workspace` | nonempty |
+| `version.cadmcp_version` | `cadmcp_version` | nonempty |
+| `backend.available` | `backend.available` | `True` |
+| `backend.revision` | `backend.revision` | nonempty |
+| `backend.mbd_step242` | `backend.mbd_step242` | `True` |
+| `backend.error` | `backend.error` | empty (`null` or `""`) |
+| `executor.backend_ready` | `executor.backend_ready` | `True` |
+| `executor.not_stuck` | `executor.state` | `!= "STUCK"` |
+| `executor.no_blocker` | `executor.blocker` | `null` |
+| `registry.tools` | `registry.tools` | ≥ 1 |
+| `registry.toolsets` | `registry.toolsets` | ≥ 1 entries |
+| `notes` | `notes` | field present |
+
+## Payload keys
+
+`status`, `verification`, `checks_run`, `skipped`, `matrix`, `assumptions`,
+`risk`.
+""",
+    ),
+    "part_strategies": Topic(
+        description="Part-type strategy catalog via list_part_strategies (not a generator).",
+        text="""# Part strategies (`list_part_strategies`)
+
+Read-only domain tool (`toolset=design`, `bypass_queue`). Returns a catalog of
+part-type strategies backed by `examples/*.json` recipes in
+`cadmcp.part_strategies`. **Does not** run recipes, `design_run`, or
+`replay_recipe`.
+
+## Catalog (4)
+
+| id / part_type | source_recipe | required_toolsets |
+|---|---|---|
+| `plate` | `examples/skill_case_1_plate.json` | core |
+| `box` | `examples/box_recipe.json` | core |
+| `fillet_pattern` | `examples/skill_case_2_fillet_pattern.json` | core, sketch_adv |
+| `surface_thicken` | `examples/skill_case_3_surface_thicken.json` | core, features_adv |
+
+Each row also has `description`, `feature_tools` (registered tool names), and
+`key_params` (illustrative dimensions from the recipe).
+
+## Filter
+
+`part_type=null` (default) → all four. Unknown `part_type` → empty `strategies`
+(still `ok=true`, `count=0`).
+
+## Payload keys
+
+`ok`, `strategies`, `count`.
+""",
+    ),
     "limits": Topic(
         description="Out of scope: drawing BOM table insert, Toolbox, axial feed.",
         text="""# Scope limits
@@ -207,10 +579,11 @@ API cannot tell contact from solid overlap.
 This server covers prismatic and revolved parts, solid loft (`loft` / `loft_cut`),
 sheet metal (`base_flange` / `edge_flange` / `sheet_metal_unfold`),
 ISO drill holes (`hole_wizard` on a planar `get_faces` index),
-approximate threads (helix plus a 60° sweep cut via `insert_thread`), assembly mates
-(including in-context subassembly edit via `edit_component` / `end_edit` / `get_edit_target`),
-exploded views (`explode_view` / `show_exploded` / `list_exploded_views`),
-part materials (`set_material` / `get_material`), configurations
+cosmetic threads (`insert_cosmetic_thread` + `THREAD_*` properties),
+native Thread Features (`create_thread` via `IThreadFeatureData` / cut|extrude),
+assembly mates (including in-context subassembly edit via `edit_component` /
+`end_edit` / `get_edit_target`), exploded views (`explode_view` / `show_exploded` /
+`list_exploded_views`), part materials (`set_material` / `get_material`), configurations
 (`list_configurations` / `set_configuration`), drawings (`new_drawing` /
 `create_drawing_view` / `create_section_view` / `insert_model_items` /
 `insert_balloons` / `export`), assembly BOM rollup (`get_bom`), and drawing BOM
@@ -219,10 +592,11 @@ tables (`insert_bom` on an assembly drawing view, then `get_bom`).
 Still **no tools** in this project (frozen):
 
 - Toolbox / standard parts
-- Native SolidWorks `InsertThread` (not in the type library)
 - A bolt or nut generator; axial feed / screw-in motion
 
-Call `help` with `workflow` / `selectors` for what this server actually does.
+Note: SW2025 has no COM member named `InsertThread`; geometry threads use
+`create_thread` (official Thread Feature). Call `help` with `workflow` /
+`selectors` for what this server actually does.
 """,
     ),
 }

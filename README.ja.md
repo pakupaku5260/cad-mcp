@@ -145,19 +145,25 @@ URL ベースのクライアント用の設定：
 
 ## 機能の概要
 
-**134 個のツール**、9 個のツールセット（[docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md) 参照）：
+**163 個のツール**、15 個のツールセット（[docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md) 参照）：
 
 | ツールセット | 数 | 重点 |
 |---|---|---|
-| core | 45 | ドキュメント、スケッチ、基本フィーチャー、照会 |
-| features_adv | 25 | ねじ、ヘリックス、スイープ、サーフェス、フィーチャー操作 |
-| assembly | 20 | 挿入、メイト、コンポーネント操作 |
-| drawing | 16 | ビュー、注記、DrawingSpec |
+| core | 48 | ドキュメント、スケッチ、基本フィーチャー、照会 |
+| features_adv | 27 | ねじ、ヘリックス、スイープ、サーフェス、フィーチャー操作 |
+| assembly | 24 | 挿入、メイト、コンポーネント操作（cam メイトは BLOCKED） |
+| drawing | 21 | ビュー、注記、DrawingSpec、検証 |
 | sketch_adv | 12 | スプライン、オフセット／トリム、拘束、寸法 |
-| sheetmetal | 7 | ベースフランジ／ヘム、平板展開 |
+| sheetmetal | 8 | ベースフランジ／ヘム／マイター、平板展開、DXF |
 | selection | 6 | 面／辺の選択ヘルパー |
+| transaction | 4 | L1 チェックポイント／ジャーナル + L2 リロード／補償／破棄 |
+| task | 3 | バッチタスク実行 |
+| design | 3 | DesignSpec 意図（検証のみ） |
+| export | 2 | STEP/STL + PDF/DXF |
 | view | 2 | 視点 / スクリーンショット |
-| export | 1 | STEP/STL/PDF/DXF |
+| rules | 1 | 機械チェック可能なモデルルール |
+| verification | 1 | モデル検証チェック |
+| diagnostics | 1 | `cadmcp doctor` JSON を解釈 |
 
 スキル（`solidworks-modeling`、`solidworks-assembly`、`solidworks-recovery`）は
 `cadmcp://skill/...` リソースとして同梱されます。`solidworks-modeling` は
@@ -168,7 +174,7 @@ URL ベースのクライアント用の設定：
 | 制限 | 備考 |
 |---|---|
 | モールドコア／キャビティ | パーティング面の信頼性／ライセンス状況待ち — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
-| ネイティブ InsertThread API | 代わりにヘリックス＋スイープカットを使用 — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| ねじフィーチャー（幾何変更） | `create_thread` として提供（SW2025 `IThreadFeatureData` / `swFmSweepThread`）。注釈は `insert_cosmetic_thread`。`InsertThread` というメンバー名は無い。— [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
 | SolidWorks Toolbox | 未統合 — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
 | 部品の文脈内編集（`EditPart2`） | 非対応；サブアセンブリ編集は対応 — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | 軸方向ねじ込み／フィードのメイト動作 | 非対応 |

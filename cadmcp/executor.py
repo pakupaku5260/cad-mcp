@@ -280,6 +280,11 @@ class Executor:
                         tool=job.tool,
                     )
                 )
+
+            # F5: at most one automatic retry after COM_LOST when safe
+            if self._should_retry_com_lost(job, result):
+                result = self._retry_after_com_lost(job, result)
+
             with self._lock:
                 self._current = None
                 if job.abandoned:
@@ -347,6 +352,116 @@ class Executor:
                 )
             raise fail("COM_ATTACH_FAILED", "Backend not initialized", "Call start() and wait for init")
         return self._backend
+
+    # ---------- F5 COM_LOST one-shot retry ----------
+
+    @staticmethod
+    def _should_retry_com_lost(job: _Job, result: OpResult) -> bool:
+        if result.ok or result.error is None:
+            return False
+        if result.error.code != "COM_LOST":
+            return False
+        # Reads: always eligible for one reattach+retry
+        if not job.mutating:
+            return True
+        # Writes: only when we know the call did not apply (side_effect=none)
+        return result.error.side_effect == SideEffect.NONE
+
+    def _retry_after_com_lost(self, job: _Job, first: OpResult) -> OpResult:
+        """reattach then re-run job.fn once; never retries APPLIED/UNKNOWN mutating."""
+        backend = self._backend
+        reattach_info: dict = {}
+        try:
+            if backend is None or not hasattr(backend, "reattach"):
+                return self._annotate_com_lost(first, retried=False, reason="no_reattach")
+            reattach_info = backend.reattach() or {}
+        except CadMcpError as exc:
+            info = exc.to_info()
+            ctx = dict(info.context)
+            ctx.update({"retried": False, "reattach_attempted": True, "reattach_failed": True})
+            return fail_result(
+                fail(
+                    info.code,
+                    info.message,
+                    info.hint,
+                    side_effect=info.side_effect,
+                    **ctx,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.exception("reattach failed unexpectedly for job %s", job.id)
+            return fail_result(
+                fail(
+                    "COM_ATTACH_FAILED",
+                    f"reattach failed: {type(exc).__name__}: {exc}",
+                    "Start SolidWorks and retry; if STA cannot recover, restart the cadmcp server",
+                    side_effect=SideEffect.NONE,
+                    retried=False,
+                    reattach_attempted=True,
+                )
+            )
+
+        try:
+            second = job.fn()
+        except CadMcpError as exc:
+            second = fail_result(exc)
+        except Exception as exc:  # noqa: BLE001
+            log.exception("Retry after COM_LOST crashed for job %s (%s)", job.id, job.tool)
+            second = fail_result(
+                fail(
+                    "INTERNAL_ERROR",
+                    f"{type(exc).__name__}: {exc}",
+                    "Server defect; check server logs",
+                    tool=job.tool,
+                    retried=True,
+                )
+            )
+
+        if second.ok:
+            warnings = list(second.warnings or [])
+            warnings.append("Recovered via reattach after COM_LOST (one automatic retry)")
+            return OpResult(
+                ok=True,
+                result=second.result,
+                delta=second.delta,
+                rebuild=second.rebuild,
+                verification=second.verification,
+                state_version=second.state_version,
+                warnings=warnings,
+            )
+        if second.error is not None:
+            return self._annotate_com_lost(
+                second,
+                retried=True,
+                reattach_info=reattach_info,
+            )
+        return second
+
+    @staticmethod
+    def _annotate_com_lost(
+        result: OpResult,
+        *,
+        retried: bool,
+        reason: str | None = None,
+        reattach_info: dict | None = None,
+    ) -> OpResult:
+        if result.error is None:
+            return result
+        ctx = dict(result.error.context)
+        ctx["retried"] = retried
+        ctx["reattach_attempted"] = True
+        if reason:
+            ctx["retry_skipped"] = reason
+        if reattach_info:
+            ctx["reattach"] = reattach_info
+        err = fail(
+            result.error.code,
+            result.error.message,
+            result.error.hint,
+            side_effect=result.error.side_effect,
+            **ctx,
+        )
+        return fail_result(err, state_version=result.state_version, warnings=list(result.warnings or []))
 
     # ---------- probe (daemon + join timeout) ----------
 

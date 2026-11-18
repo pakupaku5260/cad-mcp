@@ -8,12 +8,26 @@ from pydantic import BaseModel, ConfigDict
 
 
 class DocInfo(BaseModel):
+    """Active/open document snapshot.
+
+    ``modified`` = dirty flag (unsaved edits). ``saved`` = has a filesystem identity
+    (``path is not None``). The two are orthogonal.
+
+    ``epoch`` is an opaque document-context generation token for clients (detecting
+    replaced/switched document context). It is **not** the F4 transaction
+    ``compute_epoch`` hash and must not be reused for tx safety.
+    """
+
     model_config = ConfigDict(extra="forbid")
     title: str
     path: str | None = None
     doc_type: str = "part"
     modified: bool = False
     units: str = "mm"
+    # F6 additive fields (defaults preserve backward-compatible construction)
+    configuration: str = ""
+    epoch: str = ""
+    saved: bool = False
 
 
 class SketchInfo(BaseModel):
@@ -54,6 +68,10 @@ class ComponentRef(BaseModel):
     origin_m: tuple[float, float, float] | None = None
     bbox_m: tuple[float, float, float, float, float, float] | None = None
     lightweight: bool = False
+    suppressed: bool = False
+    flexible: bool = False
+    suppressed: bool = False
+    flexible: bool = False
 
 
 class MateInfo(BaseModel):
@@ -61,7 +79,7 @@ class MateInfo(BaseModel):
     name: str
     mate_type: str
     sw_error: int | None = None
-    components: tuple[str, str] | None = None
+    components: tuple[str, ...] | None = None
 
 
 class BomRow(BaseModel):
@@ -116,25 +134,40 @@ class SheetMetalFlatSI(BaseModel):
 
 
 class FaceRef(BaseModel):
+    """Face handle. ref_id is an opaque backend-private persist reference that clients
+    pass back verbatim and must never parse; None means the backend could not provide one.
+    """
+
     model_config = ConfigDict(extra="forbid")
     index: int
     kind: str
     centroid_m: tuple[float, float, float]
     normal_m: tuple[float, float, float] | None = None
     axis_m: tuple[float, float, float] | None = None
+    ref_id: str | None = None  # base64url persist reference; None = backend does not support it
 
 
 class EdgeRef(BaseModel):
+    """Edge handle. ref_id is an opaque backend-private persist reference that clients
+    pass back verbatim and must never parse; None means the backend could not provide one.
+    """
+
     model_config = ConfigDict(extra="forbid")
     index: int
     kind: str
     midpoint_m: tuple[float, float, float]
+    ref_id: str | None = None  # base64url persist reference; None = backend does not support it
 
 
 class VertexRef(BaseModel):
+    """Vertex handle. ref_id is an opaque backend-private persist reference that clients
+    pass back verbatim and must never parse; None means the backend could not provide one.
+    """
+
     model_config = ConfigDict(extra="forbid")
     index: int
     position_m: tuple[float, float, float]
+    ref_id: str | None = None  # base64url persist reference; None = backend does not support it
 
 
 class MassPropsSI(BaseModel):

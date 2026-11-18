@@ -43,7 +43,29 @@ def _derive_modal(owner: int | None, owner_enabled: bool | None) -> bool | None:
 
 
 def _is_server_gone(exc: BaseException) -> bool:
-    return getattr(exc, "hresult", None) in _SERVER_GONE_HRESULTS
+    """True when SolidWorks COM proxy is dead / RPC disconnected.
+
+    pywin32 often surfaces a killed SldWorks process as AttributeError('SldWorks.Application.X')
+    without an HRESULT — treat that as disconnect too (F5).
+    """
+    hr = getattr(exc, "hresult", None)
+    if hr in _SERVER_GONE_HRESULTS:
+        return True
+    # Some pywin32 paths stash HRESULT in args[0]
+    args = getattr(exc, "args", None)
+    if args and isinstance(args[0], int) and args[0] in _SERVER_GONE_HRESULTS:
+        return True
+    if isinstance(exc, AttributeError):
+        msg = str(exc)
+        # Dead COM proxy attribute access: "SldWorks.Application.ActiveDoc"
+        if msg.startswith("SldWorks.") or "SldWorks.Application" in msg:
+            return True
+    text = str(exc).lower()
+    if "rpc server is unavailable" in text or "rpc_e_disconnected" in text:
+        return True
+    if "the rpc server is unavailable" in text:
+        return True
+    return False
 
 
 def _as_bbox6(box: Any) -> tuple[float, float, float, float, float, float] | None:

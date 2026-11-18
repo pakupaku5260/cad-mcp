@@ -1,0 +1,19 @@
+{
+  "sequence": "design_spec",
+  "steps": [
+    {
+      "tool": "design_spec_validate",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "ok",
+        "spec"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 0,
+      "warning_count": 0
+    }
+  ]
+}

@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import math
 
-from cadmcp.errors import fail
-
 
 def extrude_z_range_m(
     depth_m: float,
@@ -61,46 +59,6 @@ def polygon_vertex_point_m(
         ang = -math.pi / sides
         return r_c * math.cos(ang), r_c * math.sin(ang)
     return radius_m, 0.0
-
-
-DEFAULT_THREAD_PITCH_M = 0.0015
-DEFAULT_THREAD_DIAMETER_M = 0.01
-_THREAD_DEPTH_FACTOR = (5.0 / 8.0) * (math.sqrt(3.0) / 2.0)
-_THREAD_OVERSHOOT = 0.15
-
-
-def thread_length_m(pitch_m: float, length_m: float | None) -> float:
-    if length_m is not None and length_m <= 0:
-        raise fail("INVALID_ARGUMENT", "Thread length must be positive", "Pass length > 0, or omit to use 4× pitch")
-    return float(length_m) if length_m is not None else 4.0 * pitch_m
-
-
-def thread_profile_xy(
-    diameter_m: float, pitch_m: float, *, internal: bool = False,
-) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
-    r = diameter_m / 2.0
-    depth = _THREAD_DEPTH_FACTOR * pitch_m
-    overshoot = _THREAD_OVERSHOOT * depth
-    half = pitch_m / 2.0
-    if internal:
-        if overshoot >= r:
-            raise fail(
-                "INVALID_ARGUMENT",
-                "Pitch is too large for diameter; internal thread profile would cross the axis",
-                "Reduce pitch or increase diameter",
-                diameter=diameter_m,
-                pitch=pitch_m,
-            )
-        return ((r - overshoot, 0.0), (r + depth, half), (r + depth, -half))
-    if depth >= r:
-        raise fail(
-            "INVALID_ARGUMENT",
-            "Pitch is too large for diameter; thread profile would cross the axis",
-            "Reduce pitch or increase diameter",
-            diameter=diameter_m,
-            pitch=pitch_m,
-        )
-    return ((r + overshoot, 0.0), (r - depth, half), (r - depth, -half))
 
 
 AABB_INTERFERENCE_EPS_M = 1e-7

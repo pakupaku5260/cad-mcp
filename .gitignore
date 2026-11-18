@@ -22,6 +22,7 @@ logs/
 backup_*/
 output/
 workspace/
+.cadmcp/
 .env
 .env.*
 
@@ -31,6 +32,9 @@ probe_out/
 deliverables/
 archive/
 *.bak
+
+# Internal marketing material (never in sdist / never public export)
+docs/promo/
 
 # Read-only reference clones
 .refs/
@@ -52,6 +56,9 @@ Thumbs.db
 
 # One-shot S9 API snapshot (must not overwrite / commit; compare locally)
 cadmcp/backend/api_baseline_s9.json
+
+# F7 bench local/CI report (baseline.json is committed)
+benchmarks/report.json
 
 # MkDocs build output
 website/site/

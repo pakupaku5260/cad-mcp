@@ -1,26 +1,38 @@
-"""Generate and verify tool inventory (local gate; prevents doc drift).
+"""Generate and verify tool inventory + roadmap status card (local gate; prevents doc drift).
 
 Usage:
-    $env:PYTHONPATH="."; python scripts/tool_inventory.py          # rewrite both targets
-    $env:PYTHONPATH="."; python scripts/tool_inventory.py --check  # compare files; exit 1 on mismatch
+    $env:PYTHONPATH="."; python scripts/tool_inventory.py          # rewrite targets + card
+    $env:PYTHONPATH="."; python scripts/tool_inventory.py --check  # compare; exit 1 on mismatch
 
 Targets:
     docs/TOOL_INVENTORY.md                     — full per-tool table (repo)
     website/docs/_generated/toolset-matrix.md  — totals + toolset table (site snippet)
+    docs/mcp-next-roadmap.md                   — <!-- inventory:card:* --> block only
 
 Inventory is generated from registry only. Description = first line truncated; params from input_schema.properties.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
-from cadmcp.registry import TOOLSET_DEFS
+from cadmcp.consistency import SEQUENCES
+from cadmcp.errors import CATALOG
+from cadmcp.registry import BUDGET_CARD_TEXT, TOOLSET_DEFS
 from cadmcp.toolsets.core import core_registry
 
 TARGET = Path("docs/TOOL_INVENTORY.md")
 SITE_TARGET = Path("website/docs/_generated/toolset-matrix.md")
+ROADMAP = Path("docs/mcp-next-roadmap.md")
 DESC_LIMIT = 100
+
+CARD_START = "<!-- inventory:card:start -->"
+CARD_END = "<!-- inventory:card:end -->"
+_CARD_RE = re.compile(
+    re.escape(CARD_START) + r".*?" + re.escape(CARD_END),
+    re.DOTALL,
+)
 
 
 def _cell(text: str) -> str:
@@ -40,6 +52,38 @@ def _params(schema: dict) -> str:
     return ", ".join(cells)
 
 
+def render_status_card() -> str:
+    """Machine-checked status card body (between start/end markers)."""
+    specs = core_registry().all()
+    toolsets = {s.toolset for s in specs}
+    lines = [
+        CARD_START,
+        f"- tools: {len(specs)}",
+        f"- toolsets: {len(toolsets)}",
+        f"- error_codes: {len(CATALOG)}",
+        f"- sequences: {len(SEQUENCES)}",
+        f"- budget: {BUDGET_CARD_TEXT}",
+        CARD_END,
+    ]
+    return "\n".join(lines)
+
+
+def apply_status_card(roadmap_text: str, card: str) -> str:
+    """Replace or insert the inventory card block in roadmap markdown."""
+    if _CARD_RE.search(roadmap_text):
+        return _CARD_RE.sub(card, roadmap_text, count=1)
+    # Insert after the 现状卡片 heading if present
+    marker = "## 现状卡片"
+    idx = roadmap_text.find(marker)
+    if idx >= 0:
+        # Place card after the heading line
+        nl = roadmap_text.find("\n", idx)
+        if nl < 0:
+            return roadmap_text + "\n\n" + card + "\n"
+        return roadmap_text[: nl + 1] + "\n" + card + "\n" + roadmap_text[nl + 1 :]
+    return roadmap_text.rstrip() + "\n\n" + card + "\n"
+
+
 def render() -> str:
     specs = core_registry().all()
     groups: dict[str, list] = {}
@@ -54,6 +98,9 @@ def render() -> str:
         "",
         f"- Total tools: **{len(specs)}**",
         f"- Toolsets: **{len(groups)}**",
+        f"- Error codes: **{len(CATALOG)}**",
+        f"- Consistency sequences: **{len(SEQUENCES)}**",
+        f"- Budget: {BUDGET_CARD_TEXT}",
         "- Params column: `name` optional, `name*` required.",
         "",
         "| toolset | tools | description |",
@@ -122,8 +169,29 @@ def _check(path: Path, text: str) -> bool:
     return True
 
 
+def _check_roadmap_card(roadmap: Path, card: str) -> bool:
+    if not roadmap.exists():
+        print(f"Missing {roadmap}", file=sys.stderr)
+        return True
+    text = roadmap.read_text(encoding="utf-8")
+    match = _CARD_RE.search(text)
+    if match is None:
+        print(f"{roadmap}: missing {CARD_START}…{CARD_END} block", file=sys.stderr)
+        return True
+    current = match.group(0).strip()
+    wanted = card.strip()
+    if current == wanted:
+        print(f"{roadmap} status card matches registry")
+        return False
+    print(f"{roadmap}: status card drift", file=sys.stderr)
+    print(f"  repo:\n{current}", file=sys.stderr)
+    print(f"  generate:\n{wanted}", file=sys.stderr)
+    return True
+
+
 def main(argv: list[str]) -> int:
     check = "--check" in argv
+    card = render_status_card()
     targets = ((TARGET, render()), (SITE_TARGET, render_site()))
 
     if not check:
@@ -131,11 +199,19 @@ def main(argv: list[str]) -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8", newline="\n")
             print(f"Wrote {path} ({len(text.splitlines())} lines)")
+        if ROADMAP.exists():
+            updated = apply_status_card(ROADMAP.read_text(encoding="utf-8"), card)
+            ROADMAP.write_text(updated, encoding="utf-8", newline="\n")
+            print(f"Updated status card in {ROADMAP}")
+        else:
+            print(f"Missing {ROADMAP}; skipped card write", file=sys.stderr)
+            return 1
         return 0
 
     failed = False
     for path, text in targets:
         failed = _check(path, text) or failed
+    failed = _check_roadmap_card(ROADMAP, card) or failed
     if failed:
         print("Run `python scripts/tool_inventory.py` to regenerate", file=sys.stderr)
         return 1

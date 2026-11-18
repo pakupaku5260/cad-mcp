@@ -23,7 +23,9 @@ from typing import Any
 from ._constants import (
     _CURVE_KINDS,
     _SURFACE_KINDS,
+    _SW_COMP_FLEXIBLE,
     _SW_COMP_LIGHTWEIGHT,
+    _SW_COMP_SUPPRESSED,
     SW_DOC_ASSEMBLY,
 )
 from ._helpers import _as_bbox6, _get, _union_bbox6
@@ -38,14 +40,52 @@ class GeometryMixin:
         pass  # stateless
 
     @staticmethod
-    def _component_is_lightweight(comp: Any) -> bool:
+    def _component_suppression(comp: Any) -> int | None:
         try:
-            return int(_get(comp, "GetSuppression2")) == _SW_COMP_LIGHTWEIGHT
+            return int(_get(comp, "GetSuppression2"))
         except Exception:
             try:
-                return int(_get(comp, "GetSuppression")) == _SW_COMP_LIGHTWEIGHT
+                return int(_get(comp, "GetSuppression"))
             except Exception:
-                return False
+                return None
+
+    @staticmethod
+    def _component_is_lightweight(comp: Any) -> bool:
+        state = GeometryMixin._component_suppression(comp)
+        return state == _SW_COMP_LIGHTWEIGHT
+
+    @staticmethod
+    def _component_is_suppressed(comp: Any) -> bool:
+        state = GeometryMixin._component_suppression(comp)
+        return state == _SW_COMP_SUPPRESSED
+
+    @staticmethod
+    def _component_is_flexible(comp: Any) -> bool:
+        for attr in ("GetSolving", "Solving"):
+            try:
+                val = getattr(comp, attr)
+                if callable(val) and not hasattr(val, "_oleobj_"):
+                    val = val()
+                return int(val) == _SW_COMP_FLEXIBLE
+            except Exception:
+                continue
+        return False
+
+    @staticmethod
+    def _component_is_assembly(comp: Any) -> bool:
+        try:
+            path = str(_get(comp, "GetPathName") or "")
+            if path.lower().endswith(".sldasm"):
+                return True
+        except Exception:
+            pass
+        try:
+            model = _get(comp, "GetModelDoc2")
+            if model is not None and int(_get(model, "GetType")) == SW_DOC_ASSEMBLY:
+                return True
+        except Exception:
+            pass
+        return False
 
     @staticmethod
     def _comp_point(comp: Any, pt: tuple[float, float, float]) -> tuple[float, float, float]:

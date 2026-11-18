@@ -22,6 +22,7 @@ def _public_face(face: FaceRef, u: UnitContext) -> dict:
         "index": face.index,
         "kind": face.kind,
         "centroid": list(u.tuple_from_m(face.centroid_m)),
+        "ref_id": face.ref_id,
     }
     if face.normal_m is not None:
         item["normal"] = [float(v) for v in face.normal_m]
@@ -29,11 +30,15 @@ def _public_face(face: FaceRef, u: UnitContext) -> dict:
 
 
 def _doc_payload(info: DocInfo) -> dict:
+    """Public DocInfo dict. Existing five keys keep prior semantics; F6 adds three."""
     return {
         "title": info.title,
         "path": info.path,
         "doc_type": info.doc_type,
         "modified": info.modified,
         "units": info.units,
+        "configuration": info.configuration,
+        "epoch": info.epoch,
+        "saved": info.saved,
     }
 

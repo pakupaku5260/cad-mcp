@@ -5,16 +5,26 @@ Same unit rules as core: lengths via UnitContext to meters; backend uses SI.
 from __future__ import annotations
 
 import math
+from typing import Any
 
 from cadmcp.errors import fail
 from cadmcp.kernel import OpContext
 from cadmcp.registry import ToolSpec, make_schema
 from cadmcp.safety import ensure_output_path
+from cadmcp.sheetmetal_calc import assess as assess_bend_allowance
 from cadmcp.units import SUPPORTED_UNITS, UnitContext
 
 _UNIT_DESC = "Unit; default mm."
 _UNIT_ENUM = sorted(SUPPORTED_UNITS)
 _DXF_EXTS = {".dxf"}
+
+_CALC_BEND_ALLOWANCE_DESCRIPTION = (
+    "Pure bend-allowance estimate from explicit thickness, K-factor, and bend "
+    "angle/radius parameters (neutral-axis formula). Does not read the model, "
+    "does not call sheet_metal_unfold / sheet_metal_bend_table, and is not a "
+    "SolidWorks flat-pattern. Lengths use `unit` (default mm); risk=unverified. "
+    "Read cadmcp://help/bend_allowance before interpreting the result."
+)
 
 
 def _unit_ctx(ctx: OpContext, unit: str) -> UnitContext:
@@ -152,6 +162,45 @@ def sheet_metal_bend_table(ctx: OpContext, unit: str = "mm") -> dict:
     return {"count": len(rows), "bends": rows}
 
 
+def calc_bend_allowance(
+    ctx: OpContext,
+    bends: list[dict[str, Any]],
+    thickness: float,
+    k_factor: float = 0.5,
+    unit: str = "mm",
+) -> dict:
+    """Readonly pure BA estimate; does not touch the model."""
+    uc = _unit_ctx(ctx, unit)
+    bends_m = [
+        {
+            "angle_deg": float(b["angle_deg"]),
+            "radius": uc.to_m(float(b["radius"])),
+        }
+        for b in bends
+    ]
+    payload = assess_bend_allowance(uc.to_m(thickness), float(k_factor), bends_m)
+    converted: list[dict[str, Any]] = []
+    for row in payload["bend_allowances"]:
+        converted.append(
+            {
+                "index": row["index"],
+                "angle_deg": row["angle_deg"],
+                "radius": uc.from_m(float(row["radius"])),
+                "bend_allowance": uc.from_m(float(row["bend_allowance"])),
+            }
+        )
+    total = uc.from_m(float(payload["total_bend_allowance"])) if converted else 0.0
+    return {
+        "status": payload["status"],
+        "verification": payload["verification"],
+        "bend_allowances": converted,
+        "total_bend_allowance": total,
+        "unit": uc.external_unit,
+        "assumptions": payload["assumptions"],
+        "risk": payload["risk"],
+    }
+
+
 SHEETMETAL_SPECS: list[ToolSpec] = [
     ToolSpec(
         name="base_flange",
@@ -272,5 +321,47 @@ SHEETMETAL_SPECS: list[ToolSpec] = [
         ),
         handler=sheet_metal_bend_table,
         timeout_class="fast",
+    ),
+    ToolSpec(
+        name="calc_bend_allowance",
+        toolset="sheetmetal",
+        description=_CALC_BEND_ALLOWANCE_DESCRIPTION,
+        input_schema=make_schema(
+            {
+                "bends": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "angle_deg": {"type": "number"},
+                            "radius": {"type": "number"},
+                        },
+                        "required": ["angle_deg", "radius"],
+                    },
+                    "description": "Explicit bends: angle_deg and inside radius (call unit).",
+                },
+                "thickness": {
+                    "type": "number",
+                    "description": "Sheet thickness in `unit`.",
+                },
+                "k_factor": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "Neutral-axis K-factor; 0 < k < 1 (default 0.5).",
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": _UNIT_ENUM,
+                    "description": _UNIT_DESC,
+                },
+            },
+            ["bends", "thickness"],
+        ),
+        handler=calc_bend_allowance,
+        mutating=False,
+        bypass_queue=True,
+        timeout_class="fast",
+        layer="domain",
     ),
 ]

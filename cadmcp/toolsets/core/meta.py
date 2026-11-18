@@ -106,7 +106,7 @@ SPECS: tuple[ToolSpec, ...] = (
         description="Long-form help for one topic; call it instead of guessing.",
         input_schema=make_schema(
             {"topic": {"type": "string",
-                       "description": "selectors | workflow | units | errors | limits"}},
+                       "description": "selectors | workflow | units | errors | design_spec | task_layer | rules | assembly_dof | drawing_preflight | bend_allowance | doctor_matrix | part_strategies | limits"}},
             ["topic"],
         ),
         handler=help_topic,

@@ -1,6 +1,6 @@
 [project]
 name = "pycadmcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "CAD MCP server: one process, dedicated STA executor, offline-testable (SolidWorks backend first)"
 readme = "README.md"
 license = "MIT"
@@ -60,6 +60,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cadmcp"]
+
+# F9.3: sdist must ship only the installable package (+ hatch metadata),
+# never docs/scripts/tests/benchmarks/mcpb/website/internal trees.
+[tool.hatch.build.targets.sdist]
+only-include = ["cadmcp"]
 
 # skill 已在 packages 内；勿 force-include 以免重复打包
 # 证据/基线已迁出至 internal-evidence/（gitignore），不再进入 wheel

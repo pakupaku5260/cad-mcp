@@ -86,6 +86,7 @@ class VerificationCheck(BaseModel):
     name: str
     ok: bool
     detail: str = ""
+    code: str | None = None  # optional diagnostic code (CATALOG VERIFY_*); additive F2
 
 
 class VerificationEvidence(BaseModel):

@@ -7,9 +7,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -104,9 +107,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -216,10 +222,13 @@
         "annotation_count",
         "datum_count",
         "datums",
+        "dimensions",
         "gdt_count",
         "gdts",
         "missing_title_fields",
         "missing_tolerances",
+        "model_doc_type",
+        "model_path",
         "paper",
         "scale",
         "sheet_count",
@@ -228,7 +237,9 @@
         "tolerances",
         "untoleranced_dimensions",
         "view_count",
-        "views"
+        "views",
+        "weld_count",
+        "welds"
       ],
       "delta_changed": null,
       "rebuild_ok": null,

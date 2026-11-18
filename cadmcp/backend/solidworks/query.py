@@ -105,6 +105,7 @@ class QueryMixin:
                                 centroid_m=centroid,
                                 normal_m=normal,
                                 axis_m=axis,
+                                ref_id=getattr(self, "_persist_ref", lambda _e: None)(face),
                             )
                         )
             except CadMcpError:
@@ -125,7 +126,14 @@ class QueryMixin:
                 for body in self._bodies_of(doc):
                     for edge in _get(body, "GetEdges") or ():
                         kind, midpoint = self._edge_geometry(edge)
-                        edges.append(EdgeRef(index=len(edges), kind=kind, midpoint_m=midpoint))
+                        edges.append(
+                            EdgeRef(
+                                index=len(edges),
+                                kind=kind,
+                                midpoint_m=midpoint,
+                                ref_id=getattr(self, "_persist_ref", lambda _e: None)(edge),
+                            )
+                        )
             except CadMcpError:
                 raise
             except Exception as exc:
@@ -150,7 +158,13 @@ class QueryMixin:
                             pos = (float(p[0]), float(p[1]), float(p[2]))
                         except Exception:
                             continue
-                        verts.append(VertexRef(index=len(verts), position_m=pos))
+                        verts.append(
+                            VertexRef(
+                                index=len(verts),
+                                position_m=pos,
+                                ref_id=getattr(self, "_persist_ref", lambda _e: None)(vert),
+                            )
+                        )
             except CadMcpError:
                 raise
             except Exception as exc:
@@ -241,7 +255,15 @@ class QueryMixin:
                              if f.kind == kind and self._same_point(f.centroid_m, c)),
                             -1,
                         )
-                        items.append(FaceRef(index=idx, kind=kind, centroid_m=c, normal_m=nrm))
+                        items.append(
+                            FaceRef(
+                                index=idx,
+                                kind=kind,
+                                centroid_m=c,
+                                normal_m=nrm,
+                                ref_id=getattr(self, "_persist_ref", lambda _e: None)(obj),
+                            )
+                        )
                     elif sel_type == _SEL_EDGE:
                         if edges_pool is None:
                             edges_pool = self.list_edges()
@@ -251,7 +273,14 @@ class QueryMixin:
                              if e.kind == kind and self._same_point(e.midpoint_m, m)),
                             -1,
                         )
-                        items.append(EdgeRef(index=idx, kind=kind, midpoint_m=m))
+                        items.append(
+                            EdgeRef(
+                                index=idx,
+                                kind=kind,
+                                midpoint_m=m,
+                                ref_id=getattr(self, "_persist_ref", lambda _e: None)(obj),
+                            )
+                        )
             except CadMcpError:
                 raise
             except Exception as exc:
@@ -293,6 +322,7 @@ class QueryMixin:
                         centroid_m=centroid,
                         normal_m=normal,
                         axis_m=axis,
+                        ref_id=getattr(self, "_persist_ref", lambda _e: None)(face),
                     )
                 )
             return filter_by_kind(out, kind, allowed=FACE_FILTER_KINDS, what="face")
@@ -325,7 +355,14 @@ class QueryMixin:
             out: list[EdgeRef] = []
             for edge in self._component_edge_objects(comp):
                 edge_kind, midpoint = self._edge_geometry(edge, comp)
-                out.append(EdgeRef(index=len(out), kind=edge_kind, midpoint_m=midpoint))
+                out.append(
+                    EdgeRef(
+                        index=len(out),
+                        kind=edge_kind,
+                        midpoint_m=midpoint,
+                        ref_id=getattr(self, "_persist_ref", lambda _e: None)(edge),
+                    )
+                )
             return filter_by_kind(out, kind, allowed=EDGE_FILTER_KINDS, what="edge")
 
         return self._call(_fn)

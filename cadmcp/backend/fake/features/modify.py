@@ -615,13 +615,34 @@ class FakeModifyMixin:
                 "Create a solid with edges first, then get index from get_edges",
             )
         if edges is None:
-            edge_idxs = [e.index for e in edge_pool]
+            # Match COM: omit edges → boundary of pull_face (not all solid edges).
+            face = faces[idx]
+            nrm = face.normal_m
+            cen = face.centroid_m
+            edge_idxs: list[int] = []
+            if nrm is not None and cen is not None:
+                nx, ny, nz = (float(nrm[0]), float(nrm[1]), float(nrm[2]))
+                cx, cy, cz = (float(cen[0]), float(cen[1]), float(cen[2]))
+                for e in edge_pool:
+                    mx, my, mz = (
+                        float(e.midpoint_m[0]),
+                        float(e.midpoint_m[1]),
+                        float(e.midpoint_m[2]),
+                    )
+                    if abs((mx - cx) * nx + (my - cy) * ny + (mz - cz) * nz) < 1e-6:
+                        edge_idxs.append(int(e.index))
+            if not edge_idxs:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    f"No boundary edges on pull face {idx}",
+                    "Pass get_edges indexes for a closed parting loop",
+                )
         else:
             if not edges:
                 raise fail(
                     "INVALID_ARGUMENT",
                     "edges list cannot be empty",
-                    "Omit edges for all edges, or pass get_edges indexes",
+                    "Omit edges for pull-face boundary loop, or pass get_edges indexes",
                 )
             edge_idxs = []
             for raw in edges:
@@ -761,6 +782,99 @@ class FakeModifyMixin:
         doc.features.append(feat)
         doc.modified = True
         return FeatureInfo(name=feat["name"], kind="shut_off_surface")
+
+    def tooling_split(
+        self,
+        sketch: str | None = None,
+        *,
+        depth1_m: float = 0.1,
+        depth2_m: float = 0.1,
+        setback: bool = False,
+        angle_rad: float = 0.05235987755982989,
+        core_sheet: str | None = None,
+        cavity_sheet: str | None = None,
+        parting_sheet: str | None = None,
+    ) -> FeatureInfo:
+        self._enter(
+            "tooling_split",
+            sketch=sketch,
+            depth1=depth1_m,
+            depth2=depth2_m,
+            setback=setback,
+            angle=angle_rad,
+            core_sheet=core_sheet,
+            cavity_sheet=cavity_sheet,
+            parting_sheet=parting_sheet,
+        )
+        doc = self._require_part("Use a part document for mold tooling split")
+        if depth1_m <= 0 or depth2_m <= 0:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Tooling-split depths must be positive (meters): {depth1_m}, {depth2_m}",
+                "Pass depth1/depth2 > 0",
+            )
+        if angle_rad < 0:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Tooling-split angle cannot be negative (radians): {angle_rad}",
+                "Pass angle_deg ≥ 0",
+            )
+        if not any(x.get("kind") == "parting_line" for x in doc.features):
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "No usable parting line",
+                "Call parting_line then parting_surface, then tooling_split",
+            )
+        if not any(x.get("kind") == "parting_surface" for x in doc.features):
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "No usable parting surface",
+                "Call parting_surface, then tooling_split",
+            )
+        ended = list(doc.ended_sketches)
+        if sketch is not None:
+            sk = next((s for s in ended if getattr(s, "name", None) == str(sketch)), None)
+            if sk is None:
+                # also accept feature-style names created as SketchN
+                sk = next((s for s in ended if str(getattr(s, "name", "")) == str(sketch)), None)
+            if sk is None:
+                raise fail(
+                    "FEATURE_NOT_FOUND",
+                    f"Mold-block sketch not found: {sketch!r}",
+                    "end_sketch a block outline, or omit sketch for latest ended sketch",
+                    requested=sketch,
+                )
+            sk_name = str(getattr(sk, "name", sketch))
+        else:
+            if not ended:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    "No mold-block sketch available",
+                    "Draw a rectangle larger than the part, end_sketch, then tooling_split",
+                )
+            sk_name = str(getattr(ended[-1], "name", "Sketch"))
+        n = sum(1 for x in doc.features if x["kind"] == "tooling_split") + 1
+        feat = {
+            "kind": "tooling_split",
+            "sign": 0,
+            "name": f"ToolingSplit{n}",
+            "vol": 0.0,
+            "surf": 0.0,
+            "faces": 0,
+            "edges": 0,
+            "sketch": sk_name,
+            "depth1": float(depth1_m),
+            "depth2": float(depth2_m),
+            "setback": bool(setback),
+            "angle": float(angle_rad),
+            "core_sheet": core_sheet,
+            "cavity_sheet": cavity_sheet,
+            "parting_sheet": parting_sheet,
+            "bodies": 3,
+        }
+        doc.features.append(feat)
+        doc.modified = True
+        return FeatureInfo(name=feat["name"], kind="tooling_split")
 
     # ---------- Hole wizard ----------
 

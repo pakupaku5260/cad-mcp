@@ -7,9 +7,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -85,23 +88,22 @@
       "warning_count": 0
     },
     {
-      "tool": "insert_thread",
+      "tool": "insert_cosmetic_thread",
       "ok": true,
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "diameter",
+        "edge",
         "kind",
         "name",
+        "properties",
+        "side",
+        "size",
+        "spec",
         "unit"
       ],
-      "delta_changed": [
-        "bbox_mm",
-        "edge_count",
-        "face_count",
-        "mass_kg",
-        "surface_area_mm2",
-        "volume_mm3"
-      ],
+      "delta_changed": [],
       "rebuild_ok": true,
       "state_version": 6,
       "warning_count": 0
@@ -141,9 +143,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -233,22 +238,22 @@
       "warning_count": 0
     },
     {
-      "tool": "insert_thread",
+      "tool": "insert_cosmetic_thread",
       "ok": true,
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "diameter",
+        "edge",
         "kind",
         "name",
+        "properties",
+        "side",
+        "size",
+        "spec",
         "unit"
       ],
-      "delta_changed": [
-        "edge_count",
-        "face_count",
-        "mass_kg",
-        "surface_area_mm2",
-        "volume_mm3"
-      ],
+      "delta_changed": [],
       "rebuild_ok": true,
       "state_version": 15,
       "warning_count": 0

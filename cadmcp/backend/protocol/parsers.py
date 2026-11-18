@@ -141,9 +141,11 @@ def parse_mate_ref(entity: str) -> MateRef:
     return MateRef(kind="plane", component=component, plane=plane)
 
 
-def parse_mate_pair(entity1: str, entity2: str) -> tuple[MateRef, MateRef]:
+def parse_mate_pair(
+    entity1: str, entity2: str, *, allow_same_component: bool = False
+) -> tuple[MateRef, MateRef]:
     ref1, ref2 = parse_mate_ref(entity1), parse_mate_ref(entity2)
-    if ref1.component == ref2.component:
+    if not allow_same_component and ref1.component == ref2.component:
         raise fail(
             "INVALID_ARGUMENT",
             f"Both mate entities belong to the same component {ref1.component!r}",

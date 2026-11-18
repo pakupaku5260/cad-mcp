@@ -76,13 +76,28 @@ _MATE_CONCENTRIC = 1
 _MATE_TANGENT = 4
 _MATE_DISTANCE = 5
 _MATE_ANGLE = 6
+_MATE_CAM = 9
+_MATE_GEAR = 10
+_MATE_WIDTH = 11
 _MATE_SCREW = 17
 _MATE_ERR_NONE = 1  # swAddMateError_NoError
+# Selection marks for AddMate5 (IAssemblyDoc remarks)
+_MATE_SEL_MARK_DEFAULT = 1
+_MATE_SEL_MARK_CAM = 8
+_MATE_SEL_MARK_WIDTH = 16
+# swMateWidthOptions_e
+_MATE_WIDTH_CENTERED = 0
+# ReplaceComponents2 MatchName option
+_REPLACE_MATCH_NAME = 0
 
 # swComponentSuppressionState_e
 _SW_COMP_SUPPRESSED = 0
 _SW_COMP_LIGHTWEIGHT = 1
 _SW_COMP_RESOLVED = 2
+
+# swComponentSolvingOption_e
+_SW_COMP_RIGID = 0
+_SW_COMP_FLEXIBLE = 1
 
 # swMateAlign_e
 _MATE_ALIGN_ALIGNED = 0
@@ -127,6 +142,7 @@ _FEATURE_KINDS = {
     "MoldPartingLine": "parting_line",
     "MoldPartingGeom": "parting_surface",
     "MoldShutOffSrf": "shut_off_surface",
+    "MoldCoreCavitySolids": "tooling_split",
     "BaseBody": "stock",
     "DeleteBody": "delete_body",
     "LocalCirPattern": "local_cir_pattern",
@@ -150,6 +166,8 @@ _SERVER_GONE_HRESULTS = {
     -2147023170,  # RPC_S_CALL_FAILED
     -2147418105,  # RPC_E_SERVER_DIED
     -2147023179,  # RPC_S_UNKNOWN_IF
+    -2147418113,  # RPC_E_SERVERFAULT
+    -2147023169,  # RPC_S_CALL_FAILED_DNE
 }
 
 # swDeleteSelectionOptions_e

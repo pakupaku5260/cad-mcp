@@ -48,6 +48,35 @@ def set_material(ctx: OpContext, name: str) -> dict:
     return {"name": applied, "database": database}
 
 
+def set_properties(ctx: OpContext, entries: list) -> dict:
+    if not isinstance(entries, list) or not entries:
+        raise fail(
+            "INVALID_ARGUMENT",
+            "entries must be a non-empty array",
+            '[{"key":"PartNo","value":"P-001"}]',
+        )
+    cleaned: dict[str, str] = {}
+    for i, item in enumerate(entries):
+        if not isinstance(item, dict):
+            raise fail("INVALID_ARGUMENT", f"entries[{i}] must be an object", "Include key/value")
+        key = str(item.get("key") or "").strip()
+        if not key:
+            raise fail("INVALID_ARGUMENT", f"entries[{i}].key cannot be empty", "e.g. PartNo")
+        cleaned[key] = str(item.get("value") or "")
+    written = ctx.backend.set_properties(cleaned)
+    return {"written": written, "count": len(written)}
+
+
+def get_properties(ctx: OpContext, keys: list | None = None) -> dict:
+    want = None
+    if keys is not None:
+        if not isinstance(keys, list):
+            raise fail("INVALID_ARGUMENT", "keys must be an array of strings", '["PartNo","Material"]')
+        want = [str(k) for k in keys]
+    props = ctx.backend.get_properties(want)
+    return {"properties": props, "count": len(props)}
+
+
 def get_bom(ctx: OpContext) -> dict:
     source, rows = ctx.backend.get_bom()
     return {
@@ -79,6 +108,29 @@ def get_active_document(ctx: OpContext) -> dict:
         raise fail("NO_ACTIVE_DOCUMENT", "No open document",
                    "Call new_part to create a part, or open_document to open a file")
     return _doc_payload(info)
+
+
+def list_open_documents(ctx: OpContext) -> dict:
+    """Enumerate open documents; mark the active one. Stable sort by title."""
+    active = ctx.backend.active_document()
+    active_key = None
+    if active is not None:
+        active_key = (active.title, active.path)
+    docs = []
+    for info in ctx.backend.list_open_documents():
+        item = _doc_payload(info)
+        item["active"] = active_key is not None and (info.title, info.path) == active_key
+        docs.append(item)
+    docs.sort(key=lambda d: (str(d.get("title") or ""), str(d.get("path") or "")))
+    # Ensure at most one active after sort (recompute if ties)
+    if active_key is not None:
+        seen = False
+        for item in docs:
+            is_active = (item.get("title"), item.get("path")) == active_key and not seen
+            item["active"] = is_active
+            if is_active:
+                seen = True
+    return {"count": len(docs), "documents": docs}
 
 
 SPECS: tuple[ToolSpec, ...] = (
@@ -125,9 +177,16 @@ SPECS: tuple[ToolSpec, ...] = (
     ),
     ToolSpec(
         name="get_active_document",
-        description="Title, path and modified flag of the active document.",
+        description="Title, path, modified/saved flags, configuration and epoch of the active document.",
         input_schema=make_schema({}),
         handler=get_active_document,
+    ),
+    ToolSpec(
+        name="list_open_documents",
+        description="List open documents with DocInfo fields and an active flag for multi-doc context.",
+        input_schema=make_schema({}),
+        handler=list_open_documents,
+        timeout_class="fast",
     ),
     ToolSpec(
         name="list_configurations",
@@ -169,6 +228,45 @@ SPECS: tuple[ToolSpec, ...] = (
         ),
         handler=set_material,
         mutating=True,
+    ),
+    ToolSpec(
+        name="set_properties",
+        description="Write part/assembly custom properties (active config). Extra keys allowed.",
+        input_schema=make_schema(
+            {
+                "entries": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": ["key", "value"],
+                        "properties": {
+                            "key": {"type": "string"},
+                            "value": {"type": "string"},
+                        },
+                    },
+                },
+            },
+            ["entries"],
+        ),
+        handler=set_properties,
+        mutating=True,
+    ),
+    ToolSpec(
+        name="get_properties",
+        description="Read part/assembly custom properties; omit keys for the default set.",
+        input_schema=make_schema(
+            {
+                "keys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Property names; default controlled set when omitted.",
+                },
+            },
+        ),
+        handler=get_properties,
+        timeout_class="fast",
     ),
     ToolSpec(
         name="get_bom",

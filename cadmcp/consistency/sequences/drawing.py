@@ -1,7 +1,48 @@
 """Engineering Drawing View and Partial Detail Sequence."""
 from __future__ import annotations
 
+import json
+from collections.abc import Callable
+from pathlib import Path
+
 from cadmcp.consistency._types import SequenceStep
+
+PREFLIGHT_SPEC_FILENAME = "preflight_ok.json"
+
+PREFLIGHT_OK_SPEC: dict = {
+    "model": "plate.sldprt",
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "paper": "A4",
+            "scale": [1, 1],
+            "views": [{"orient": "front"}, {"orient": "isometric"}],
+        }
+    ],
+    "title_block": {"PartNo": "P-001", "Description": "preflight"},
+    "gdts": [
+        {"kind": "datum", "label": "A", "x": 100, "y": 80},
+        {
+            "kind": "gdt",
+            "symbol": "position",
+            "tolerance": "0.1",
+            "datums": ["A"],
+            "x": 120,
+            "y": 60,
+        },
+    ],
+    "bom": {"type": "top"},
+}
+
+
+def seed_drawing_spec_preflight(workspace: Path) -> None:
+    path = workspace / PREFLIGHT_SPEC_FILENAME
+    path.write_text(
+        json.dumps(PREFLIGHT_OK_SPEC, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
 
 SEQUENCES: dict[str, list[SequenceStep]] = {
     # Stage N2: Engineering Drawing + Standard Model View (BOM in N3)
@@ -91,6 +132,68 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
         ("close_document", {"discard": True}),
     ],
 
+    # Drawing release checklist: inspect gaps + verify_model drawing thresholds (part skips BOM).
+    "drawing_release": [
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 30, "y2": 20}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 8}),
+        ("save_document", {"path": "rel_plate.sldprt"}),
+        ("new_drawing", {}),
+        ("create_drawing_view", {"path": "rel_plate.sldprt", "view": "front"}),
+        ("insert_model_items", {}),
+        ("inspect_drawing", {}),
+        (
+            "verify_model",
+            {
+                "groups": ["drawing"],
+                "thresholds": {"required_title_keys": [], "require_bom": False},
+            },
+        ),
+        (
+            "set_title_block",
+            {
+                "entries": [
+                    {"key": "PartNo", "value": "REL-1"},
+                    {"key": "Description", "value": "plate"},
+                    {"key": "DrawnBy", "value": "AI"},
+                    {"key": "Date", "value": "2026-11-16"},
+                    {"key": "Material", "value": "Al"},
+                    {"key": "Revision", "value": "A"},
+                    {"key": "Title", "value": "plate"},
+                ]
+            },
+        ),
+        ("insert_datum", {"label": "A"}),
+        (
+            "verify_model",
+            {
+                "groups": ["drawing"],
+                "thresholds": {"min_datums": 1, "require_bom": False},
+            },
+        ),
+        ("close_document", {"discard": True}),
+    ],
+
+    # Weld: insert (create) + get_weld_annotations (enum) + inspect_weld_symbol (GetText semantics).
+    "drawing_weld": [
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 30, "y2": 20}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 8}),
+        ("save_document", {"path": "weld_plate.sldprt"}),
+        ("new_drawing", {}),
+        ("create_drawing_view", {"path": "weld_plate.sldprt", "view": "front"}),
+        ("insert_weld_symbol", {"symbol": "FILL", "x": 100, "y": 80}),
+        ("get_weld_annotations", {}),
+        ("inspect_weld_symbol", {"index": 0}),
+        ("verify_weld_symbol", {"symbol": "FILL", "index": 0}),
+        ("inspect_drawing", {}),
+        ("close_document", {"discard": True}),
+    ],
+
     # DXF Layers: Engineering AddLayer/Toggle Current Layer/Export DXF (Force DontShowMap without custom map)
     "dxf_layers": [
         ("new_part", {}),
@@ -109,4 +212,21 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
         ("export", {"path": "with_layers.dxf"}),
         ("close_document", {"discard": True}),
     ],
+
+    # F18: DrawingSpec text preflight (no COM drawing build)
+    "drawing_spec_preflight": [
+        ("check_drawing_spec", {"spec_path": PREFLIGHT_SPEC_FILENAME}),
+    ],
 }
+
+SEEDS: dict[str, Callable[[Path], None]] = {
+    "drawing_spec_preflight": seed_drawing_spec_preflight,
+}
+
+__all__ = [
+    "PREFLIGHT_OK_SPEC",
+    "PREFLIGHT_SPEC_FILENAME",
+    "SEEDS",
+    "SEQUENCES",
+    "seed_drawing_spec_preflight",
+]

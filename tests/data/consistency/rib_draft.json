@@ -7,9 +7,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -204,9 +207,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -356,9 +362,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],
@@ -562,9 +571,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "configuration",
         "doc_type",
+        "epoch",
         "modified",
         "path",
+        "saved",
         "title",
         "units"
       ],

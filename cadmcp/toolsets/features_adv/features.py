@@ -1,4 +1,4 @@
-"""features_adv · rib/draft/combine/split, hole wizard, cosmetic thread, feature mgmt.
+"""features_adv · rib/draft/combine/split, hole wizard, cosmetic/native thread, feature mgmt.
 
 Split from toolsets/features_adv.py by domain; handlers and ToolSpec unchanged.
 """
@@ -93,6 +93,53 @@ def shut_off_surface(ctx: OpContext, edges: list[int] | None = None) -> dict:
     return out
 
 
+def tooling_split(
+    ctx: OpContext,
+    sketch: str | None = None,
+    depth1: float = 100.0,
+    depth2: float = 100.0,
+    setback: bool = False,
+    angle_deg: float = 3.0,
+    core_sheet: str | None = None,
+    cavity_sheet: str | None = None,
+    parting_sheet: str | None = None,
+    unit: str = "mm",
+) -> dict:
+    if depth1 <= 0 or depth2 <= 0:
+        raise fail("INVALID_ARGUMENT", "Tooling-split depths must be positive", "Pass depth1/depth2 > 0")
+    if angle_deg < 0:
+        raise fail("INVALID_ARGUMENT", "Tooling-split angle cannot be negative", "Pass angle_deg ≥ 0")
+    uc = _unit_ctx(ctx, unit)
+    feat = ctx.backend.tooling_split(
+        sketch,
+        depth1_m=uc.to_m(depth1),
+        depth2_m=uc.to_m(depth2),
+        setback=bool(setback),
+        angle_rad=math.radians(float(angle_deg)),
+        core_sheet=core_sheet,
+        cavity_sheet=cavity_sheet,
+        parting_sheet=parting_sheet,
+    )
+    out: dict = {
+        "name": feat.name,
+        "kind": feat.kind,
+        "depth1": depth1,
+        "depth2": depth2,
+        "setback": bool(setback),
+        "angle_deg": float(angle_deg),
+        "unit": uc.external_unit,
+    }
+    if sketch is not None:
+        out["sketch"] = sketch
+    if core_sheet is not None:
+        out["core_sheet"] = core_sheet
+    if cavity_sheet is not None:
+        out["cavity_sheet"] = cavity_sheet
+    if parting_sheet is not None:
+        out["parting_sheet"] = parting_sheet
+    return out
+
+
 def hole_wizard(
     ctx: OpContext,
     face: int,
@@ -133,21 +180,106 @@ def hole_wizard(
     return out
 
 
-def insert_thread(
+def insert_cosmetic_thread(
     ctx: OpContext,
+    size: str,
     diameter: float,
-    pitch: float,
     length: float | None = None,
+    edge: int | None = None,
     internal: bool = False,
+    spec: str | None = None,
     unit: str = "mm",
 ) -> dict:
+    """Cosmetic (annotation) thread + THREAD_SPEC/SIDE/SIZE properties. Not cut geometry."""
+    size_s = str(size).strip()
+    if not size_s:
+        raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+    if diameter <= 0:
+        raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+    if length is not None and length <= 0:
+        raise fail("INVALID_ARGUMENT", "Thread length must be positive", "Pass length > 0")
     uc = _unit_ctx(ctx, unit)
-    if diameter <= 0 or pitch <= 0:
-        raise fail("INVALID_ARGUMENT", "Diameter and pitch must be positive", "Pass diameter > 0, pitch > 0")
-    feat = ctx.backend.insert_thread(
-        uc.to_m(diameter), uc.to_m(pitch), uc.to_m(length) if length is not None else None, internal
+    feat = ctx.backend.insert_cosmetic_thread(
+        size_s,
+        uc.to_m(diameter),
+        None if length is None else uc.to_m(length),
+        None if edge is None else int(edge),
+        bool(internal),
+        None if spec is None else str(spec).strip(),
     )
-    return {"name": feat.name, "kind": feat.kind, "unit": uc.external_unit}
+    side = "internal" if internal else "external"
+    spec_s = str(spec).strip() if spec else size_s
+    return {
+        "name": feat.name,
+        "kind": feat.kind,
+        "size": size_s,
+        "spec": spec_s,
+        "side": side,
+        "diameter": diameter,
+        "unit": uc.external_unit,
+        "edge": edge,
+        "properties": {
+            "THREAD_SPEC": spec_s,
+            "THREAD_SIDE": side,
+            "THREAD_SIZE": size_s,
+        },
+    }
+
+
+def create_thread(
+    ctx: OpContext,
+    size: str,
+    depth: float,
+    edge: int | None = None,
+    method: str = "cut",
+    internal: bool = False,
+    thread_type: str | None = None,
+    right_handed: bool = True,
+    diameter: float | None = None,
+    pitch: float | None = None,
+    unit: str = "mm",
+) -> dict:
+    """Native Thread Feature (cut/extrude geometry). Not cosmetic annotation."""
+    size_s = str(size).strip()
+    if not size_s:
+        raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+    if depth <= 0:
+        raise fail("INVALID_ARGUMENT", "Thread depth must be positive", "Pass depth > 0")
+    if diameter is not None and diameter <= 0:
+        raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+    if pitch is not None and pitch <= 0:
+        raise fail("INVALID_ARGUMENT", "Thread pitch must be positive", "Pass pitch > 0")
+    uc = _unit_ctx(ctx, unit)
+    feat = ctx.backend.create_thread(
+        size_s,
+        uc.to_m(depth),
+        None if edge is None else int(edge),
+        str(method),
+        bool(internal),
+        None if thread_type is None else str(thread_type).strip(),
+        bool(right_handed),
+        None if diameter is None else uc.to_m(diameter),
+        None if pitch is None else uc.to_m(pitch),
+    )
+    method_s = str(method).strip().lower()
+    side = "internal" if internal else "external"
+    type_s = (
+        str(thread_type).strip()
+        if thread_type
+        else ("Metric Tap" if internal else "Metric Die")
+    )
+    return {
+        "name": feat.name,
+        "kind": feat.kind,
+        "size": size_s,
+        "depth": depth,
+        "method": method_s,
+        "side": side,
+        "thread_type": type_s,
+        "right_handed": bool(right_handed),
+        "edge": edge,
+        "unit": uc.external_unit,
+    }
 
 
 def delete_feature(ctx: OpContext, name: str) -> dict:
@@ -229,7 +361,8 @@ SPECS: list[ToolSpec] = [
         toolset="features_adv",
         description=(
             "Mold parting line: pull_face (get_faces) mark=1 + edges (get_edges) mark=4. "
-            "Omit edges to select all solid edges (works for a simple box)."
+            "Omit edges to use the pull-face boundary loop (not all solid edges; "
+            "needed for radiate parting_surface)."
         ),
         input_schema=make_schema(
             {
@@ -237,7 +370,7 @@ SPECS: list[ToolSpec] = [
                 "edges": {
                     "type": "array",
                     "items": {"type": "integer"},
-                    "description": "get_edges indexes; omit for all edges.",
+                    "description": "get_edges indexes; omit for pull-face boundary loop.",
                 },
                 "flip": {"type": "boolean", "default": False},
             },
@@ -253,7 +386,10 @@ SPECS: list[ToolSpec] = [
         toolset="features_adv",
         description=(
             "Mold parting surface from an existing parting_line. "
-            "Omit parting_line to use the latest. radiate needs offset ≥ 0."
+            "Omit parting_line to use the latest. "
+            "Live: prefer radiate=true with offset>0 after a closed-loop parting_line; "
+            "succeeds only if MoldPartingGeom appears in the feature tree "
+            "(COM-only ghost returns FEATURE_CREATE_FAILED)."
         ),
         input_schema=make_schema(
             {
@@ -261,7 +397,11 @@ SPECS: list[ToolSpec] = [
                     "type": "string",
                     "description": "PartingLineN; omit for latest.",
                 },
-                "radiate": {"type": "boolean", "default": False},
+                "radiate": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Live recommended true with offset>0.",
+                },
                 "offset": {"type": "number", "description": "Radiate distance when radiate=true."},
                 "knit": {"type": "boolean", "default": False},
                 "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
@@ -294,6 +434,41 @@ SPECS: list[ToolSpec] = [
         timeout_class="slow",
     ),
     ToolSpec(
+        name="tooling_split",
+        toolset="features_adv",
+        description=(
+            "Mold tooling split (GUI Tooling Split / 切削分割): core+cavity solids. "
+            "Requires parting_line + parting_surface sheets and a mold-block sketch "
+            "(omit sketch = latest). Live uses EXTSKETCHSEGMENT + SURFACEBODY marks 1/2/4."
+        ),
+        input_schema=make_schema(
+            {
+                "sketch": {
+                    "type": "string",
+                    "description": "Mold-block sketch name; omit for latest ended sketch.",
+                },
+                "depth1": {"type": "number", "default": 100.0, "description": "Block depth direction 1."},
+                "depth2": {"type": "number", "default": 100.0, "description": "Block depth direction 2."},
+                "setback": {"type": "boolean", "default": False},
+                "angle_deg": {"type": "number", "default": 3.0, "description": "Draft angle (degrees)."},
+                "core_sheet": {"type": "string", "description": "Core SURFACEBODY name; omit to auto-pick *[2]."},
+                "cavity_sheet": {
+                    "type": "string",
+                    "description": "Cavity SURFACEBODY name; omit to auto-pick *[3].",
+                },
+                "parting_sheet": {
+                    "type": "string",
+                    "description": "Parting SURFACEBODY name; omit to auto-pick 分型面*.",
+                },
+                "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+            },
+        ),
+        handler=tooling_split,
+        mutating=True,
+        verify_delta=True,
+        timeout_class="slow",
+    ),
+    ToolSpec(
         name="hole_wizard",
         toolset="features_adv",
         description="ISO drill-size hole wizard on a planar face (get_faces index). end=blind needs depth; through_all does not. Omit x,y to place at face centroid.",
@@ -315,25 +490,67 @@ SPECS: list[ToolSpec] = [
         timeout_class="slow",
     ),
     ToolSpec(
-        name="insert_thread",
+        name="insert_cosmetic_thread",
         toolset="features_adv",
         description=(
-            "Cut a metric-style thread (helix + triangular profile sweep-cut). "
-            "external: existing cylinder of the given diameter. "
-            "internal=true: existing tube whose hole diameter matches diameter. "
-            "omit length for 4×pitch."
+            "Insert a SolidWorks cosmetic thread (annotation only; no cut geometry) and write "
+            "THREAD_SPEC / THREAD_SIDE / THREAD_SIZE custom properties for manufacturing callouts. "
+            "external: Metric Die on a cylinder edge; internal=true: Metric Tap on a hole edge. "
+            "size e.g. M10x1.5; omit length for 1.5×diameter; optional edge from get_edges; "
+            "optional spec overrides THREAD_SPEC (e.g. M10x1.5-6H)."
         ),
         input_schema=make_schema(
             {
-                "diameter": {"type": "number", "description": "Nominal diameter > 0."},
-                "pitch": {"type": "number", "description": "Pitch > 0."},
-                "length": {"type": "number"},
+                "size": {"type": "string", "description": "Chart size, e.g. M10x1.5."},
+                "diameter": {"type": "number", "description": "Major diameter > 0."},
+                "length": {"type": "number", "description": "Blind thread depth; default 1.5×diameter."},
+                "edge": {"type": "integer", "description": "get_edges index; omit to auto-pick."},
                 "internal": {"type": "boolean", "default": False},
+                "spec": {"type": "string", "description": "THREAD_SPEC override, e.g. M10x1.5-6H."},
                 "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
             },
-            ["diameter", "pitch"],
+            ["size", "diameter"],
         ),
-        handler=insert_thread,
+        handler=insert_cosmetic_thread,
+        mutating=True,
+        verify_delta=True,
+        timeout_class="slow",
+    ),
+    ToolSpec(
+        name="create_thread",
+        toolset="features_adv",
+        description=(
+            "Create a native SolidWorks Thread Feature that changes solid geometry "
+            "(CreateDefinition(swFmSweepThread) → IThreadFeatureData → CreateFeature). "
+            "method=cut removes material; method=extrude adds material. "
+            "size e.g. M10x1.5; depth is blind length; optional edge from get_edges; "
+            "internal=true uses Metric Tap (else Metric Die) unless thread_type overrides. "
+            "Requires Thread Profiles (Tools→Options→File Locations). Not a cosmetic annotation."
+        ),
+        input_schema=make_schema(
+            {
+                "size": {"type": "string", "description": "Chart size, e.g. M10x1.5."},
+                "depth": {"type": "number", "description": "Blind thread depth > 0."},
+                "edge": {"type": "integer", "description": "get_edges index; omit to auto-pick."},
+                "method": {
+                    "type": "string",
+                    "enum": ["cut", "extrude"],
+                    "default": "cut",
+                    "description": "cut removes material; extrude adds material.",
+                },
+                "internal": {"type": "boolean", "default": False},
+                "thread_type": {
+                    "type": "string",
+                    "description": "Profile name or .SLDLFP path; default Metric Die/Tap.",
+                },
+                "right_handed": {"type": "boolean", "default": True},
+                "diameter": {"type": "number", "description": "Optional major-diameter override."},
+                "pitch": {"type": "number", "description": "Optional pitch override."},
+                "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+            },
+            ["size", "depth"],
+        ),
+        handler=create_thread,
         mutating=True,
         verify_delta=True,
         timeout_class="slow",

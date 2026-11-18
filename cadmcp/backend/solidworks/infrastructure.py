@@ -207,11 +207,14 @@ class InfrastructureMixin:
         )
 
     def _doc_info(self, doc: Any, doc_type: str | None = None) -> DocInfo:
+        import hashlib
+
         title = str(_get(doc, "GetTitle"))
         try:
             path = _get(doc, "GetPathName") or None
         except Exception as exc:
             if _is_server_gone(exc):
+                # Let STA._call / _map_error unify as COM_LOST (do not swallow as path=None)
                 raise
             path = None
         try:
@@ -225,9 +228,44 @@ class InfrastructureMixin:
         if doc_type is None:
             try:
                 doc_type = SW_DOC_TYPE_NAMES.get(int(_get(doc, "GetType")), "part")
-            except Exception:
+            except Exception as exc:
+                if _is_server_gone(exc):
+                    raise
                 doc_type = "part"
-        return DocInfo(title=title, path=path, doc_type=doc_type, modified=modified)
+
+        # F6: configuration (drawing has no model configs → ""); saved = has path; epoch opaque
+        configuration = ""
+        if doc_type != "drawing":
+            try:
+                mgr = _get(doc, "ConfigurationManager")
+                cfg = _get(mgr, "ActiveConfiguration") if mgr is not None else None
+                if cfg is not None:
+                    configuration = str(_get(cfg, "Name") or "")
+            except Exception as exc:
+                if _is_server_gone(exc):
+                    raise
+                configuration = ""
+        saved = path is not None
+        epoch = hashlib.sha256(
+            f"{path or ''}|{title}|{doc_type}|{configuration}".encode()
+        ).hexdigest()[:16]
+
+        info = DocInfo(
+            title=title,
+            path=path,
+            doc_type=doc_type,
+            modified=modified,
+            configuration=configuration,
+            epoch=epoch,
+            saved=saved,
+        )
+        # F5: cache for unsaved-at-disconnect decisions (internal; not a DocInfo contract change)
+        self._last_doc_snapshot = {
+            "title": info.title,
+            "path": info.path,
+            "modified": info.modified,
+        }
+        return info
 
     def _resolve_drawing_template(self, template: str | None) -> str:
         if template:

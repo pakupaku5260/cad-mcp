@@ -14,8 +14,8 @@ def test_catalog_codes_are_screaming_snake():
 
 
 def test_catalog_entries_have_descriptions():
-    for code, desc in CATALOG.items():
-        assert desc.strip(), f"{code} missing description"
+    for code, entry in CATALOG.items():
+        assert entry.message.strip(), f"{code} missing description"
 
 
 # ---- Constructor ----

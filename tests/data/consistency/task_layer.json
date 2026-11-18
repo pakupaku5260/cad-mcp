@@ -1,0 +1,59 @@
+{
+  "sequence": "task_layer",
+  "steps": [
+    {
+      "tool": "batch",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "count",
+        "elapsed_s",
+        "error_code",
+        "failed_step",
+        "limits",
+        "ok",
+        "steps"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "task_status",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "error_code",
+        "finished_at",
+        "job_id",
+        "ok",
+        "started_at",
+        "state",
+        "step_count",
+        "tool"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    },
+    {
+      "tool": "task_list",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "offset",
+        "tasks",
+        "total"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 4,
+      "warning_count": 0
+    }
+  ]
+}

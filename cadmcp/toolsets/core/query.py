@@ -248,7 +248,12 @@ def get_entities(
     u = ctx.units
     all_faces = [_public_face(f, u) for f in ctx.backend.list_faces()]
     all_edges = [
-        {"index": e.index, "kind": e.kind, "midpoint": list(u.tuple_from_m(e.midpoint_m))}
+        {
+            "index": e.index,
+            "kind": e.kind,
+            "midpoint": list(u.tuple_from_m(e.midpoint_m)),
+            "ref_id": e.ref_id,
+        }
         for e in ctx.backend.list_edges()
     ]
     faces, start = paginate(all_faces, limit, offset)
@@ -407,8 +412,8 @@ SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="get_entities",
         description=(
-            "List faces and edges with index+coordinate handles; faces include unit normal. "
-            "limit/offset paginate both lists; indexes stay global."
+            "List faces and edges with index+coordinate handles and ref_id when available; "
+            "faces include unit normal. limit/offset paginate both lists; indexes stay global."
         ),
         input_schema=make_schema(
             {

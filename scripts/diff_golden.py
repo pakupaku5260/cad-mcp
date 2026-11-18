@@ -31,7 +31,9 @@ def diff_one(name: str) -> list[str]:
     expected = json.loads(path.read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as tmp:
         actual = structural_fingerprint(
-            run_sequence(FakeBackend, SEQUENCES[name], workspace=Path(tmp))
+            run_sequence(
+                FakeBackend, SEQUENCES[name], workspace=Path(tmp), sequence_name=name
+            )
         )
     return diff_fingerprints(expected, actual)
 

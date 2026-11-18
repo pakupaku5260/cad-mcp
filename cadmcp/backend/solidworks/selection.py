@@ -61,6 +61,157 @@ class SelectionMixin:
             )
             return False
 
+    def _persist_ref(self, entity: Any) -> str | None:
+        """Return an opaque base64url persist reference for a COM entity, or None.
+
+        Must be called from within the STA context (inside ``_call``). Failures are
+        silent by design: unsupported entities or API errors degrade to index/coordinate
+        selection without warning.
+        """
+        try:
+            import base64
+
+            doc = self.sw.ActiveDoc
+            if doc is None or entity is None:
+                return None
+            ext = _get(doc, "Extension")
+            if ext is None:
+                return None
+            raw = _get(ext, "GetPersistReference3", entity)
+            if raw is None:
+                return None
+            if isinstance(raw, (bytes, bytearray)):
+                data = bytes(raw)
+            else:
+                try:
+                    data = bytes(raw)
+                except Exception:
+                    return None
+            if not data:
+                return None
+            return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+        except Exception:
+            log.debug("_persist_ref failed: %s", traceback.format_exc())
+            return None
+
+    def _by_persist_ref(self, ref_id: str) -> Any | None:
+        """Resolve a persist reference string to a COM entity, or None on mismatch/failure.
+
+        Must be called from within the STA context (inside ``_call``). The caller
+        decides whether ``None`` becomes ``REF_STALE``.
+        """
+        if not ref_id or not isinstance(ref_id, str):
+            return None
+        try:
+            import base64
+
+            import pythoncom
+            from win32com.client import VARIANT
+
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                return None
+            ext = _get(doc, "Extension")
+            if ext is None:
+                return None
+            pad = "=" * (-len(ref_id) % 4)
+            data = base64.urlsafe_b64decode(ref_id + pad)
+
+            # Preferred pywin32/SW form: data + byref status VARIANT (status==0 on success).
+            for call in (
+                lambda: ext.GetObjectByPersistReference3(
+                    data, VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+                ),
+                lambda: ext.GetObjectByPersistReference3(
+                    VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_UI1, data),
+                    VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0),
+                ),
+                lambda: ext.GetObjectByPersistReference3(data),
+                lambda: _get(ext, "GetObjectByPersistReference3", data, 0),
+            ):
+                try:
+                    result = call()
+                except Exception:
+                    continue
+                obj = None
+                err = 0
+                if isinstance(result, tuple):
+                    if len(result) >= 2:
+                        obj, err = result[0], result[1]
+                    elif len(result) == 1:
+                        obj = result[0]
+                else:
+                    obj = result
+                try:
+                    err_i = int(err) if err is not None else 0
+                except Exception:
+                    err_i = 0
+                if obj is not None and err_i == 0:
+                    return obj
+            return None
+        except Exception:
+            log.debug("_by_persist_ref failed: %s", traceback.format_exc())
+            return None
+
+    def _com_same(self, a: Any, b: Any) -> bool:
+        """Best-effort COM entity identity (IsSame → pointer equality)."""
+        if a is None or b is None:
+            return False
+        try:
+            same = getattr(a, "IsSame", None)
+            if callable(same):
+                return bool(same(b))
+        except Exception:
+            pass
+        try:
+            return bool(a == b)
+        except Exception:
+            return False
+
+    def _index_by_persist_ref(self, ref_id: str, *, kind: str) -> int | None:
+        """STA-wrapped persist ref → current global face/edge index, or None if stale.
+
+        After topology edits SolidWorks may re-encode GetPersistReference3 bytes, so
+        string equality against a fresh list_faces/list_edges can miss even when
+        GetObjectByPersistReference3 still resolves the live entity.
+        """
+        def _fn() -> int | None:
+            obj = self._by_persist_ref(ref_id)
+            if obj is None:
+                return None
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                return None
+            if kind == "face":
+                pool = [f for body in self._bodies_of(doc) for f in (_get(body, "GetFaces") or ())]
+
+                def coords(e: Any) -> tuple[float, float, float]:
+                    return self._face_geometry(e)[1]
+            elif kind == "edge":
+                pool = [e for body in self._bodies_of(doc) for e in (_get(body, "GetEdges") or ())]
+
+                def coords(e: Any) -> tuple[float, float, float]:
+                    return self._edge_geometry(e)[1]
+            else:
+                return None
+            for i, ent in enumerate(pool):
+                if self._com_same(ent, obj):
+                    return i
+            try:
+                target = coords(obj)
+            except Exception:
+                log.debug("_index_by_persist_ref geometry failed: %s", traceback.format_exc())
+                return None
+            for i, ent in enumerate(pool):
+                try:
+                    if math.dist(coords(ent), target) <= 1e-9:
+                        return i
+                except Exception:
+                    continue
+            return None
+
+        return self._call(_fn)
+
     def _select_plane(self, doc: Any, plane: str, *, append: bool, mark: int) -> bool:
         import pythoncom
         from win32com.client import VARIANT

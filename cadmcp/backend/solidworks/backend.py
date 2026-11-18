@@ -27,6 +27,7 @@ from cadmcp.backend.solidworks.geometry import GeometryMixin
 from cadmcp.backend.solidworks.infrastructure import COMConnectionMixin, InfrastructureMixin
 from cadmcp.backend.solidworks.naming import NamingMixin
 from cadmcp.backend.solidworks.plane_axis import PlaneAxisMixin
+from cadmcp.backend.solidworks.properties import PropertiesMixin
 from cadmcp.backend.solidworks.query import QueryMixin
 from cadmcp.backend.solidworks.selection import SelectionMixin
 from cadmcp.backend.solidworks.sketch import SketchMixin
@@ -52,6 +53,7 @@ class ComBackend(
     DrawingMixin,
     PlaneAxisMixin,
     ConfigMixin,
+    PropertiesMixin,
     DimensionMixin,
     ViewMixin,
     ExtrudeMixin,
@@ -82,6 +84,7 @@ class ComBackend(
         DrawingMixin._init_state(self)
         PlaneAxisMixin._init_state(self)
         ConfigMixin._init_state(self)
+        PropertiesMixin._init_state(self)
         DimensionMixin._init_state(self)
         ViewMixin._init_state(self)
         ExtrudeMixin._init_state(self)

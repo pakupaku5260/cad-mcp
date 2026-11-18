@@ -4,34 +4,52 @@ from __future__ import annotations
 from cadmcp.consistency._types import SequenceStep
 
 SEQUENCES: dict[str, list[SequenceStep]] = {
-    # Real thread (stage D): helix on cylinder + 60° tooth-profile sweep cut.
+    # Cosmetic thread (annotation + THREAD_* props). No cut geometry.
     "thread_basic": [
         ("new_part", {}),
-        ("insert_thread", {"diameter": 10, "pitch": 1.5}),  # no solid
+        ("insert_cosmetic_thread", {"size": "M10x1.5", "diameter": 10}),  # no solid
         ("start_sketch", {"plane": "Front Plane"}),
         ("sketch_circle", {"cx": 0, "cy": 0, "r": 5}),
         ("end_sketch", {}),
         ("extrude", {"depth": 20}),
-        ("insert_thread", {"diameter": 10, "pitch": 1.5, "length": 6}),
+        ("insert_cosmetic_thread", {"size": "M10x1.5", "diameter": 10, "length": 6, "spec": "M10x1.5-6g"}),
         ("list_features", {}),
         ("get_mass_properties", {}),
-        ("insert_thread", {"diameter": 2, "pitch": 10}),
+        ("insert_cosmetic_thread", {"size": "", "diameter": 10}),  # invalid size
         ("close_document", {"discard": True}),
     ],
 
-    # Internal thread: concentric dual-circle extrude to tube, hole diameter = diameter, tooth profile flipped inside wall.
+    # Native Thread Feature (geometry cut via IThreadFeatureData).
+    "thread_feature_cut": [
+        ("new_part", {}),
+        ("create_thread", {"size": "M10x1.5", "depth": 12}),  # no solid
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_circle", {"cx": 0, "cy": 0, "r": 5}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 20}),
+        ("create_thread", {"size": "M10x1.5", "depth": 12, "method": "cut"}),
+        ("list_features", {}),
+        ("get_mass_properties", {}),
+        ("create_thread", {"size": "M10x1.5", "depth": 12, "method": "tap"}),  # bad method
+        ("close_document", {"discard": True}),
+    ],
+
+    # Internal cosmetic thread on tube (Metric Tap).
     "thread_internal": [
         ("new_part", {}),
-        ("insert_thread", {"diameter": 10, "pitch": 1.5, "internal": True}),
+        ("insert_cosmetic_thread", {"size": "M10x1.5", "diameter": 10, "internal": True}),
         ("start_sketch", {"plane": "Front Plane"}),
         ("sketch_circle", {"cx": 0, "cy": 0, "r": 9}),
         ("sketch_circle", {"cx": 0, "cy": 0, "r": 5}),
         ("end_sketch", {}),
         ("extrude", {"depth": 20}),
-        ("insert_thread", {"diameter": 10, "pitch": 1.5, "length": 6, "internal": True}),
+        (
+            "insert_cosmetic_thread",
+            {"size": "M10x1.5", "diameter": 10, "length": 6, "internal": True, "spec": "M10x1.5-6H"},
+        ),
         ("list_features", {}),
         ("get_mass_properties", {}),
-        ("insert_thread", {"diameter": 2, "pitch": 20, "internal": True}),
+        ("insert_cosmetic_thread", {"size": "M10x1.5", "diameter": 0, "internal": True}),
         ("close_document", {"discard": True}),
     ],
 
@@ -261,6 +279,27 @@ SEQUENCES: dict[str, list[SequenceStep]] = {
         ("shut_off_surface", {"edges": []}),
         ("shut_off_surface", {"edges": [999]}),
         ("shut_off_surface", {}),
+        ("list_features", {}),
+        ("close_document", {"discard": True}),
+    ],
+
+    # Stage MOLD4: tooling split; needs parting_line + parting_surface + block sketch.
+    "mold_tooling_split": [
+        ("new_part", {}),
+        ("start_sketch", {"plane": "Front Plane"}),
+        ("sketch_rectangle", {"x1": 0, "y1": 0, "x2": 40, "y2": 20}),
+        ("end_sketch", {}),
+        ("extrude", {"depth": 10}),
+        ("tooling_split", {}),
+        ("parting_line", {"pull_face": 0}),
+        ("tooling_split", {}),
+        ("parting_surface", {}),
+        ("tooling_split", {}),
+        ("start_sketch", {"plane": "Top Plane"}),
+        ("sketch_rectangle", {"x1": -20, "y1": -20, "x2": 60, "y2": 40}),
+        ("end_sketch", {}),
+        ("tooling_split", {"sketch": "NoSuch"}),
+        ("tooling_split", {}),
         ("list_features", {}),
         ("close_document", {"discard": True}),
     ],

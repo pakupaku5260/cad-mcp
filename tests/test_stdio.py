@@ -53,6 +53,7 @@ def test_stdio_golden_cube_and_resources(tmp_path: Path):
                 names = {t.name for t in (await session.list_tools()).tools}
                 assert len(names) == len(core_registry()) and "help" in names and "status" in names
                 assert "split_body" in names and "parting_line" in names and "parting_surface" in names
+                assert "tooling_split" in names
                 assert "base_flange" in names and "edge_flange" in names and "sheet_metal_unfold" in names
                 assert "hole_wizard" in names
                 assert "create_section_view" in names and "export" in names

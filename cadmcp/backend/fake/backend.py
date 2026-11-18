@@ -110,6 +110,7 @@ class FakeBackend(
         self.calls: list[tuple[str, dict]] = []
         self._counts: dict[str, int] = {}
         self._doc: _Doc | None = None
+        self._docs: list[_Doc] = []
         self._part_seq = 0
         self._asm_seq = 0
         self._draw_seq = 0
@@ -117,6 +118,16 @@ class FakeBackend(
         self._assembly_library: dict[str, list[dict]] = {}
         self.gui_selection: list[FaceRef | EdgeRef] = []
         self._edit_component: str | None = None
+        self._tx_checkpoints: dict[str, _Doc] = {}
+        # F5 COM_LOST / reattach simulation
+        self._com_lost = False
+        self._had_session = True
+        self._unsaved_at_disconnect = False
+        self._sw_available = True
+        self._disconnect_mid_call = False
+        self._last_doc_snapshot: dict | None = None
+        # AP242 / MBD: default True so offline tests can exercise PublishSTEP242File path
+        self._mbd_step242 = True
 
         # Each Mixin _init_state (all pass for now; S8i wires order only)
         for mixin in (
@@ -152,6 +163,8 @@ class FakeBackend(
     # ---------- Call entry ----------
 
     def _enter(self, tool: str, **args) -> None:
+        if self._com_lost:
+            raise self._com_lost_error(mid_call=False)
         clean = {k: (str(v) if isinstance(v, Path) else v) for k, v in args.items()}
         self.calls.append((tool, clean))
         self._counts[tool] = self._counts.get(tool, 0) + 1
@@ -166,6 +179,8 @@ class FakeBackend(
             )
 
     def _require_doc(self) -> _Doc:
+        if self._com_lost:
+            raise self._com_lost_error(mid_call=False)
         if self._doc is None:
             raise fail(
                 "NO_ACTIVE_DOCUMENT",
@@ -174,14 +189,104 @@ class FakeBackend(
             )
         return self._doc
 
-    def _doc_info(self) -> DocInfo:
-        doc = self._require_doc()
-        return DocInfo(
-            title=doc.title, path=doc.path, doc_type=doc.doc_type, modified=doc.modified
+    def _doc_info(self, doc: _Doc | None = None) -> DocInfo:
+        target = doc if doc is not None else self._require_doc()
+        configuration = "" if target.doc_type == "drawing" else str(target.active_config or "")
+        info = DocInfo(
+            title=target.title,
+            path=target.path,
+            doc_type=target.doc_type,
+            modified=target.modified,
+            configuration=configuration,
+            epoch=str(target.generation),
+            saved=target.path is not None,
         )
+        if doc is None or doc is self._doc:
+            self._last_doc_snapshot = {
+                "title": info.title,
+                "path": info.path,
+                "modified": info.modified,
+            }
+        return info
+
+    def _register_open_doc(self, doc: _Doc) -> None:
+        """Append and activate (multi-doc); keeps prior opens unless closed."""
+        self._docs.append(doc)
+        self._doc = doc
+        self._edit_component = None
+
+    def list_open_documents(self) -> list[DocInfo]:
+        self._enter("list_open_documents")
+        return [self._doc_info(d) for d in list(self._docs)]
+
+    def _com_lost_error(self, *, mid_call: bool):
+        hint = (
+            "Restart SolidWorks if it has exited, then retry the same call "
+            "(do not restart the cadmcp server; it will reattach)."
+        )
+        if self._unsaved_at_disconnect:
+            hint += (
+                " Unsaved document changes were likely lost; use open_document or new_part—"
+                "nothing is auto-reopened."
+            )
+        if mid_call:
+            hint += " Do not blindly retry a write: verify model/document state first."
+        return fail(
+            "COM_LOST",
+            "SolidWorks COM connection was lost (process exited or RPC disconnected)",
+            hint,
+            side_effect=SideEffect.UNKNOWN if mid_call else SideEffect.NONE,
+            recoverable=True,
+            unsaved_at_disconnect=self._unsaved_at_disconnect,
+            mid_call=mid_call,
+        )
+
+    def simulate_disconnect(self, *, mid_call: bool = False, lose_document: bool = True) -> None:
+        """Test helper: mark COM lost. Optionally drop in-memory doc (process exit)."""
+        snap = self._last_doc_snapshot
+        if self._doc is not None:
+            snap = {
+                "title": self._doc.title,
+                "path": self._doc.path,
+                "modified": self._doc.modified,
+            }
+            self._last_doc_snapshot = snap
+        if snap and (snap.get("modified") or not snap.get("path")):
+            self._unsaved_at_disconnect = True
+        self._com_lost = True
+        if lose_document:
+            self._doc = None
+            self._edit_component = None
+        if mid_call:
+            # Surface as mid-call style error when next accessed via raise helper
+            self._disconnect_mid_call = True
+        else:
+            self._disconnect_mid_call = False
+
+    def reattach(self) -> dict:
+        """Rebuild connection after simulate_disconnect. Does not restore lost documents."""
+        self.calls.append(("reattach", {}))
+        if not self._sw_available:
+            raise fail(
+                "SW_NOT_RUNNING",
+                "Cannot reattach: SolidWorks is not running",
+                "Start SolidWorks, then retry the tool call (server need not restart)",
+                side_effect=SideEffect.NONE,
+                unsaved_at_disconnect=self._unsaved_at_disconnect,
+            )
+        self._com_lost = False
+        self._had_session = True
+        self._disconnect_mid_call = False
+        return {
+            "reattached": True,
+            "unsaved_at_disconnect": self._unsaved_at_disconnect,
+            "sta_restarted": False,
+        }
 
     # ---------- Connection / version ----------
 
     def revision(self) -> str:
+        if getattr(self, "_disconnect_mid_call", False) and self._com_lost:
+            raise self._com_lost_error(mid_call=True)
         self._enter("revision")
         return self._revision

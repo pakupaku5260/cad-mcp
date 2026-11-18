@@ -428,9 +428,12 @@ def test_export_formats_follow_extension(kernel: Kernel, workspace: Path):
     before = kernel.dispatch("get_active_document", {}).result
     step = kernel.dispatch("export", {"path": "cube.step"})
     assert step.ok, step.error
-    assert (workspace / "cube.step").read_text(encoding="utf-8") == (
-        f"FAKE-EXPORT:step:{before['title']}"
-    )
+    assert step.result.get("step_ap") == 214
+    assert step.result.get("export_path") == "SaveAs3"
+    assert "meta" in step.result
+    text = (workspace / "cube.step").read_text(encoding="utf-8")
+    assert f"FAKE-EXPORT:step:{before['title']}:ap=214" in text
+    assert (workspace / "cube.step.meta.json").is_file()
     assert kernel.dispatch("export", {"path": "cube.stl"}).ok
     after = kernel.dispatch("get_active_document", {}).result
     assert after["path"] == before["path"] and after["title"] == before["title"]
@@ -454,9 +457,9 @@ def test_export_options_step_ap_and_stl_quality(kernel: Kernel, workspace: Path)
     before = kernel.dispatch("get_active_document", {}).result
     ap214 = kernel.dispatch("export", {"path": "a.step", "step_ap": 214})
     assert ap214.ok and ap214.result.get("step_ap") == 214
-    assert (workspace / "a.step").read_text(encoding="utf-8") == (
-        f"FAKE-EXPORT:step:{before['title']}:ap=214"
-    )
+    assert f"FAKE-EXPORT:step:{before['title']}:ap=214" in (
+        workspace / "a.step"
+    ).read_text(encoding="utf-8")
     fine = kernel.dispatch("export", {"path": "b.stl", "stl_quality": "fine"})
     assert fine.ok and fine.result.get("stl_quality") == "fine"
     assert (workspace / "b.stl").read_text(encoding="utf-8").endswith(":quality=fine")
@@ -464,8 +467,12 @@ def test_export_options_step_ap_and_stl_quality(kernel: Kernel, workspace: Path)
     assert not bad_ap.ok and bad_ap.error.code == "INVALID_ARGUMENT"
     bad_q = kernel.dispatch("export", {"path": "d.step", "stl_quality": "coarse"})
     assert not bad_q.ok and bad_q.error.code == "INVALID_ARGUMENT"
-    bad_242 = kernel.dispatch("export", {"path": "e.step", "step_ap": 242})
-    assert not bad_242.ok and bad_242.error.code == "INVALID_ARGUMENT"
+    ap242 = kernel.dispatch("export", {"path": "e.step", "step_ap": 242})
+    assert ap242.ok and ap242.result.get("step_ap") == 242
+    assert ap242.result.get("export_path") == "PublishSTEP242File"
+    kernel._backend._mbd_step242 = False
+    no_mbd = kernel.dispatch("export", {"path": "f.step", "step_ap": 242, "overwrite": True})
+    assert not no_mbd.ok and no_mbd.error.code == "FEATURE_NOT_AVAILABLE"
 
 
 def test_subassembly_insert_lists_nested_children(kernel: Kernel):
@@ -1514,6 +1521,24 @@ def test_select_face_resolves_coordinate_handle(kernel: Kernel):
     assert not miss.ok and miss.error.code == "REF_NOT_FOUND"
     partial = kernel.dispatch("select_face", {"index": 0, "x": 25})
     assert not partial.ok and partial.error.code == "INVALID_ARGUMENT"
+
+
+def test_select_face_ref_id_preferred_over_index(kernel: Kernel):
+    _build_cube(kernel, 50.0)
+    ents = kernel.dispatch("get_entities", {})
+    assert ents.ok
+    face1 = ents.result["faces"][1]
+    assert face1.get("ref_id")
+    # Wrong index but matching ref_id → persist hit on face1
+    hit = kernel.dispatch(
+        "select_face",
+        {"index": 0, "ref_id": face1["ref_id"], "x": 200, "y": 200, "z": 200},
+    )
+    assert hit.ok and hit.result["quality"] == "persist"
+    assert hit.result["selected_face"] == face1["index"]
+    stale = kernel.dispatch("select_face", {"index": 0, "ref_id": "fake:deadbeefdeadbeefdeadbeefdeadbeef"})
+    assert not stale.ok and stale.error.code == "REF_STALE"
+    assert len(stale.error.context.get("candidates") or []) <= 5
 
 
 def test_after_geometry_change_requery_face_handles(kernel: Kernel):

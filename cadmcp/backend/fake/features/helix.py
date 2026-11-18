@@ -1,17 +1,18 @@
-"""Fake backend · feature domain · helix/sweep/thread（S8e-7）。
+"""Fake backend · feature domain · helix/sweep/cosmetic thread（S8e-7）。
 
 S8e-7：create_helix / sweep / sweep_cut / _sweep / _sweep_pair /
        _sweep_profile / _triangle_profile / _path_segments /
-       _segment_length / _chain_path_length / _sweep_path / insert_thread。
+       _segment_length / _chain_path_length / _sweep_path / insert_cosmetic_thread。
 
 Dependencies (self, MRO):
 - `_enter` / `_require_doc` / `_doc` / `_consume_sketch`（FakeSketchMixin）
 - `_pending_sketch`（FakeSketchMixin，S8d）
 - `_ended_sketch` / `_sketch_bbox3d`（FakeLoftMixin，S8e-6）
 - `begin_sketch` / `draw_circle` / `end_sketch` / `sketch_line`（FakeSketchMixin）
+- `list_edges`（FakeQueryMixin）
 
 Imports:
-- `cadmcp.backend.protocol.geometry_engine`（thread_length_m / thread_profile_xy）
+- `cadmcp.backend.protocol.constants`（THREAD_PROP_*）
 - `cadmcp.backend.protocol.models`（FeatureInfo / HelixInfo）
 - `cadmcp.errors`（fail）
 - `.._state`（_CHAIN_TOL / _Sketch）
@@ -20,9 +21,13 @@ from __future__ import annotations
 
 import math
 
-from cadmcp.backend.protocol.geometry_engine import (
-    thread_length_m,
-    thread_profile_xy,
+from cadmcp.backend.protocol.constants import (
+    THREAD_METHODS,
+    THREAD_PROFILE_EXTERNAL,
+    THREAD_PROFILE_INTERNAL,
+    THREAD_PROP_SIDE,
+    THREAD_PROP_SIZE,
+    THREAD_PROP_SPEC,
 )
 from cadmcp.backend.protocol.models import FeatureInfo, HelixInfo
 from cadmcp.errors import fail
@@ -418,48 +423,198 @@ class FakeHelixMixin:
         doc.modified = True
         return FeatureInfo(name=f["name"], kind=kind)
 
-    # ---------- Thread ----------
+    # ---------- Cosmetic thread (annotation; no cut) ----------
 
-    def insert_thread(
+    def insert_cosmetic_thread(
         self,
+        size: str,
         diameter_m: float,
-        pitch_m: float,
         length_m: float | None = None,
+        edge: int | None = None,
         internal: bool = False,
+        spec: str | None = None,
     ) -> FeatureInfo:
         self._enter(
-            "insert_thread",
-            diameter=diameter_m, pitch=pitch_m, length=length_m, internal=internal,
+            "insert_cosmetic_thread",
+            size=size,
+            diameter=diameter_m,
+            length=length_m,
+            edge=edge,
+            internal=internal,
+            spec=spec,
         )
         doc = self._require_doc()
         if doc.open_sketch is not None:
             raise fail(
                 "SKETCH_OP_FAILED",
                 f"Sketch {doc.open_sketch.name or ''} is still open; cannot create a feature",
-                "Call end_sketch to close the sketch, then insert_thread",
+                "Call end_sketch to close the sketch, then insert_cosmetic_thread",
             )
+        size_s = str(size).strip()
+        if not size_s:
+            raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+        if diameter_m <= 0:
+            raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+        depth = float(length_m) if length_m is not None else 1.5 * float(diameter_m)
+        if depth <= 0:
+            raise fail("INVALID_ARGUMENT", "Thread length must be positive", "Pass length > 0")
         if not any(x.get("sign", 0) > 0 for x in doc.features):
             raise fail(
                 "FEATURE_CREATE_FAILED",
-                "No material to cut (no solid features yet)",
-                "Extrude cylinder at nominal diameter, then insert_thread",
+                "No solid for cosmetic thread",
+                "Extrude a cylinder (external) or tube (internal), then insert_cosmetic_thread",
             )
-        length = thread_length_m(pitch_m, length_m)
-        pts = thread_profile_xy(diameter_m, pitch_m, internal=internal)
-        r = diameter_m / 2.0
-        self.begin_sketch("Front Plane")
-        self.draw_circle(0.0, 0.0, r)
-        self.end_sketch()
-        self.create_helix(pitch_m, height_m=length)
-        helix = next(f for f in reversed(doc.features) if f.get("kind") == "helix")
-        overshoot = max(abs(pts[0][0]) - r, 0.0)
-        if overshoot > 0 and "bbox3d" in helix:
-            b = helix["bbox3d"]
-            helix["bbox3d"] = (b[0] - overshoot, b[1] - overshoot, b[2], b[3] + overshoot, b[4] + overshoot, b[5])
-        self.begin_sketch("Front Plane")
-        for i in range(3):
-            self.sketch_line(pts[i][0], pts[i][1], pts[(i + 1) % 3][0], pts[(i + 1) % 3][1])
-        self.end_sketch()
-        cut = self.sweep_cut()
-        return FeatureInfo(name=cut.name, kind="thread")
-        
+        edges = self.list_edges()
+        if not edges:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "No edge to attach cosmetic thread",
+                "Pass edge from get_edges (prefer a circular rim)",
+            )
+        if edge is not None:
+            ei = int(edge)
+            if ei < 0 or ei >= len(edges):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Edge index out of range: {ei}",
+                    f"Valid range 0..{len(edges) - 1}",
+                    index=ei,
+                )
+        side = "internal" if internal else "external"
+        spec_s = str(spec).strip() if spec else size_s
+        n = sum(1 for x in doc.features if x.get("kind") == "cosmetic_thread") + 1
+        name = f"CosmeticThread{n}"
+        # Annotation only: no volume/face change; store THREAD_* on the feature record.
+        props = {
+            THREAD_PROP_SPEC: spec_s,
+            THREAD_PROP_SIDE: side,
+            THREAD_PROP_SIZE: size_s,
+        }
+        doc.features.append({
+            "kind": "cosmetic_thread",
+            "name": name,
+            "sign": 0,
+            "size": size_s,
+            "diameter": float(diameter_m),
+            "length": float(depth),
+            "internal": bool(internal),
+            "edge": None if edge is None else int(edge),
+            "props": props,
+        })
+        doc.custom_props.update(props)
+        doc.modified = True
+        return FeatureInfo(name=name, kind="cosmetic_thread")
+
+    def create_thread(
+        self,
+        size: str,
+        depth_m: float,
+        edge: int | None = None,
+        method: str = "cut",
+        internal: bool = False,
+        thread_type: str | None = None,
+        right_handed: bool = True,
+        diameter_m: float | None = None,
+        pitch_m: float | None = None,
+    ) -> FeatureInfo:
+        self._enter(
+            "create_thread",
+            size=size,
+            depth=depth_m,
+            edge=edge,
+            method=method,
+            internal=internal,
+            thread_type=thread_type,
+            right_handed=right_handed,
+            diameter=diameter_m,
+            pitch=pitch_m,
+        )
+        doc = self._require_doc()
+        if doc.open_sketch is not None:
+            raise fail(
+                "SKETCH_OP_FAILED",
+                f"Sketch {doc.open_sketch.name or ''} is still open; cannot create a feature",
+                "Call end_sketch to close the sketch, then create_thread",
+            )
+        size_s = str(size).strip()
+        if not size_s:
+            raise fail("INVALID_ARGUMENT", "Thread size must be non-empty", "Pass size e.g. M10x1.5")
+        if depth_m <= 0:
+            raise fail("INVALID_ARGUMENT", "Thread depth must be positive", "Pass depth > 0")
+        method_s = str(method).strip().lower()
+        if method_s not in THREAD_METHODS:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Unknown thread method: {method!r}",
+                f"method: {', '.join(THREAD_METHODS)}",
+            )
+        if diameter_m is not None and diameter_m <= 0:
+            raise fail("INVALID_ARGUMENT", "Thread diameter must be positive", "Pass diameter > 0")
+        if pitch_m is not None and pitch_m <= 0:
+            raise fail("INVALID_ARGUMENT", "Thread pitch must be positive", "Pass pitch > 0")
+        if not any(x.get("sign", 0) > 0 for x in doc.features):
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "No solid for thread feature",
+                "Extrude a cylinder (external) or tube (internal), then create_thread",
+            )
+        edges = self.list_edges()
+        if not edges:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "No edge to attach thread feature",
+                "Pass edge from get_edges (prefer a circular rim)",
+            )
+        if edge is not None:
+            ei = int(edge)
+            if ei < 0 or ei >= len(edges):
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"Edge index out of range: {ei}",
+                    f"Valid range 0..{len(edges) - 1}",
+                    index=ei,
+                )
+        type_s = (
+            str(thread_type).strip()
+            if thread_type
+            else (THREAD_PROFILE_INTERNAL if internal else THREAD_PROFILE_EXTERNAL)
+        )
+        if not type_s:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Thread type must be non-empty",
+                "Pass thread_type e.g. Metric Die / Metric Tap",
+            )
+        n = sum(1 for x in doc.features if x.get("kind") == "thread") + 1
+        name = f"Thread{n}"
+        # Approximate helical tooth volume for fingerprint deltas (not ISO zone accurate).
+        major = float(diameter_m) if diameter_m is not None else 0.01
+        pitch = float(pitch_m) if pitch_m is not None else max(major * 0.15, 1e-4)
+        tooth_h = 0.54 * pitch
+        vol = abs(math.pi * major * tooth_h * 0.5 * float(depth_m))
+        surf = abs(math.pi * major * float(depth_m) * 0.25)
+        sign = -1 if method_s == "cut" else 1
+        r = major * 0.5
+        bbox3d = (-r, -r, 0.0, r, r, float(depth_m))
+        doc.features.append(
+            {
+                "kind": "thread",
+                "name": name,
+                "sign": sign,
+                "vol": float(vol),
+                "surf": float(surf),
+                "com": (0.0, 0.0, float(depth_m) * 0.5),
+                "bbox3d": bbox3d,
+                "faces": 2 if sign > 0 else 4,
+                "edges": 2 if sign > 0 else 4,
+                "size": size_s,
+                "depth": float(depth_m),
+                "method": method_s,
+                "internal": bool(internal),
+                "thread_type": type_s,
+                "right_handed": bool(right_handed),
+                "edge": None if edge is None else int(edge),
+            }
+        )
+        doc.modified = True
+        return FeatureInfo(name=name, kind="thread")

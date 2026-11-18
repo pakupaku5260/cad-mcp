@@ -21,14 +21,28 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cadmcp.backend.export_formats import ensure_doc_type, validate_export_options
+from cadmcp.backend.drawing_checklist import (
+    compute_tolerance_gaps,
+    model_doc_type_from_path,
+)
+from cadmcp.backend.export_formats import (
+    STEP_AP_DEFAULT,
+    ensure_doc_type,
+    validate_export_options,
+)
 from cadmcp.backend.protocol.constants import (
     BOM_TYPES,
     GDT_SYMBOLS,
     TITLE_BLOCK_DEFAULT_KEYS,
+    WELD_SYMBOLS,
 )
 from cadmcp.backend.protocol.models import BomRow, DocInfo
 from cadmcp.backend.protocol.parsers import drawing_view_key, rollup_bom_rows
+from cadmcp.backend.protocol.property_keys import (
+    PART_PROP_DEFAULT_KEYS,
+    normalize_property_key,
+)
+from cadmcp.backend.step_schema import detect_step_ap, step_schema_line
 from cadmcp.errors import fail
 
 from ._state import _as_assembly_snap_item, _Doc
@@ -45,18 +59,18 @@ class FakeDocumentMixin:
     def new_part(self, template: str | None = None) -> DocInfo:
         self._enter("new_part", template=template)
         self._part_seq += 1
-        self._doc = _Doc(title=f"Part{self._part_seq}")
-        self._edit_component = None
+        self._register_open_doc(_Doc(title=f"Part{self._part_seq}"))
         return self._doc_info()
 
     def new_assembly(self, template: str | None = None) -> DocInfo:
         self._enter("new_assembly", template=template)
         self._asm_seq += 1
-        self._doc = _Doc(title=f"Assembly{self._asm_seq}", doc_type="assembly")
-        self._edit_component = None
+        self._register_open_doc(_Doc(title=f"Assembly{self._asm_seq}", doc_type="assembly"))
         return self._doc_info()
 
     def open_document(self, path: Path) -> DocInfo:
+        import copy
+
         self._enter("open_document", path=path)
         # Existence enforced by tool sandbox; fake only strict validation (protocol semantics)
         if not path.exists():
@@ -64,9 +78,22 @@ class FakeDocumentMixin:
                 "OPEN_FAILED", f"File does not exist: {path}",
                 "Check path spelling and directory (relative to workspace)",
             )
+        key = str(Path(path).resolve())
+        # Re-activate if already open (SW-like)
+        for existing in list(getattr(self, "_docs", []) or []):
+            if existing.path and str(Path(existing.path).resolve()) == key:
+                self._doc = existing
+                self._edit_component = None
+                return self._doc_info()
+        snap = getattr(self, "_tx_checkpoints", {}).get(key)
+        if snap is not None:
+            restored = copy.deepcopy(snap)
+            # Keep checkpoint path as open path; preserve original title from snapshot.
+            restored.path = str(path)
+            self._register_open_doc(restored)
+            return self._doc_info()
         doc_type = {".sldasm": "assembly", ".slddrw": "drawing"}.get(path.suffix.lower(), "part")
-        self._doc = _Doc(title=path.stem, path=path, doc_type=doc_type)
-        self._edit_component = None
+        self._register_open_doc(_Doc(title=path.stem, path=path, doc_type=doc_type))
         return self._doc_info()
 
     def save_as(self, path: Path) -> None:
@@ -101,28 +128,47 @@ class FakeDocumentMixin:
                 self._snapshot_component(doc, name) for name in doc.components
             ]
 
+    def save_copy_as(self, path: Path) -> None:
+        """Checkpoint copy: marker file + in-memory doc snapshot; does not change active path/title."""
+        import copy
+
+        self._enter("save_copy_as", path=path)
+        doc = self._require_doc()
+        if path.exists() and not path.is_file():
+            raise fail("SAVE_FAILED", f"Target is not a regular file：{path}", "Use a different output path")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f"FAKE-CHECKPOINT:{doc.title}", encoding="utf-8")
+        except OSError as exc:
+            raise fail(
+                "SAVE_FAILED", f"Write failed: {exc}",
+                "Check that the directory exists and is writable",
+            ) from exc
+        if not hasattr(self, "_tx_checkpoints"):
+            self._tx_checkpoints = {}
+        self._tx_checkpoints[str(Path(path).resolve())] = copy.deepcopy(doc)
+
     def close_document(self, discard: bool) -> None:
         self._enter("close_document", discard=discard)
         self._require_doc()
-        self._doc = None  # Discard allowed per tool-layer confirm flag
+        docs: list = getattr(self, "_docs", None) or []
+        if self._doc in docs:
+            docs.remove(self._doc)
+        self._docs = docs
+        # SW-like: activate another open document if any remain
+        self._doc = docs[-1] if docs else None
         self._edit_component = None
 
     def active_document(self) -> DocInfo | None:
         self._enter("active_document")
         return self._doc_info() if self._doc else None
 
-    def _doc_info(self) -> DocInfo:
-        doc = self._require_doc()
-        return DocInfo(
-            title=doc.title, path=doc.path, doc_type=doc.doc_type, modified=doc.modified
-        )
-
     # ---------- Drawing ----------
 
     def new_drawing(self, template: str | None = None) -> DocInfo:
         self._enter("new_drawing", template=template)
         self._draw_seq += 1
-        self._doc = _Doc(title=f"Drawing{self._draw_seq}", doc_type="drawing")
+        self._register_open_doc(_Doc(title=f"Drawing{self._draw_seq}", doc_type="drawing"))
         return self._doc_info()
 
     def create_drawing_view(self, model: Path, view: str) -> str:
@@ -176,7 +222,12 @@ class FakeDocumentMixin:
         doc = self._require_drawing("Call new_drawing and create_drawing_view first")
         if not doc.drawing_views:
             raise fail("INVALID_ARGUMENT", "Drawing has no model view yet", "create_drawing_view first")
-        doc.drawing_annotations = max(1, doc.drawing_annotations)
+        # Synthetic imported dims so tolerance apply/inspect can be exercised offline.
+        n = 2
+        if doc.drawing_model:
+            n = max(2, min(6, len(self._entries_for_model(doc.drawing_model)) + 1))
+        doc.drawing_dimensions = [f"D{i}@Sketch1" for i in range(1, n + 1)]
+        doc.drawing_annotations = max(len(doc.drawing_dimensions), doc.drawing_annotations)
         doc.modified = True
         return int(doc.drawing_annotations)
 
@@ -306,6 +357,51 @@ class FakeDocumentMixin:
         want = list(keys) if keys else list(TITLE_BLOCK_DEFAULT_KEYS)
         return {k: doc.title_block.get(k, "") for k in want}
 
+    def set_properties(self, props: dict[str, str]) -> dict:
+        self._enter("set_properties", keys=list(props))
+        doc = self._require_doc()
+        if doc.doc_type not in ("part", "assembly"):
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Custom properties require a part or assembly",
+                "Open or create a part/assembly first",
+            )
+        written: dict[str, str] = {}
+        for k, v in props.items():
+            key = normalize_property_key(str(k))
+            if not key:
+                continue
+            text = str(v)
+            doc.custom_props[key] = text
+            written[key] = text
+        if not written and props:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "Failed to write any custom properties",
+                "Pass non-empty key/value entries",
+            )
+        doc.modified = True
+        return written
+
+    def get_properties(self, keys: list[str] | None = None) -> dict:
+        self._enter("get_properties", keys=keys)
+        doc = self._require_doc()
+        if doc.doc_type not in ("part", "assembly"):
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Custom properties require a part or assembly",
+                "Open or create a part/assembly first",
+            )
+        if keys:
+            want = [normalize_property_key(str(k)) for k in keys if str(k).strip()]
+        else:
+            want = list(PART_PROP_DEFAULT_KEYS)
+        return {k: doc.custom_props.get(k, "") for k in want}
+
+    def mbd_step242_available(self) -> bool:
+        self._enter("mbd_step242_available")
+        return bool(getattr(self, "_mbd_step242", True))
+
     def insert_datum(
         self, label: str, x_m: float = 0.1, y_m: float = 0.1, edge: int | None = None
     ) -> str:
@@ -374,6 +470,41 @@ class FakeDocumentMixin:
         doc.modified = True
         return name
 
+    def insert_weld_symbol(
+        self,
+        symbol: str,
+        x_m: float = 0.1,
+        y_m: float = 0.1,
+        edge: int | None = None,
+    ) -> str:
+        self._enter("insert_weld_symbol", symbol=symbol, x=x_m, y=y_m, edge=edge)
+        doc = self._require_drawing("Call new_drawing first")
+        sym = str(symbol).strip().upper()
+        if sym not in WELD_SYMBOLS:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Unknown weld symbol: {symbol!r}",
+                f"Options: {', '.join(WELD_SYMBOLS)}",
+            )
+        if edge is not None and int(edge) < 0:
+            raise fail("INVALID_ARGUMENT", f"edge index invalid: {edge}", "Pass a visible edge index >= 0")
+        name = f"weld_{sym}_{len(doc.drawing_welds) + 1}"
+        doc.drawing_welds.append(
+            {
+                "name": name,
+                "symbol": sym,
+                "mode": "native",
+                "edge_selected": True,
+                "attached": True,
+                "edge": None if edge is None else int(edge),
+                "x_m": float(x_m),
+                "y_m": float(y_m),
+            }
+        )
+        doc.drawing_annotations += 1
+        doc.modified = True
+        return name
+
     def create_detail_view(
         self, label: str = "B", x_m: float = 0.0, y_m: float = 0.0, radius_m: float = 0.01
     ) -> str:
@@ -391,10 +522,22 @@ class FakeDocumentMixin:
     def apply_drawing_tolerances(self, tolerances: list[dict]) -> int:
         self._enter("apply_drawing_tolerances", count=len(tolerances))
         doc = self._require_drawing("Call new_drawing first")
-        doc.drawing_tolerances = [dict(t) for t in tolerances]
-        doc.drawing_annotations = max(doc.drawing_annotations, len(doc.drawing_tolerances))
+        applied: list[dict] = []
+        failed: list[str] = []
+        for item in tolerances:
+            name = str(item.get("dimension") or "").strip()
+            if not name:
+                continue
+            if name in doc.drawing_dimensions:
+                applied.append(dict(item))
+                doc.drawing_toleranced.add(name)
+            else:
+                failed.append(name)
+        doc.drawing_tolerances = applied
+        doc.drawing_tol_failed = failed
+        doc.drawing_annotations = max(doc.drawing_annotations, len(applied))
         doc.modified = True
-        return len(doc.drawing_tolerances)
+        return len(applied)
 
     def inspect_drawing(self) -> dict:
         self._enter("inspect_drawing")
@@ -411,6 +554,12 @@ class FakeDocumentMixin:
             }
             for sh in doc.drawing_sheets
         ]
+        _, missing_tol, untoleranced = compute_tolerance_gaps(
+            dimension_names=list(doc.drawing_dimensions),
+            toleranced_names=set(doc.drawing_toleranced),
+            failed_requests=list(doc.drawing_tol_failed),
+        )
+        model_path = doc.drawing_model or ""
         return {
             "view_count": len(views),
             "views": views,
@@ -418,8 +567,11 @@ class FakeDocumentMixin:
             "paper": doc.drawing_paper,
             "scale": list(doc.drawing_scale),
             "tolerances": list(doc.drawing_tolerances),
-            "missing_tolerances": [],
-            "untoleranced_dimensions": [],
+            "missing_tolerances": missing_tol,
+            "untoleranced_dimensions": untoleranced,
+            "dimensions": list(doc.drawing_dimensions),
+            "model_path": model_path,
+            "model_doc_type": model_doc_type_from_path(model_path),
             "sheet_count": len(doc.drawing_sheets),
             "active_sheet": doc.drawing_active_sheet,
             "sheets": sheets,
@@ -429,6 +581,54 @@ class FakeDocumentMixin:
             "datums": list(doc.drawing_datums),
             "gdt_count": len(doc.drawing_gdts),
             "gdts": list(doc.drawing_gdts),
+            "weld_count": len(doc.drawing_welds),
+            "welds": list(doc.drawing_welds),
+        }
+
+    def get_weld_annotations(self) -> list[dict]:
+        self._enter("get_weld_annotations")
+        doc = self._require_drawing("Call new_drawing first")
+        out: list[dict] = []
+        for i, w in enumerate(doc.drawing_welds):
+            out.append(
+                {
+                    "index": i,
+                    "name": str(w.get("name") or f"weld_scan_{i + 1}"),
+                    "symbol": w.get("symbol"),
+                    "mode": "session",
+                    "ann_type": 8,
+                    "view": "",
+                }
+            )
+        return out
+
+    def inspect_weld_symbol(self, index: int = 0) -> dict:
+        self._enter("inspect_weld_symbol", index=index)
+        doc = self._require_drawing("Call new_drawing first")
+        idx = int(index)
+        if idx < 0:
+            raise fail("INVALID_ARGUMENT", f"index must be >= 0, got {index}", "Pass weld annotation index")
+        if idx >= len(doc.drawing_welds):
+            raise fail(
+                "FEATURE_NOT_FOUND",
+                f"No weld annotation at index {idx} (have {len(doc.drawing_welds)})",
+                "Call get_weld_annotations or insert_weld_symbol first",
+            )
+        w = doc.drawing_welds[idx]
+        sym = str(w.get("symbol") or "")
+        texts = {str(i): "" for i in range(1, 10)}
+        texts["2"] = sym  # Top=True default from insert_weld_symbol
+        return {
+            "index": idx,
+            "view": "",
+            "ann_type": 8,
+            "via": "session",
+            "attached": bool(w.get("attached", True)),
+            "symbol": sym or None,
+            "text_above_symbol": sym,
+            "text_below_symbol": "",
+            "text_process": "",
+            "texts": texts,
         }
 
     def export_document(
@@ -438,7 +638,7 @@ class FakeDocumentMixin:
         *,
         step_ap: int | None = None,
         stl_quality: str | None = None,
-    ) -> None:
+    ) -> dict:
         self._enter(
             "export_document",
             path=path,
@@ -448,25 +648,62 @@ class FakeDocumentMixin:
         )
         doc = self._require_doc()
         ensure_doc_type(fmt, doc.doc_type)
-        validate_export_options(fmt, step_ap=step_ap, stl_quality=stl_quality)
+        effective_ap = int(step_ap) if step_ap is not None else (
+            STEP_AP_DEFAULT if fmt == "step" else None
+        )
+        validate_export_options(fmt, step_ap=effective_ap, stl_quality=stl_quality)
         if path.exists() and not path.is_file():
             raise fail("SAVE_FAILED", f"Target is not a regular file：{path}", "Use a different output path")
+        export_path = "SaveAs3"
+        if fmt == "step" and effective_ap == 242:
+            if not bool(getattr(self, "_mbd_step242", True)):
+                raise fail(
+                    "FEATURE_NOT_AVAILABLE",
+                    "AP242 export requires SOLIDWORKS MBD (PublishSTEP242File)",
+                    "Enable FakeBackend._mbd_step242 or use step_ap=214",
+                )
+            export_path = "PublishSTEP242File"
         marker = f"FAKE-EXPORT:{fmt}:{doc.title}"
-        if step_ap is not None:
-            marker += f":ap={int(step_ap)}"
+        if effective_ap is not None:
+            marker += f":ap={int(effective_ap)}"
         if stl_quality is not None:
             marker += f":quality={str(stl_quality).strip().lower()}"
         if fmt == "dxf":
             layers = ",".join(str(layer["name"]) for layer in doc.drawing_layers)
             marker += f":layers={layers}:current={doc.drawing_current_layer}"
+        body = marker
+        if fmt == "step" and effective_ap is not None:
+            # Ring-3 detectable schema line (offline Fake).
+            body = (
+                "ISO-10303-21;\nHEADER;\n"
+                f"{step_schema_line(int(effective_ap))}\n"
+                "ENDSEC;\nDATA;\nENDSEC;\nEND-ISO-10303-21;\n"
+                f"{marker}\n"
+            )
         try:
-            path.write_text(marker, encoding="utf-8")
+            path.write_text(body, encoding="utf-8")
         except OSError as exc:
             raise fail(
                 "SAVE_FAILED", f"Write failed: {exc}",
                 "Check that the directory exists and is writable",
             ) from exc
+        out: dict = {}
+        if fmt == "step" and effective_ap is not None:
+            detected = detect_step_ap(path)
+            if detected != int(effective_ap):
+                raise fail(
+                    "SAVE_FAILED",
+                    f"STEP protocol mismatch: requested AP{effective_ap}, detected {detected!r}",
+                    "Fake export marker/schema must declare the requested AP",
+                    step_ap_requested=effective_ap,
+                    step_ap_detected=detected,
+                )
+            out["step_ap"] = int(detected)
+            out["export_path"] = export_path
+        if stl_quality is not None:
+            out["stl_quality"] = str(stl_quality).strip().lower()
         # Export is copy semantics: does not change doc.path / title / modified.
+        return out
 
     # ---------- Config / material ----------
 
@@ -498,6 +735,7 @@ class FakeDocumentMixin:
             created = True
         doc.active_config = raw
         doc.modified = True
+        doc.generation = int(getattr(doc, "generation", 1)) + 1
         return raw, created
 
     def get_material(self) -> tuple[str, str]:

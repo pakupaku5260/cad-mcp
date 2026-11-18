@@ -138,19 +138,25 @@ cadmcp serve --transport http --backend solidworks
 
 ## 能力概览
 
-**134 个工具**，9 个工具集（见 [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)）：
+**163 个工具**，15 个工具集（见 [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md)）：
 
 | 工具集 | 数量 | 方向 |
 |---|---|---|
-| core | 45 | 文档、草图、基础特征、查询 |
-| features_adv | 25 | 螺纹、螺旋线、扫描、曲面、特征操作 |
-| assembly | 20 | 插入、配合、零部件操作 |
-| drawing | 16 | 视图、注解、DrawingSpec |
+| core | 48 | 文档、草图、基础特征、查询 |
+| features_adv | 27 | 螺纹、螺旋线、扫描、曲面、特征操作 |
+| assembly | 24 | 插入、配合、零部件操作（cam 配合已 BLOCKED） |
+| drawing | 21 | 视图、注解、DrawingSpec、验证 |
 | sketch_adv | 12 | 样条、偏移/裁剪、约束、尺寸 |
-| sheetmetal | 7 | 基体法兰/折弯边、展平 |
+| sheetmetal | 8 | 基体法兰/折弯边/斜接、卷边、展平、DXF |
 | selection | 6 | 面/边拾取辅助 |
+| transaction | 4 | L1 检查点/日志 + L2 重载/补偿/丢弃 |
+| task | 3 | 批量任务执行 |
+| design | 3 | DesignSpec 意图（仅校验） |
+| export | 2 | STEP/STL + PDF/DXF |
 | view | 2 | 定向 / 截图 |
-| export | 1 | STEP/STL/PDF/DXF |
+| rules | 1 | 机器可校验的模型规则 |
+| verification | 1 | 模型验证检查 |
+| diagnostics | 1 | 解读 `cadmcp doctor` JSON |
 
 技能（`solidworks-modeling`、`solidworks-assembly`、`solidworks-recovery`）
 以 `cadmcp://skill/...` 资源形式分发。其中 `solidworks-modeling` 也在
@@ -161,7 +167,7 @@ cadmcp serve --transport http --backend solidworks
 | 限制 | 说明 |
 |---|---|
 | 模具型芯/型腔 | 受分型面可靠性 / 许可上下文阻塞 — [#1](https://github.com/pakupaku5260/cad-mcp/issues/1) |
-| 原生 InsertThread API | 改用螺旋线 + 扫描切除路径 — [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
+| 螺纹特征（改几何） | 已交付 `create_thread`（SW2025 `IThreadFeatureData` / `swFmSweepThread`）。标注用 `insert_cosmetic_thread`。类型库无 `InsertThread` 这个成员名。— [#2](https://github.com/pakupaku5260/cad-mcp/issues/2) |
 | SolidWorks Toolbox | 未集成 — [#3](https://github.com/pakupaku5260/cad-mcp/issues/3) |
 | 零件关联编辑（`EditPart2`） | 不支持；子装配体编辑支持 — [#4](https://github.com/pakupaku5260/cad-mcp/issues/4) |
 | 轴向旋入 / 进给配合运动 | 不支持 |

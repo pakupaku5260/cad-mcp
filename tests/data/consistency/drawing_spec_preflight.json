@@ -1,0 +1,23 @@
+{
+  "sequence": "drawing_spec_preflight",
+  "steps": [
+    {
+      "tool": "check_drawing_spec",
+      "ok": true,
+      "error_code": null,
+      "error_side_effect": null,
+      "result_keys": [
+        "assumptions",
+        "checks_run",
+        "risk",
+        "skipped",
+        "status",
+        "verification"
+      ],
+      "delta_changed": null,
+      "rebuild_ok": null,
+      "state_version": 0,
+      "warning_count": 0
+    }
+  ]
+}

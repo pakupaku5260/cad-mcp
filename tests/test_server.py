@@ -92,12 +92,14 @@ def test_golden_cube_over_http(served: _Served):
                 assert "status" in names
                 assert "new_assembly" in names and "insert_component" in names
                 assert "mate" in names and "list_mates" in names
-                assert "sketch_polygon" in names and "insert_thread" in names
+                assert "sketch_polygon" in names and "insert_cosmetic_thread" in names
+                assert "create_thread" in names
                 assert "sketch_arc" in names
                 assert "create_helix" in names and "sweep_cut" in names
                 assert "set_view" in names and "select_face" in names
                 assert len(names) == len(core_registry())
                 assert "split_body" in names and "parting_line" in names and "parting_surface" in names
+                assert "tooling_split" in names
                 assert "base_flange" in names and "edge_flange" in names and "sheet_metal_unfold" in names
                 assert "hole_wizard" in names
                 assert "create_section_view" in names and "insert_model_items" in names

@@ -68,6 +68,77 @@ def _coords(entity: FaceRef | EdgeRef) -> tuple[float, float, float]:
     return entity.midpoint_m
 
 
+def nearest_candidates(
+    entities: Sequence[FaceRef | EdgeRef],
+    point_m: tuple[float, float, float],
+    *,
+    limit: int = 5,
+) -> list[dict]:
+    """Nearest ≤``limit`` entities for REF_STALE context (SI meters, distance_m)."""
+    ranked = sorted(
+        ((math.dist(point_m, _coords(e)), e) for e in entities),
+        key=lambda t: t[0],
+    )[: max(0, limit)]
+    rows: list[dict] = []
+    for dist, e in ranked:
+        if isinstance(e, FaceRef):
+            rows.append(
+                {
+                    "index": e.index,
+                    "kind": e.kind,
+                    "centroid_m": list(e.centroid_m),
+                    "distance_m": dist,
+                }
+            )
+        else:
+            rows.append(
+                {
+                    "index": e.index,
+                    "kind": e.kind,
+                    "midpoint_m": list(e.midpoint_m),
+                    "distance_m": dist,
+                }
+            )
+    return rows
+
+
+def resolve_ref_id(
+    ref_id: str,
+    entities: Sequence[FaceRef | EdgeRef],
+    *,
+    anchor_m: tuple[float, float, float] | None = None,
+) -> Resolved:
+    """Exact ``ref_id`` match against the current pool.
+
+    Raises:
+        REF_UNSUPPORTED: pool has no persistent refs (backend cannot provide them);
+        REF_STALE: ref_id not found (candidates ≤5 nearest to ``anchor_m``);
+        REF_NOT_FOUND: empty pool.
+    """
+    if not entities:
+        raise fail(
+            "REF_NOT_FOUND",
+            "Candidate entity list is empty (no faces/edges to reference)",
+            "Call get_entities first; create features on an empty model",
+        )
+    if not any(e.ref_id for e in entities):
+        raise fail(
+            "REF_UNSUPPORTED",
+            "Backend did not provide persistent entity references",
+            "Select with index + x,y,z from get_entities instead of ref_id",
+        )
+    for e in entities:
+        if e.ref_id == ref_id:
+            return Resolved(entity=e, quality="exact", distance_m=0.0)
+    point = anchor_m if anchor_m is not None else _coords(entities[0])
+    raise fail(
+        "REF_STALE",
+        "Persistent reference no longer matches any entity",
+        "Call get_entities (or get_faces/get_edges) again and use the new ref_id",
+        candidates=nearest_candidates(entities, point, limit=5),
+    )
+
+
 def resolve(ref: Ref, entities: Sequence[FaceRef | EdgeRef]) -> Resolved:
     """Resolve dual handle: index exact → nearest neighbor → explicit errors.
 

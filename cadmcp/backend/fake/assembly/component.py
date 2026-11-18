@@ -21,6 +21,7 @@ Imports:
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -187,6 +188,8 @@ class FakeAssemblyComponentMixin:
             origin_m=origin,
             bbox_m=box,
             lightweight=name in doc.component_lightweight,
+            suppressed=name in doc.component_suppressed,
+            flexible=name in doc.component_flexible,
         )
 
     def list_components(self, children: bool = False) -> list[ComponentRef]:
@@ -203,6 +206,48 @@ class FakeAssemblyComponentMixin:
         doc = self._require_assembly("Create an assembly with new_assembly, then get a component")
         self._component_or_fail(doc, name, allow_nested=True)
         return self._component_ref(doc, name)
+
+    def delete_component(self, name: str) -> None:
+        self._enter("delete_component", name=name)
+        doc = self._require_assembly("Create an assembly with new_assembly, then delete components")
+        self._component_or_fail(doc, name)
+        self._drop_component(doc, name)
+        doc.modified = True
+
+    def get_component_transform(self, name: str) -> list[float]:
+        self._enter("get_component_transform", name=name)
+        doc = self._require_assembly("Create an assembly with new_assembly, then read transforms")
+        self._component_or_fail(doc, name, allow_nested=True)
+        R = doc.component_R.get(name, MAT_IDENTITY)
+        ox, oy, oz = doc.component_origin.get(name, (0.0, 0.0, 0.0))
+        # SolidWorks Transform2 ArrayData layout: R rows 0..8, origin 9..11
+        return [
+            float(R[0][0]), float(R[0][1]), float(R[0][2]),
+            float(R[1][0]), float(R[1][1]), float(R[1][2]),
+            float(R[2][0]), float(R[2][1]), float(R[2][2]),
+            float(ox), float(oy), float(oz),
+            0.0, 0.0, 0.0, 1.0,
+        ]
+
+    def set_component_transform(self, name: str, array16: Sequence[float]) -> None:
+        self._enter("set_component_transform", name=name)
+        doc = self._require_assembly("Create an assembly with new_assembly, then write transforms")
+        self._component_or_fail(doc, name)
+        if not isinstance(array16, Sequence) or len(array16) < 12:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "array16 must have at least 12 floats (R + origin)",
+                "Pass Transform2 ArrayData from get_component_transform",
+            )
+        a = [float(v) for v in array16]
+        doc.component_R[name] = (
+            (a[0], a[1], a[2]),
+            (a[3], a[4], a[5]),
+            (a[6], a[7], a[8]),
+        )
+        doc.component_origin[name] = (a[9], a[10], a[11])
+        self._sync_component_world(doc, name)
+        doc.modified = True
 
     # ---------- World-space sync ----------
 
@@ -315,6 +360,13 @@ class FakeAssemblyComponentMixin:
         )
         doc = self._require_assembly("Create an assembly with new_assembly, then move components")
         self._component_or_fail(doc, name)
+        if name in doc.component_suppressed:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {name!r}",
+                "Call set_suppressed(..., suppressed=false) before moving",
+                component=name,
+            )
         if not force:
             fail_if_component_mated(name, self._mates_locking(doc, name))
         ox, oy, oz = doc.component_origin.get(name, (0.0, 0.0, 0.0))
@@ -342,6 +394,13 @@ class FakeAssemblyComponentMixin:
         )
         doc = self._require_assembly("Create an assembly with new_assembly, then rotate components")
         self._component_or_fail(doc, name)
+        if name in doc.component_suppressed:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {name!r}",
+                "Call set_suppressed(..., suppressed=false) before moving",
+                component=name,
+            )
         if pivot_m is None and about not in POSE_PIVOTS:
             raise fail(
                 "INVALID_ARGUMENT",
@@ -402,7 +461,7 @@ class FakeAssemblyComponentMixin:
         self._require_assembly("Query in-context edit target on an assembly")
         return self._edit_component
 
-    # ---------- Lightweight ----------
+    # ---------- Lightweight / suppress / flexible ----------
 
     def set_lightweight(self, name: str, lightweight: bool) -> str:
         self._enter("set_lightweight", name=name, lightweight=lightweight)
@@ -411,10 +470,136 @@ class FakeAssemblyComponentMixin:
         if not raw:
             raise fail("INVALID_ARGUMENT", "Component name cannot be empty", "Pass an instance name from list_components")
         self._component_or_fail(doc, raw, allow_nested=True)
+        if raw in doc.component_suppressed:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {raw!r}",
+                "Call set_suppressed(..., suppressed=false) before set_lightweight",
+                component=raw,
+            )
         if lightweight:
             doc.component_lightweight.add(raw)
+            doc.component_suppressed.discard(raw)
         else:
             doc.component_lightweight.discard(raw)
+        doc.modified = True
+        return raw
+
+    def replace_component(self, name: str, path: Path, config: str = "") -> ComponentRef:
+        self._enter("replace_component", name=name, path=str(path), config=config)
+        doc = self._require_assembly("Create an assembly with new_assembly, then replace components")
+        raw = str(name).strip()
+        if not raw:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Component name cannot be empty",
+                "Pass an instance name from list_components",
+            )
+        self._component_or_fail(doc, raw)
+        if raw in doc.component_suppressed:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {raw!r}",
+                "Unsuppress before replace_component",
+                component=raw,
+            )
+        p = Path(path)
+        if not p.is_absolute():
+            p = (Path.cwd() / p).resolve()
+        if not p.exists():
+            raise fail("OPEN_FAILED", f"Replacement file does not exist: {p}", "Confirm the path is correct")
+        # SW renames instance to <newstem>-<serial>; keep serial suffix when present.
+        serial = "1"
+        if "-" in raw:
+            head, _, tail = raw.rpartition("-")
+            if tail.isdigit():
+                serial = tail
+        new_name = f"{p.stem}-{serial}"
+        if new_name != raw and new_name in doc.components:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                f"Replace would collide with existing instance {new_name!r}",
+                "Choose a different replacement file or delete the conflicting instance",
+                component=raw,
+            )
+        doc.components[new_name] = str(p)
+        if new_name != raw:
+            del doc.components[raw]
+            for store in (
+                doc.component_local_faces,
+                doc.component_local_edges,
+                doc.component_local_bbox,
+                doc.component_R,
+                doc.component_origin,
+                doc.component_material,
+                doc.component_bbox,
+                doc.component_faces,
+                doc.component_edges,
+            ):
+                if raw in store:
+                    store[new_name] = store.pop(raw)
+            for bucket in (
+                doc.component_lightweight,
+                doc.component_suppressed,
+                doc.component_flexible,
+            ):
+                if raw in bucket:
+                    bucket.discard(raw)
+                    bucket.add(new_name)
+        doc.component_lightweight.discard(new_name)
+        _ = config
+        doc.modified = True
+        return self._component_ref(doc, new_name)
+
+    def set_suppressed(self, name: str, suppressed: bool) -> str:
+        self._enter("set_suppressed", name=name, suppressed=suppressed)
+        doc = self._require_assembly("Create an assembly with new_assembly, then set suppression")
+        raw = str(name).strip()
+        if not raw:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Component name cannot be empty",
+                "Pass an instance name from list_components",
+            )
+        self._component_or_fail(doc, raw, allow_nested=True)
+        if suppressed:
+            doc.component_suppressed.add(raw)
+            doc.component_lightweight.discard(raw)
+        else:
+            doc.component_suppressed.discard(raw)
+        doc.modified = True
+        return raw
+
+    def set_flexible(self, name: str, flexible: bool) -> str:
+        self._enter("set_flexible", name=name, flexible=flexible)
+        doc = self._require_assembly("Create an assembly with new_assembly, then set flexible")
+        raw = str(name).strip()
+        if not raw:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "Component name cannot be empty",
+                "Pass an instance name from list_components",
+            )
+        self._component_or_fail(doc, raw, allow_nested=True)
+        if raw in doc.component_suppressed:
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is suppressed: {raw!r}",
+                "Unsuppress before set_flexible",
+                component=raw,
+            )
+        path = (doc.components.get(raw) or doc.nested_paths.get(raw) or "").lower()
+        if not path.endswith(".sldasm"):
+            raise fail(
+                "INVALID_ARGUMENT",
+                f"Component is not a subassembly: {raw!r}",
+                "set_flexible only applies to .sldasm instances",
+                component=raw,
+            )
+        if flexible:
+            doc.component_flexible.add(raw)
+        else:
+            doc.component_flexible.discard(raw)
         doc.modified = True
         return raw
 
@@ -502,6 +687,8 @@ class FakeAssemblyComponentMixin:
         doc.components.pop(name, None)
         doc.nested_paths.pop(name, None)
         doc.component_lightweight.discard(name)
+        doc.component_suppressed.discard(name)
+        doc.component_flexible.discard(name)
         for store in (
             doc.component_faces, doc.component_edges, doc.component_bbox,
             doc.component_origin, doc.component_local_bbox, doc.component_R,

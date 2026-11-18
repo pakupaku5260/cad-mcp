@@ -34,7 +34,7 @@ import jsonschema
 from cadmcp.backend.protocol.models import FingerprintSI
 from cadmcp.backend.protocol.protocol import CADBackend
 from cadmcp.errors import CadMcpError, ErrorInfo, SideEffect, fail
-from cadmcp.registry import ToolRegistry, ToolSpec
+from cadmcp.registry import EXPECT_PATH, EXPECT_TITLE, ToolRegistry, ToolSpec
 from cadmcp.result import Delta, GeometrySnapshot, OpResult, RebuildReport, fail_result, ok_result
 from cadmcp.units import UnitContext
 from cadmcp.verification import attach_file_evidence, build_mutation_verification
@@ -42,6 +42,7 @@ from cadmcp.verification import attach_file_evidence, build_mutation_verificatio
 if TYPE_CHECKING:  # deferred annotations; no import cycle at runtime
     from cadmcp.executor import HealthReport
     from cadmcp.toolbox import ToolVisibility
+    from cadmcp.transaction import TxManager
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +64,8 @@ class OpContext:
     """Toolbox visibility (build_stack); None → list/open/close/search report INTERNAL."""
     registry: ToolRegistry | None = None
     """Full registry for toolbox list/search (decoupled from visibility filter)."""
+    tx: TxManager | None = None
+    """Active transaction manager (F4); None when Kernel has no tx support."""
 
 
 class Kernel:
@@ -77,6 +80,8 @@ class Kernel:
         health_provider: Callable[[], HealthReport] | None = None,
         visibility: ToolVisibility | None = None,
     ) -> None:
+        from cadmcp.transaction import TxManager
+
         self._registry = registry
         self._backend = backend
         self._workspace = workspace
@@ -85,6 +90,7 @@ class Kernel:
         self._health = health_provider  # status tool; default None → status INTERNAL
         self._visibility = visibility
         self.state_version = 0
+        self._tx = TxManager(workspace)
 
     # ---------- dispatch ----------
 
@@ -103,6 +109,14 @@ class Kernel:
         if err is not None:
             return fail_result(err, state_version=self.state_version)
 
+        # F6: optional expect_* doc guard — before any side effect / tx capture / fingerprint
+        if spec.mutating:
+            guard_err = self._check_expect_document(args)
+            if guard_err is not None:
+                return fail_result(guard_err, state_version=self.state_version)
+            args.pop(EXPECT_TITLE, None)
+            args.pop(EXPECT_PATH, None)
+
         ctx = OpContext(
             backend=self._backend,
             units=self._units,
@@ -113,7 +127,21 @@ class Kernel:
             dispatch=self.dispatch,
             visibility=self._visibility,
             registry=self._registry,
+            tx=self._tx,
         )
+
+        # F4: capture compensator pre-state only when an active same-doc tx exists
+        tx_capture: dict = {}
+        if (
+            spec.mutating
+            and not spec.name.startswith("tx_")
+            and self._tx.active is not None
+            and self._tx.active.status == "active"
+        ):
+            if self._tx_doc_matches():
+                tx_capture = self._tx.capture_before(self._backend, spec.name, args)
+            else:
+                self._tx.note_doc_mismatch()
 
         before = self._fingerprint_if_verify(spec)
         try:
@@ -137,12 +165,34 @@ class Kernel:
             return ok_result(payload, state_version=self.state_version)
 
         self.state_version += 1
+        tx_warnings: list[str] = []
+        if (
+            not spec.name.startswith("tx_")
+            and self._tx.active is not None
+            and self._tx.active.status == "active"
+        ):
+            if self._tx_doc_matches():
+                tx_warnings = self._tx.record_step(
+                    tool=spec.name,
+                    args=args,
+                    state_version=self.state_version,
+                    payload=payload if isinstance(payload, dict) else None,
+                    delta_changed=None,  # filled below when delta known
+                    capture=tx_capture,
+                )
+            else:
+                self._tx.note_doc_mismatch()
+                tx_warnings = ["TX_UNSUPPORTED_STEP: document binding drift (step not journaled for compensate)"]
+
         if not (self._verify and spec.verify_delta):
             verification = None
             if spec.name == "export" and isinstance(payload, dict) and payload.get("path"):
                 verification = attach_file_evidence(None, str(payload["path"]))
             return ok_result(
-                payload, state_version=self.state_version, verification=verification
+                payload,
+                state_version=self.state_version,
+                verification=verification,
+                warnings=tx_warnings or None,
             )
 
         # Verification layer failure must not hide a successful op: warn and return result
@@ -154,9 +204,20 @@ class Kernel:
             return ok_result(
                 payload,
                 state_version=self.state_version,
-                warnings=[f"Verification read failed, result not re-checked: {exc.code}: {exc.message}"],
+                warnings=[
+                    *tx_warnings,
+                    f"Verification read failed, result not re-checked: {exc.code}: {exc.message}",
+                ],
             )
         delta = Delta.between(before, snapshot) if before is not None else None
+        # Patch last journal step with delta.changed when present
+        if (
+            delta is not None
+            and self._tx.active is not None
+            and self._tx.active.steps
+            and not spec.name.startswith("tx_")
+        ):
+            self._tx.active.steps[-1].delta_changed = list(delta.changed)
         rebuild = RebuildReport(
             ok=outcome.ok,
             feature_errors=list(outcome.feature_errors),
@@ -170,9 +231,57 @@ class Kernel:
             rebuild=rebuild,
             verification=verification,
             state_version=self.state_version,
+            warnings=tx_warnings or None,
         )
 
     # ---------- internal ----------
+
+    def _check_expect_document(self, args: dict) -> CadMcpError | None:
+        """Reject mutating calls whose expect_* does not match the active document.
+
+        When either expect_title or expect_path is provided (non-None), mismatch **or**
+        no active document → WRONG_DOCUMENT (side_effect=NONE). Omitted expect_* keeps
+        prior tool behaviour (e.g. NO_ACTIVE_DOCUMENT from handlers).
+        """
+        if EXPECT_TITLE not in args and EXPECT_PATH not in args:
+            return None
+        expect_title = args.get(EXPECT_TITLE)
+        expect_path = args.get(EXPECT_PATH)
+        if expect_title is None and expect_path is None:
+            return None
+
+        try:
+            info = self._backend.active_document()
+        except CadMcpError as exc:
+            # Treat backend doc-read failure as non-matching context for the guard
+            if exc.code == "NO_ACTIVE_DOCUMENT":
+                info = None
+            else:
+                raise
+
+        actual_title = info.title if info is not None else None
+        actual_path = info.path if info is not None else None
+        mismatch = False
+        if info is None:
+            mismatch = True
+        else:
+            if expect_title is not None and str(expect_title).strip() != str(actual_title).strip():
+                mismatch = True
+            if expect_path is not None and not _paths_match(str(expect_path), actual_path):
+                mismatch = True
+        if not mismatch:
+            return None
+        return fail(
+            "WRONG_DOCUMENT",
+            "Active document does not match expect_title/expect_path",
+            "Call list_open_documents or get_active_document; activate the intended "
+            "document or correct expect_title/expect_path",
+            side_effect=SideEffect.NONE,
+            expected_title=expect_title,
+            expected_path=expect_path,
+            actual_title=actual_title,
+            actual_path=actual_path,
+        )
 
     def _validate(self, spec: ToolSpec, args: dict) -> ErrorInfo | None:
         if not isinstance(args, dict):
@@ -216,6 +325,19 @@ class Kernel:
             log.warning("Pre-op fingerprint failed (%s: %s); no delta on this call", exc.code, exc.message)
             return None
 
+    def _tx_doc_matches(self) -> bool:
+        """True when active doc still matches the transaction binding (single-doc F4)."""
+        session = self._tx.active
+        if session is None:
+            return False
+        try:
+            info = self._backend.active_document()
+        except CadMcpError:
+            return False
+        if info is None:
+            return False
+        return info.title == session.title and (info.path or None) == (session.path or None)
+
     def _snapshot(self, fp: FingerprintSI) -> GeometrySnapshot:
         """SI fingerprint → external mm snapshot (unit conversion only on this boundary)."""
         u = self._units
@@ -232,6 +354,24 @@ class Kernel:
 def _conservative_side_effect(spec: ToolSpec) -> SideEffect:
     """Unexpected exception: mutating → APPLIED (may have applied; read state before retry)."""
     return SideEffect.APPLIED if spec.mutating else SideEffect.NONE
+
+
+def _paths_match(expected: str, actual: str | None) -> bool:
+    if actual is None:
+        return False
+    try:
+        left = Path(expected).expanduser().resolve()
+        right = Path(actual).expanduser().resolve()
+    except OSError:
+        left = Path(expected)
+        right = Path(actual)
+    return os_path_norm(left) == os_path_norm(right)
+
+
+def os_path_norm(path: Path) -> str:
+    import os
+
+    return os.path.normcase(os.path.normpath(str(path)))
 
 
 __all__ = ["Kernel", "OpContext"]

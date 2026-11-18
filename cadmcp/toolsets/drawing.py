@@ -1,7 +1,13 @@
 """Drawing: new/views/BOM; section, model items, balloons; DRW3 create_drawing/inspect; L3 sheets/title block/GD&T/layers."""
 from __future__ import annotations
 
-from cadmcp.backend.protocol.constants import BOM_TYPES, DRAWING_VIEW_ALIASES, GDT_SYMBOLS
+from cadmcp.backend.protocol.constants import (
+    BOM_TYPES,
+    DRAWING_VIEW_ALIASES,
+    GDT_SYMBOLS,
+    WELD_SYMBOLS,
+)
+from cadmcp.drawing_preflight import assess as assess_drawing_preflight
 from cadmcp.drawing_spec import load_drawing_spec
 from cadmcp.errors import fail
 from cadmcp.kernel import OpContext
@@ -136,6 +142,128 @@ def insert_gdt(
     }
 
 
+def insert_weld_symbol(
+    ctx: OpContext,
+    symbol: str,
+    x: float = 100.0,
+    y: float = 80.0,
+    edge: int | None = None,
+    unit: str = "mm",
+) -> dict:
+    """Create only — does not verify GetText readback. Use get/inspect_weld_* for that."""
+    uc = _unit_ctx(ctx, unit)
+    name = ctx.backend.insert_weld_symbol(str(symbol), uc.to_m(x), uc.to_m(y), edge)
+    return {
+        "name": name,
+        "symbol": str(symbol).strip().upper(),
+        "edge": edge,
+        "unit": uc.external_unit,
+    }
+
+
+def get_weld_annotations(ctx: OpContext) -> dict:
+    rows = ctx.backend.get_weld_annotations()
+    return {"count": len(rows), "annotations": list(rows)}
+
+
+def inspect_weld_symbol(ctx: OpContext, index: int = 0) -> dict:
+    return dict(ctx.backend.inspect_weld_symbol(int(index)))
+
+
+def verify_weld_symbol(
+    ctx: OpContext,
+    symbol: str,
+    index: int = 0,
+    require_attached: bool = True,
+) -> dict:
+    """Compare expected weld symbol to inspect_weld_symbol readback (create≠verify)."""
+    expect = str(symbol).strip().upper()
+    if expect not in WELD_SYMBOLS:
+        raise fail(
+            "INVALID_ARGUMENT",
+            f"Unknown weld symbol: {symbol!r}",
+            f"Options: {', '.join(WELD_SYMBOLS)}",
+        )
+    idx = int(index)
+    if idx < 0:
+        raise fail("INVALID_ARGUMENT", f"index must be >= 0, got {index}", "Pass weld annotation index")
+
+    checks: list[dict] = []
+    ann_rows = ctx.backend.get_weld_annotations()
+    has_row = any(int(r.get("index", -1)) == idx for r in ann_rows)
+    checks.append(
+        {
+            "name": "weld.annotation_present",
+            "ok": has_row,
+            "detail": f"type8_count={len(ann_rows)} index={idx}",
+        }
+    )
+    if not has_row:
+        return {
+            "ok": False,
+            "index": idx,
+            "expected_symbol": expect,
+            "actual_symbol": None,
+            "attached": None,
+            "checks": checks,
+            "inspect": None,
+        }
+
+    info = dict(ctx.backend.inspect_weld_symbol(idx))
+    actual = str(info.get("symbol") or "").strip().upper() or None
+    sym_ok = actual == expect
+    checks.append(
+        {
+            "name": "weld.symbol_match",
+            "ok": sym_ok,
+            "detail": f"expected={expect!r} actual={actual!r}",
+        }
+    )
+    attached = info.get("attached")
+    if require_attached:
+        att_ok = attached is True
+        checks.append(
+            {
+                "name": "weld.attached",
+                "ok": att_ok,
+                "detail": f"attached={attached!r}",
+            }
+        )
+    else:
+        checks.append(
+            {
+                "name": "weld.attached",
+                "ok": True,
+                "detail": f"skipped require_attached=false; attached={attached!r}",
+            }
+        )
+
+    return {
+        "ok": all(bool(c["ok"]) for c in checks),
+        "index": idx,
+        "expected_symbol": expect,
+        "actual_symbol": actual,
+        "attached": attached,
+        "checks": checks,
+        "inspect": info,
+    }
+
+
+_CHECK_DRAWING_SPEC_DESCRIPTION = (
+    "Read-only DrawingSpec preflight before create_drawing: checks text "
+    "self-consistency (sheets/views/orientations/GDT/BOM/title_block). "
+    "No COM or document mutation; missing optional fields → skipped (not fail). "
+    "Does not replace verify_model drawing.completeness. "
+    "Read cadmcp://help/drawing_preflight before interpreting the result."
+)
+
+
+def check_drawing_spec(ctx: OpContext, spec_path: str) -> dict:
+    """Readonly DrawingSpec preflight; does not create a drawing."""
+    resolved = ensure_input_path(spec_path, roots=ctx.workspace, extensions=_SPEC_EXTS)
+    return assess_drawing_preflight(resolved)
+
+
 def create_drawing(ctx: OpContext, spec_path: str, overwrite: bool = False) -> dict:
     """Build a drawing from DrawingSpec (L2/L3) and optionally export PDF."""
     resolved = ensure_input_path(spec_path, roots=ctx.workspace, extensions=_SPEC_EXTS)
@@ -252,6 +380,21 @@ def create_drawing(ctx: OpContext, spec_path: str, overwrite: bool = False) -> d
                     )
                 )
 
+    weld_names: list[str] = []
+    if isinstance(spec.get("welds"), list):
+        uc = ctx.units
+        for item in spec["welds"]:
+            edge = item.get("edge")
+            edge_i = int(edge) if edge is not None else None
+            weld_names.append(
+                ctx.backend.insert_weld_symbol(
+                    str(item["symbol"]),
+                    uc.to_m(float(item.get("x", 100))),
+                    uc.to_m(float(item.get("y", 80))),
+                    edge_i,
+                )
+            )
+
     pdf_path = None
     if spec.get("output_pdf"):
         pdf = ensure_output_path(
@@ -275,6 +418,7 @@ def create_drawing(ctx: OpContext, spec_path: str, overwrite: bool = False) -> d
         "title_block": title_written,
         "datums": datum_names,
         "gdts": gdt_names,
+        "welds": weld_names,
         "pdf": pdf_path,
         "spec_path": str(resolved),
         "warnings": warnings,
@@ -402,6 +546,25 @@ DRAWING_SPECS: list[ToolSpec] = [
         timeout_class="slow",
     ),
     ToolSpec(
+        name="check_drawing_spec",
+        toolset="drawing",
+        description=_CHECK_DRAWING_SPEC_DESCRIPTION,
+        input_schema=make_schema(
+            {
+                "spec_path": {
+                    "type": "string",
+                    "description": "Workspace-relative DrawingSpec .json to preflight.",
+                },
+            },
+            ["spec_path"],
+        ),
+        handler=check_drawing_spec,
+        mutating=False,
+        bypass_queue=True,
+        timeout_class="fast",
+        layer="domain",
+    ),
+    ToolSpec(
         name="inspect_drawing",
         toolset="drawing",
         description="Inspect the active drawing: views, sheets, title_block, gdts, paper/scale, tolerances.",
@@ -520,6 +683,95 @@ DRAWING_SPECS: list[ToolSpec] = [
         handler=insert_gdt,
         mutating=True,
         timeout_class="slow",
+    ),
+    ToolSpec(
+        name="insert_weld_symbol",
+        toolset="drawing",
+        description=(
+            "Insert a weld symbol on the active drawing (subset: "
+            f"{', '.join(WELD_SYMBOLS)}). Native InsertWeldSymbol3+SetText; inspect via session "
+            "or annotation type 8 (GetText content not relied on)."
+        ),
+        input_schema=make_schema(
+            {
+                "symbol": {
+                    "type": "string",
+                    "enum": list(WELD_SYMBOLS),
+                    "description": "ISO weld symbol name from gtol.sym subset.",
+                },
+                "x": {"type": "number", "default": 100},
+                "y": {"type": "number", "default": 80},
+                "edge": {
+                    "type": "integer",
+                    "description": "Visible drawing-view edge index; omit to auto-pick first.",
+                },
+                "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+            },
+            ["symbol"],
+        ),
+        handler=insert_weld_symbol,
+        mutating=True,
+        timeout_class="slow",
+    ),
+    ToolSpec(
+        name="get_weld_annotations",
+        toolset="drawing",
+        description=(
+            "List weld annotations on the active drawing (ann GetType==8). "
+            "Enumeration only — no GetText semantics. Use inspect_weld_symbol for symbol text."
+        ),
+        input_schema=make_schema({}),
+        handler=get_weld_annotations,
+        timeout_class="fast",
+    ),
+    ToolSpec(
+        name="inspect_weld_symbol",
+        toolset="drawing",
+        description=(
+            "Read weld symbol semantics at index via GetSpecificAnnotation + "
+            "GetText(swWeldSymbolTextTypes_e). Top symbol is text slot 2; below is 6."
+        ),
+        input_schema=make_schema(
+            {
+                "index": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Index from get_weld_annotations (0-based).",
+                },
+            }
+        ),
+        handler=inspect_weld_symbol,
+        timeout_class="fast",
+    ),
+    ToolSpec(
+        name="verify_weld_symbol",
+        toolset="drawing",
+        description=(
+            "Verify weld at index matches expected symbol via get_weld_annotations + "
+            "inspect_weld_symbol (GetText slots). Returns ok/checks; does not insert."
+        ),
+        input_schema=make_schema(
+            {
+                "symbol": {
+                    "type": "string",
+                    "enum": list(WELD_SYMBOLS),
+                    "description": "Expected weld symbol name.",
+                },
+                "index": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Index from get_weld_annotations (0-based).",
+                },
+                "require_attached": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Fail when IsAttached is not True.",
+                },
+            },
+            ["symbol"],
+        ),
+        handler=verify_weld_symbol,
+        timeout_class="fast",
     ),
     ToolSpec(
         name="add_drawing_layer",

@@ -25,9 +25,10 @@ writes the entry for those four; see [Getting started](getting-started.md).
 
 ## What are the known limits?
 
-Mold core/cavity, native threads, Toolbox, part in-context edit, and screw-in
-motion each have a documented workaround or a reason they are unsupported. The
-full list lives on [Limitations](limitations.md).
+Mold core/cavity, Toolbox, part in-context edit, and screw-in motion each have a
+documented workaround or a reason they are unsupported. Geometry threads use
+`create_thread`; callouts use `insert_cosmetic_thread`. The full list lives on
+[Limitations](limitations.md).
 
 ## Something is stuck. Where do I look?
 

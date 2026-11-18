@@ -21,10 +21,77 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install package (dev)
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+
+      - name: Version consistency
+        run: |
+          python -c "
+          import re, tomllib
+          from pathlib import Path
+          from cadmcp import __version__
+          text = Path('pyproject.toml').read_text(encoding='utf-8')
+          data = tomllib.loads(text)
+          py_ver = data['project']['version']
+          assert __version__ == py_ver, (__version__, py_ver)
+          print(f'ok: cadmcp.__version__ == pyproject == {__version__}')
+          "
+
+      - name: Offline tests
+        run: python -m pytest -q -m "not sw"
+
       - name: Build
         run: |
-          python -m pip install --upgrade pip build
+          python -m pip install --upgrade build
           python -m build
+
+      - name: Assert sdist contents
+        run: |
+          python -c "
+          import glob, sys, tarfile
+          from pathlib import Path
+          FORBIDDEN = {
+              'tests', 'scripts', 'benchmarks', 'docs', 'mcpb',
+              'deliverables', 'archive', 'internal-evidence',
+          }
+          paths = sorted(glob.glob('dist/*.tar.gz'))
+          if not paths:
+              raise SystemExit('no sdist in dist/')
+          for path in paths:
+              try:
+                  with tarfile.open(path, 'r:*') as tf:
+                      names = [m.name.replace('\\\\', '/').rstrip('/') for m in tf.getmembers() if m.name]
+              except Exception as exc:
+                  raise SystemExit(f'cannot parse {path}: {exc}') from exc
+              # Strip single sdist root dir if present.
+              roots = {n.split('/', 1)[0] for n in names if '/' in n}
+              if len(roots) == 1:
+                  root = next(iter(roots))
+                  if all(n == root or n.startswith(root + '/') for n in names):
+                      names = [n[len(root)+1:] for n in names if n != root]
+              has_cadmcp = False
+              errors = []
+              for rel in names:
+                  if not rel:
+                      continue
+                  top = rel.split('/', 1)[0]
+                  if top == 'cadmcp':
+                      has_cadmcp = True
+                      continue
+                  if top in FORBIDDEN:
+                      errors.append(f'forbidden: {rel}')
+                      continue
+                  if '/' in rel:
+                      errors.append(f'non-whitelisted nested: {rel}')
+              if not has_cadmcp:
+                  errors.append('no cadmcp/ members')
+              if errors:
+                  print(path, file=sys.stderr)
+                  for e in errors:
+                      print(f'  - {e}', file=sys.stderr)
+                  raise SystemExit(1)
+              print(f'ok: sdist {path} whitelist pass ({len(names)} members)')
+          "
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

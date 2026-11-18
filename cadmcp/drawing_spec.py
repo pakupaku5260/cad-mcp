@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from cadmcp.backend.protocol.constants import GDT_SYMBOLS
+from cadmcp.backend.protocol.constants import GDT_SYMBOLS, WELD_SYMBOLS
 from cadmcp.errors import fail
 
 _PAPER = {"A4", "A3", "A2", "A1", "A0"}
@@ -166,6 +166,34 @@ def load_drawing_spec(path: Path) -> dict[str, Any]:
             else:
                 raise fail("INVALID_ARGUMENT", f"gdts[{i}].kind must be datum or gdt", f"got {kind!r}")
         data["gdts"] = parsed
+
+    welds = data.get("welds")
+    if welds is not None:
+        if not isinstance(welds, list):
+            raise fail("INVALID_ARGUMENT", "welds must be an array", 'Each item {"symbol":"FILL",...}')
+        parsed_w: list[dict[str, Any]] = []
+        for i, item in enumerate(welds):
+            if not isinstance(item, dict):
+                raise fail("INVALID_ARGUMENT", f"welds[{i}] must be an object", "Include symbol")
+            symbol = str(item.get("symbol") or "").strip().upper()
+            if symbol not in WELD_SYMBOLS:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    f"welds[{i}] unknown symbol {symbol!r}",
+                    f"Choose: {', '.join(WELD_SYMBOLS)}",
+                )
+            edge = item.get("edge")
+            if edge is not None and (not isinstance(edge, int) or int(edge) < 0):
+                raise fail("INVALID_ARGUMENT", f"welds[{i}].edge must be int >= 0", "Omit to auto-pick edge")
+            parsed_w.append(
+                {
+                    "symbol": symbol,
+                    "x": float(item.get("x", 100)),
+                    "y": float(item.get("y", 80)),
+                    "edge": None if edge is None else int(edge),
+                }
+            )
+        data["welds"] = parsed_w
 
     out_pdf = data.get("output_pdf")
     if out_pdf is not None and not isinstance(out_pdf, str):

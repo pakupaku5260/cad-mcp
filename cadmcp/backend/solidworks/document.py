@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from cadmcp.backend.export_formats import (
+    STEP_AP_DEFAULT,
     STL_QUALITY_CODES,
     ensure_doc_type,
     validate_export_options,
@@ -15,6 +16,7 @@ from cadmcp.backend.export_formats import (
 from cadmcp.backend.protocol.constants import BOM_TYPE_IDS, BOM_TYPES
 from cadmcp.backend.protocol.models import BomRow, DocInfo, RebuildOutcome
 from cadmcp.backend.protocol.parsers import rollup_bom_rows
+from cadmcp.backend.step_schema import detect_step_ap
 from cadmcp.errors import SideEffect, fail
 
 from ._constants import (
@@ -27,7 +29,7 @@ from ._constants import (
     SW_DOC_PART,
     SW_DOC_TYPE_NAMES,
 )
-from ._helpers import _doc_type_for, _get
+from ._helpers import _doc_type_for, _get, _is_server_gone
 
 log = logging.getLogger(__name__)
 
@@ -178,6 +180,26 @@ class DocumentMixin:
 
         self._call(_fn)
 
+    def save_copy_as(self, path: Path) -> None:
+        """SaveAs3 options=3: silent copy; does not change active doc path/title."""
+
+        def _fn() -> None:
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
+            res = _get(doc, "SaveAs3", str(path), 0, 3)
+            failed = res is False or res == "1" or (
+                isinstance(res, int) and not isinstance(res, bool) and res != 0
+            )
+            if failed:
+                raise fail(
+                    "SAVE_FAILED",
+                    f"SaveAsCopy failed (returned {res!r}): {path}",
+                    "Check path permissions, disk space, and that SolidWorks has no pending dialogs",
+                )
+
+        self._call(_fn)
+
     def close_document(self, discard: bool) -> None:
         # Whether unsaved changes may be discarded is enforced at tool layer (core.close_document);
         # backend only guarantees the document is actually closed on return, else raises (no silent fail).
@@ -219,6 +241,67 @@ class DocumentMixin:
 
         return self._call(_fn)
 
+    def list_open_documents(self) -> list[DocInfo]:
+        """Enumerate open ModelDocs via GetDocuments (STA); fall back to active only."""
+
+        def _fn() -> list[DocInfo]:
+            out: list[DocInfo] = []
+            raw = None
+            try:
+                raw = self.sw.GetDocuments
+                if callable(raw):
+                    raw = raw()
+            except Exception as exc:
+                if _is_server_gone(exc):
+                    raise
+                raw = None
+            docs = []
+            if raw is not None:
+                try:
+                    docs = [d for d in list(raw) if d is not None]
+                except Exception as exc:
+                    if _is_server_gone(exc):
+                        raise
+                    docs = []
+            for doc in docs:
+                try:
+                    out.append(self._doc_info(doc))
+                except Exception as exc:
+                    if _is_server_gone(exc):
+                        raise
+                    continue
+            if not out:
+                active = self.sw.ActiveDoc
+                if active is not None:
+                    out.append(self._doc_info(active))
+            return out
+
+        return self._call(_fn)
+
+    def mbd_step242_available(self) -> bool:
+        """Probe PublishSTEP242File on the active (or any) model Extension."""
+
+        def _fn() -> bool:
+            doc = self.sw.ActiveDoc
+            if doc is None:
+                return False
+            try:
+                ext = _get(doc, "Extension")
+            except Exception:
+                return False
+            if ext is None:
+                return False
+            try:
+                return callable(getattr(ext, "PublishSTEP242File", None))
+            except Exception:
+                return False
+
+        try:
+            return bool(self._call(_fn))
+        except Exception:
+            log.debug("mbd_step242_available probe failed: %s", traceback.format_exc())
+            return False
+
     def export_document(
         self,
         path: Path,
@@ -226,8 +309,8 @@ class DocumentMixin:
         *,
         step_ap: int | None = None,
         stl_quality: str | None = None,
-    ) -> None:
-        def _fn() -> None:
+    ) -> dict:
+        def _fn() -> dict:
             doc = self.sw.ActiveDoc
             if doc is None:
                 raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
@@ -236,7 +319,14 @@ class DocumentMixin:
             except Exception:
                 doc_type = "unknown"
             ensure_doc_type(fmt, doc_type)
-            validate_export_options(fmt, step_ap=step_ap, stl_quality=stl_quality)
+            effective_ap = int(step_ap) if step_ap is not None else (
+                STEP_AP_DEFAULT if fmt == "step" else None
+            )
+            validate_export_options(fmt, step_ap=effective_ap, stl_quality=stl_quality)
+            out: dict[str, Any] = {}
+            if fmt == "step" and effective_ap == 242:
+                out.update(self._export_step_242(doc, path))
+                return out
             sw = self.sw
             prev_ap: int | None = None
             prev_q: int | None = None
@@ -244,9 +334,9 @@ class DocumentMixin:
             prev_dxf_dont: bool | None = None
             res: Any = None
             try:
-                if step_ap is not None:
+                if fmt == "step" and effective_ap is not None:
                     prev_ap = int(sw.GetUserPreferenceIntegerValue(_SW_STEP_AP))
-                    sw.SetUserPreferenceIntegerValue(_SW_STEP_AP, int(step_ap))
+                    sw.SetUserPreferenceIntegerValue(_SW_STEP_AP, int(effective_ap))
                 if stl_quality is not None:
                     prev_q = int(sw.GetUserPreferenceIntegerValue(_SW_STL_QUALITY))
                     code = STL_QUALITY_CODES[str(stl_quality).strip().lower()]
@@ -289,8 +379,64 @@ class DocumentMixin:
                     f"{fmt} export failed (SaveAs3 returned {res!r}): {path}",
                     "Check path permissions, file locks, and that SolidWorks has no pending dialogs",
                 )
+            if fmt == "step" and effective_ap is not None:
+                verified = self._verify_step_ap(path, int(effective_ap))
+                out["step_ap"] = verified
+                out["export_path"] = "SaveAs3"
+            if stl_quality is not None:
+                out["stl_quality"] = str(stl_quality).strip().lower()
+            return out
 
         return self._call(_fn)
+
+    def _export_step_242(self, doc: Any, path: Path) -> dict:
+        """AP242 via PublishSTEP242File only — never fall back to SaveAs3."""
+        try:
+            ext = _get(doc, "Extension")
+        except Exception:
+            ext = None
+        publish = getattr(ext, "PublishSTEP242File", None) if ext is not None else None
+        if not callable(publish):
+            raise fail(
+                "FEATURE_NOT_AVAILABLE",
+                "AP242 export requires SOLIDWORKS MBD (PublishSTEP242File)",
+                "Enable/install MBD, confirm with cadmcp doctor (mbd_step242), or use step_ap=214",
+            )
+        try:
+            status = publish(str(path))
+        except Exception as exc:
+            log.debug("PublishSTEP242File failed: %s", traceback.format_exc())
+            raise fail(
+                "SAVE_FAILED",
+                f"PublishSTEP242File raised: {exc}",
+                "Confirm MBD license and that the part/assembly supports STEP 242 publish",
+            ) from exc
+        # swStep242Error_e: 0 = success (SW2025 typelib)
+        failed = status is False or status == "1" or (
+            isinstance(status, int) and not isinstance(status, bool) and status != 0
+        )
+        if failed:
+            raise fail(
+                "SAVE_FAILED",
+                f"PublishSTEP242File returned {status!r}: {path}",
+                "Check MBD license, PMI readiness, path permissions; do not fall back to SaveAs",
+                status=status,
+            )
+        verified = self._verify_step_ap(path, 242)
+        return {"step_ap": verified, "export_path": "PublishSTEP242File"}
+
+    @staticmethod
+    def _verify_step_ap(path: Path, requested: int) -> int:
+        detected = detect_step_ap(path)
+        if detected != int(requested):
+            raise fail(
+                "SAVE_FAILED",
+                f"STEP protocol mismatch: requested AP{requested}, detected {detected!r}",
+                "Delete the file and retry; for AP242 use MBD PublishSTEP242File (no SaveAs fallback)",
+                step_ap_requested=requested,
+                step_ap_detected=detected,
+            )
+        return int(detected)
 
     def _drawing_bom_annotation(self, doc: Any) -> Any:
         """First BomFeat table annotation on active drawing, or None."""
@@ -632,6 +778,29 @@ class DocumentMixin:
 
         return self._call(_fn)
 
+    def _collect_feature_errors(self, doc: Any) -> list[str]:
+        """Best-effort feature error names for verify_model (STA thread only)."""
+        out: list[str] = []
+        for feat in self._features_of(doc):
+            try:
+                name = str(_get(feat, "Name") or "")
+            except Exception:
+                name = ""
+            code = None
+            for meth in ("GetErrorCode2", "GetErrorCode"):
+                try:
+                    raw = _get(feat, meth)
+                    if raw is None:
+                        continue
+                    code = int(raw)
+                    break
+                except Exception:
+                    continue
+            if code is None or code == 0:
+                continue
+            out.append(f"{name or '?'}:error_code={code}")
+        return out
+
     def force_rebuild(self) -> RebuildOutcome:
         def _fn() -> RebuildOutcome:
             doc = self.sw.ActiveDoc
@@ -639,8 +808,9 @@ class DocumentMixin:
                 raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
             try:
                 res = _get(doc, "ForceRebuild3", True)
-                if res is False:
-                    return RebuildOutcome(ok=False)
+                errors = self._collect_feature_errors(doc)
+                if res is False or errors:
+                    return RebuildOutcome(ok=False, feature_errors=errors)
                 return RebuildOutcome(ok=True)
             except Exception as exc:
                 raise self._map_error(exc) from exc
