@@ -344,10 +344,14 @@ class InfrastructureMixin:
                 return
         except Exception:
             log.debug("Read active document failed: %s", traceback.format_exc())
-        import pythoncom
-        from win32com.client import VARIANT
+        # VARIANT out-param needs pywin32; offline/Linux unit mocks pass a plain int.
+        try:
+            import pythoncom
+            from win32com.client import VARIANT
 
-        err = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+            err: Any = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        except ImportError:
+            err = 0
         attempts = (
             lambda: self.sw.ActivateDoc3(title, False, _DONT_REBUILD_ON_ACTIVATION, err),
             lambda: self.sw.ActivateDoc2(title, True, err),
