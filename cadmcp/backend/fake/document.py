@@ -92,8 +92,77 @@ class FakeDocumentMixin:
             restored.path = str(path)
             self._register_open_doc(restored)
             return self._doc_info()
-        doc_type = {".sldasm": "assembly", ".slddrw": "drawing"}.get(path.suffix.lower(), "part")
+        suffix = path.suffix.lower()
+        # P5 STEP readback fixture (tests): multi-part assembly or single part + bbox.
+        if suffix in {".step", ".stp"}:
+            fixtures = getattr(self, "_step_imports", {})
+            fixture = fixtures.get(key)
+            if fixture is None:
+                # Match by filename so verify_step_readback copies keep the fixture.
+                want = path.name.lower()
+                for stored, meta in fixtures.items():
+                    if Path(stored).name.lower() == want:
+                        fixture = meta
+                        break
+            if fixture:
+                return self._open_step_fixture(path, fixture)
+        doc_type = {".sldasm": "assembly", ".slddrw": "drawing"}.get(suffix, "part")
         self._register_open_doc(_Doc(title=path.stem, path=path, doc_type=doc_type))
+        return self._doc_info()
+
+    def seed_step_import(
+        self,
+        path: Path,
+        *,
+        part_count: int = 1,
+        bbox_m: tuple[float, float, float, float, float, float] = (0.0, 0.0, 0.0, 0.1, 0.1, 0.1),
+        notes: str = "",
+    ) -> None:
+        """Test helper: next open_document on this STEP path uses the fixture."""
+        self._step_imports[str(Path(path).resolve())] = {
+            "part_count": int(part_count),
+            "bbox_m": tuple(float(v) for v in bbox_m),
+            "notes": str(notes or ""),
+        }
+
+    def _open_step_fixture(self, path: Path, fixture: dict) -> DocInfo:
+        count = max(1, int(fixture.get("part_count") or 1))
+        bbox = tuple(fixture.get("bbox_m") or (0.0, 0.0, 0.0, 0.1, 0.1, 0.1))
+        if count <= 1:
+            doc = _Doc(title=path.stem, path=path, doc_type="part")
+            vol = abs((bbox[3] - bbox[0]) * (bbox[4] - bbox[1]) * (bbox[5] - bbox[2]))
+            com = (
+                0.5 * (bbox[0] + bbox[3]),
+                0.5 * (bbox[1] + bbox[4]),
+                0.5 * (bbox[2] + bbox[5]),
+            )
+            # Keys match FakeQueryMixin._geom feature shape (vol/surf/bbox3d/com).
+            doc.features.append(
+                {
+                    "kind": "extrude",
+                    "name": "StepImport1",
+                    "sign": 1,
+                    "vol": vol,
+                    "surf": 1.0,
+                    "faces": 6,
+                    "edges": 12,
+                    "bbox3d": bbox,
+                    "com": com,
+                }
+            )
+            self._register_open_doc(doc)
+            return self._doc_info()
+        doc = _Doc(title=path.stem, path=path, doc_type="assembly")
+        for i in range(1, count + 1):
+            name = f"step_body-{i}"
+            doc.components[name] = str(path)
+            # Spread thin boxes along X so union bbox ≈ fixture bbox.
+            span = (bbox[3] - bbox[0]) / count if count else 0.0
+            x0 = bbox[0] + (i - 1) * span
+            x1 = bbox[0] + i * span if i < count else bbox[3]
+            doc.component_bbox[name] = (x0, bbox[1], bbox[2], x1, bbox[4], bbox[5])
+            doc.component_origin[name] = (x0, bbox[1], bbox[2])
+        self._register_open_doc(doc)
         return self._doc_info()
 
     def save_as(self, path: Path) -> None:
@@ -162,6 +231,42 @@ class FakeDocumentMixin:
     def active_document(self) -> DocInfo | None:
         self._enter("active_document")
         return self._doc_info() if self._doc else None
+
+    def set_active_document(self, path_or_title: str) -> DocInfo:
+        self._enter("set_active_document", path_or_title=path_or_title)
+        key = str(path_or_title or "").strip()
+        if not key:
+            raise fail(
+                "INVALID_ARGUMENT",
+                "path_or_title cannot be empty",
+                "Pass an open document title or full path",
+            )
+        key_l = key.lower()
+        docs: list = list(getattr(self, "_docs", []) or [])
+        match = None
+        for doc in docs:
+            title = str(doc.title or "")
+            path = str(doc.path) if doc.path else ""
+            if title == key or title.lower() == key_l:
+                match = doc
+                break
+            if path:
+                resolved = str(Path(path).resolve())
+                if path.lower() == key_l or resolved.lower() == key_l:
+                    match = doc
+                    break
+                if Path(path).name.lower() == key_l or Path(resolved).name.lower() == key_l:
+                    match = doc
+                    break
+        if match is None:
+            raise fail(
+                "FEATURE_NOT_FOUND",
+                f"No open document matches {key!r}",
+                "Call list_open_documents, then pass an exact title or path",
+            )
+        self._doc = match
+        self._edit_component = None
+        return self._doc_info()
 
     # ---------- Drawing ----------
 

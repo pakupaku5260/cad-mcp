@@ -84,6 +84,8 @@ nav:
   - Start:
       - Home: index.md
       - Getting started: getting-started.md
+  - Showcase:
+      - Oil tank assembly: showcase/oil-tank.md
   - Reference:
       - Tools: tools.md
       - Architecture: architecture.md

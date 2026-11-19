@@ -6,7 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once public tags are cut.
 
-## [0.3.0] - 未发布（m1 冻结，m2/m3 完成后定稿日期）
+## [0.4.0] - 2026-11-19（release-prep；公开发布待第二次放行）
+
+### Added
+
+- Session dialog tools: `session_dialogs` / `session_respond` with fail-closed
+  whitelist (`restart` / `save_all` / `low_memory` / `progress`).
+- Additive `list_components_lite` for large assemblies; `CADMCP_TOOL_TIMEOUTS`
+  env override for per-tool budgets.
+- Sketch profile conflict precheck (`SKETCH_PROFILE_CONFLICT`); task-layer
+  `fix_components` for mate repair.
+- `verify_model` grouped partial results (`partial_on_timeout`, bounded retries);
+  `check_interference` additive `volume_unit` / converted `volume`.
+- `verify_step_readback` tool + Fake contracts (live SW2025 STEP import remains
+  an environment limitation — see Known Limitations).
+
+### Changed
+
+- Active-document path: silent `SaveAs3` Options=1 so `GetPathName` propagates.
+- Token quotas raised (TOTAL 25000; sheetmetal profile 9500); tool count **170**.
+- Datum-plane UV mapping documentation corrected via geometric probe.
+
+### Known Limitations
+
+- Live STEP readback into SolidWorks 2025: `LoadFile4` / `OpenDoc` return
+  `err=1` for any STEP (including a minimal self-export); still fails after a
+  controlled restart. Tool + Fake contracts are present; do not treat as a
+  verified live round-trip.
+
+## [0.3.0] - 2026-11-18
+
 
 ### Added
 

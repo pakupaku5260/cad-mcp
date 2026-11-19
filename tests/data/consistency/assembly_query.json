@@ -93,6 +93,9 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "active_modified",
+        "active_path",
+        "active_saved",
         "path",
         "saved"
       ],
@@ -208,6 +211,9 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "active_modified",
+        "active_path",
+        "active_saved",
         "path",
         "saved"
       ],
@@ -351,6 +357,9 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "active_modified",
+        "active_path",
+        "active_saved",
         "path",
         "saved"
       ],
@@ -434,7 +443,8 @@
         "coincident_as_interference",
         "count",
         "method",
-        "pairs"
+        "pairs",
+        "unit"
       ],
       "delta_changed": null,
       "rebuild_ok": null,
@@ -527,7 +537,8 @@
         "coincident_as_interference",
         "count",
         "method",
-        "pairs"
+        "pairs",
+        "unit"
       ],
       "delta_changed": null,
       "rebuild_ok": null,

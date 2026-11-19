@@ -13,6 +13,7 @@ open_toolbox / close_toolbox → notifications/tools/list_changed.
 """
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Callable, Collection
 from pathlib import Path
@@ -41,6 +42,18 @@ from cadmcp.toolbox import TOOLBOX_MUTATORS, ToolVisibility
 from cadmcp.toolsets.core import core_registry
 
 log = logging.getLogger(__name__)
+
+
+def _result_text(result: OpResult) -> str:
+    """MCP text payload: UTF-8-safe JSON, byte-identical to ``model_dump_json()``.
+
+    Explicit ``ensure_ascii=False`` keeps non-ASCII (e.g. sha256 detail text) in the
+    payload as UTF-8 instead of relying on Pydantic/console defaults—same contract as
+    ``kernel.schema_json``.
+    """
+    return json.dumps(
+        result.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")
+    )
 
 
 async def call_through_executor(
@@ -130,7 +143,7 @@ def _make_server(
                 log.warning("tools/list_changed send failed (client may not support)", exc_info=True)
         return types.CallToolResult(
             is_error=not result.ok,
-            content=[types.TextContent(type="text", text=result.model_dump_json())],
+            content=[types.TextContent(type="text", text=_result_text(result))],
         )
 
     async def on_list_resources(ctx, params):
@@ -230,6 +243,8 @@ def build_stack(
         executor.backend(),
         workspace=workspace,
         health_provider=lambda: executor.health(detail=status_detail),
+        dialogs_scan=executor.scan_dialogs,
+        dialogs_respond=executor.respond_dialog,
         visibility=visibility,
     )
     server = _make_server(kernel, executor, registry, visibility)

@@ -93,6 +93,9 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "active_modified",
+        "active_path",
+        "active_saved",
         "path",
         "saved"
       ],
@@ -188,8 +191,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "completed_groups",
         "doc_type",
         "groups_run",
+        "incomplete_groups",
+        "partial",
+        "retries",
         "skipped_groups",
         "unit",
         "verification"
@@ -235,8 +242,12 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "completed_groups",
         "doc_type",
         "groups_run",
+        "incomplete_groups",
+        "partial",
+        "retries",
         "skipped_groups",
         "unit",
         "verification"

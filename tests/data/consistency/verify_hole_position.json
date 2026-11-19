@@ -93,9 +93,13 @@
       "error_code": null,
       "error_side_effect": null,
       "result_keys": [
+        "completed_groups",
         "doc_type",
         "fingerprint",
         "groups_run",
+        "incomplete_groups",
+        "partial",
+        "retries",
         "skipped_groups",
         "unit",
         "verification"

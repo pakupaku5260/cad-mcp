@@ -166,6 +166,7 @@ def test_timeout_marks_stuck_and_captures_dialog():
         assert r.error.side_effect == SideEffect.APPLIED
         assert r.error.context["windows"][0]["title"] == "另存为"
         assert "resolve_stuck" in r.error.hint
+        assert "cadmcp doctor (resolve_stuck)" not in r.error.hint
 
         h = e.health()
         assert h.state == "STUCK" and "hang" in (h.stuck_reason or "")
@@ -173,6 +174,8 @@ def test_timeout_marks_stuck_and_captures_dialog():
         # STUCK rejects new work
         again = asyncio.run(e.run(_slow(), tool="next", mutating=True))
         assert again.error.code == "EXEC_STUCK"
+        assert "resolve_stuck()" in again.error.hint
+        assert "cadmcp doctor (resolve_stuck)" not in again.error.hint
 
         # late result counted
         time.sleep(0.6)
@@ -299,3 +302,39 @@ def test_run_before_start_rejected():
     e = Executor(FakeBackend)
     r = asyncio.run(e.run(_slow(), tool="t"))
     assert not r.ok and r.error.code == "COM_ATTACH_FAILED"
+
+
+# ---------- CADMCP_TOOL_TIMEOUTS ----------
+
+
+def test_parse_tool_timeouts_valid_and_invalid():
+    from cadmcp.executor import parse_tool_timeouts
+
+    assert parse_tool_timeouts("") == {}
+    assert parse_tool_timeouts(None) == {}
+    assert parse_tool_timeouts('{"list_components": 60}') == {"list_components": 60.0}
+    assert parse_tool_timeouts('{"list_components": 0.5}') == {}
+    assert parse_tool_timeouts('{"list_components": 301}') == {}
+    assert parse_tool_timeouts("[1,2]") == {}
+    assert parse_tool_timeouts("{not json") == {}
+
+
+def test_tool_timeout_env_loaded_on_init(monkeypatch):
+    monkeypatch.setenv("CADMCP_TOOL_TIMEOUTS", '{"list_components": 45}')
+    e = _ex()
+    try:
+        assert e._tool_timeouts == {"list_components": 45.0}
+    finally:
+        e.shutdown()
+
+
+def test_tool_timeout_override_beats_tier():
+    e = _ex(tiers_s={"fast": 10.0, "normal": 60.0, "slow": 300.0})
+    e._tool_timeouts = {"hang": 0.05}
+    try:
+        r = asyncio.run(e.run(_slow(0.5), tool="hang", timeout_class="slow"))
+        assert not r.ok and r.error.code == "EXEC_TIMEOUT"
+        assert float(r.error.context["timeout_s"]) == 0.05
+        e.resolve_stuck()
+    finally:
+        e.shutdown()

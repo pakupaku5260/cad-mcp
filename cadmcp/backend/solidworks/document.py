@@ -133,14 +133,20 @@ class DocumentMixin:
         return self._call(_fn)
 
     def open_document(self, path: Path) -> DocInfo:
-        doc_type, sw_type = _doc_type_for(Path(path))
+        p = Path(path)
+        suffix = p.suffix.lower()
+        doc_type, sw_type = _doc_type_for(p)
 
         def _fn() -> DocInfo:
+            # Neutral CAD formats (STEP/IGES/…) — LoadFile4 + import data; OpenDoc* often returns None.
+            if suffix in {".step", ".stp", ".iges", ".igs", ".x_t", ".x_b"}:
+                return self._open_imported_cad(p)
+
             # SW2025 OpenDoc6 with pywin32 late binding can type-mismatch on out-params (Errors/Warnings);
             # OpenDoc has no out-params and works as fallback.
             attempts = (
-                lambda: self.sw.OpenDoc6(str(path), sw_type, 0, "", 0, 0),
-                lambda: self.sw.OpenDoc(str(path), sw_type),
+                lambda: self.sw.OpenDoc6(str(p), sw_type, 0, "", 0, 0),
+                lambda: self.sw.OpenDoc(str(p), sw_type),
             )
             errors: list[str] = []
             for opener in attempts:
@@ -150,24 +156,80 @@ class DocumentMixin:
                     errors.append(f"{type(exc).__name__}: {exc}")
                     continue
                 if doc is not None:
-                    return self._doc_info(doc, doc_type)
+                    # OpenDoc* may not switch ActiveDoc; activate so ActiveDoc is sole source.
+                    title = str(_get(doc, "GetTitle"))
+                    self._ensure_active(doc, title)
+                    self._reset_session_state()
+                    active = self.sw.ActiveDoc
+                    return self._doc_info(active if active is not None else doc, doc_type)
                 errors.append("returned None")
             raise fail(
                 "OPEN_FAILED",
-                f"Open failed: {path} ({' | '.join(errors)})",
+                f"Open failed: {p} ({' | '.join(errors)})",
                 "Confirm the file exists, type is correct, and is not locked by another process",
             )
+
+        # STEP import can take minutes; allow progress dialog without EXEC_BLOCKED.
+        return self._call(_fn, timeout=300.0 if suffix in {".step", ".stp"} else 60.0)
+
+    def _open_imported_cad(self, path: Path) -> DocInfo:
+        """Open STEP/IGES/Parasolid via LoadFile4 (STA)."""
+        import pythoncom
+        from win32com.client import VARIANT
+
+        sw = self.sw
+        errors: list[str] = []
+        data = None
+        try:
+            data = _get(sw, "GetImportFileData", str(path))
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"GetImportFileData: {type(exc).__name__}: {exc}")
+        err = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
+        doc = None
+        try:
+            doc = sw.LoadFile4(str(path), "", data, err)
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"LoadFile4: {type(exc).__name__}: {exc}")
+        if doc is None:
+            # Fallback: try as part / assembly OpenDoc
+            for sw_type, label in ((1, "part"), (2, "asm")):
+                try:
+                    doc = sw.OpenDoc(str(path), sw_type)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"OpenDoc({label}): {type(exc).__name__}: {exc}")
+                    continue
+                if doc is not None:
+                    break
+                errors.append(f"OpenDoc({label}): None err={getattr(err, 'value', None)}")
+        if doc is None:
+            err_val = getattr(err, "value", None)
+            detail = " | ".join(errors) if errors else f"err={err_val}"
+            raise fail(
+                "OPEN_FAILED",
+                f"Open/import failed: {path} ({detail})",
+                "Confirm the STEP/IGES is valid; dismiss any import dialogs and retry",
+            )
+        title = str(_get(doc, "GetTitle"))
+        self._ensure_active(doc, title)
         self._reset_session_state()
-        return self._call(_fn)
+        active = self.sw.ActiveDoc
+        try:
+            sw_type = int(_get(active if active is not None else doc, "GetType") or 1)
+        except Exception:
+            sw_type = 1
+        doc_type = {2: "assembly", 3: "drawing"}.get(sw_type, "part")
+        return self._doc_info(active if active is not None else doc, doc_type)
 
     def save_as(self, path: Path) -> None:
         def _fn() -> None:
             doc = self.sw.ActiveDoc
             if doc is None:
                 raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
+            # SaveAs3(Name, Version, Options): Options=1 Silent binds path to ActiveDoc.
+            # Options=2 is Copy — writes file but leaves GetPathName empty (P1 R3 root cause).
             # SaveAs3: success is 0 (int) or True; failure is 1 (int) or False.
             # Note 0 == False and 1 == True; do not use == / in tuple for checks.
-            res = _get(doc, "SaveAs3", str(path), 0, 2)
+            res = _get(doc, "SaveAs3", str(path), 0, 1)
             failed = res is False or res == "1" or (
                 isinstance(res, int) and not isinstance(res, bool) and res != 0
             )
@@ -238,6 +300,84 @@ class DocumentMixin:
             if doc is None:
                 return None
             return self._doc_info(doc)
+
+        return self._call(_fn)
+
+    def set_active_document(self, path_or_title: str) -> DocInfo:
+        """Activate an open document by path or title; ActiveDoc remains sole source."""
+
+        def _fn() -> DocInfo:
+            key = str(path_or_title or "").strip()
+            if not key:
+                raise fail(
+                    "INVALID_ARGUMENT",
+                    "path_or_title cannot be empty",
+                    "Pass an open document title or full path",
+                )
+            key_l = key.lower()
+            key_path = None
+            try:
+                from pathlib import Path as _P
+
+                key_path = str(_P(key).resolve()).lower()
+            except Exception:
+                key_path = None
+
+            docs: list = []
+            raw = None
+            try:
+                raw = self.sw.GetDocuments
+                if callable(raw):
+                    raw = raw()
+            except Exception as exc:
+                if _is_server_gone(exc):
+                    raise
+                raw = None
+            if raw is not None:
+                try:
+                    docs = [d for d in list(raw) if d is not None]
+                except Exception as exc:
+                    if _is_server_gone(exc):
+                        raise
+                    docs = []
+            if not docs:
+                active = self.sw.ActiveDoc
+                if active is not None:
+                    docs = [active]
+
+            match = None
+            for doc in docs:
+                title = str(_get(doc, "GetTitle") or "")
+                try:
+                    path = str(_get(doc, "GetPathName") or "")
+                except Exception:
+                    path = ""
+                if title == key or title.lower() == key_l:
+                    match = doc
+                    break
+                if path and (path.lower() == key_l or (key_path and path.lower() == key_path)):
+                    match = doc
+                    break
+                if path and path.lower().endswith("\\" + key_l):
+                    match = doc
+                    break
+            if match is None:
+                raise fail(
+                    "FEATURE_NOT_FOUND",
+                    f"No open document matches {key!r}",
+                    "Call list_open_documents, then pass an exact title or path",
+                )
+            title = str(_get(match, "GetTitle"))
+            self._ensure_active(match, title)
+            self._reset_session_state()
+            active = self.sw.ActiveDoc
+            if active is None:
+                raise fail(
+                    "NO_ACTIVE_DOCUMENT",
+                    "Activate succeeded but ActiveDoc is None",
+                    "Retry set_active_document or activate manually in SolidWorks",
+                )
+            return self._doc_info(active)
 
         return self._call(_fn)
 

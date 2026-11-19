@@ -58,6 +58,10 @@ class OpContext:
     tool_name: str
     health: Callable[[], HealthReport] | None = None
     """status only: health provider with detail tier (build_stack); None if unbound."""
+    dialogs_scan: Callable[[], tuple[list, str | None]] | None = None
+    """session_dialogs: side-thread probe scan → (windows|None, error|None)."""
+    dialogs_respond: Callable[[str, str | None], dict] | None = None
+    """session_respond: whitelist BM_CLICK / Fake respond on side thread."""
     dispatch: Callable[[str, dict | None], OpResult] | None = None
     """Recipe replay etc.; default None."""
     visibility: ToolVisibility | None = None
@@ -78,6 +82,8 @@ class Kernel:
         units: UnitContext | None = None,
         verify_mutations: bool = True,
         health_provider: Callable[[], HealthReport] | None = None,
+        dialogs_scan: Callable[[], tuple[list, str | None]] | None = None,
+        dialogs_respond: Callable[[str, str | None], dict] | None = None,
         visibility: ToolVisibility | None = None,
     ) -> None:
         from cadmcp.transaction import TxManager
@@ -88,6 +94,8 @@ class Kernel:
         self._units = units or UnitContext("mm")
         self._verify = verify_mutations
         self._health = health_provider  # status tool; default None → status INTERNAL
+        self._dialogs_scan = dialogs_scan
+        self._dialogs_respond = dialogs_respond
         self._visibility = visibility
         self.state_version = 0
         self._tx = TxManager(workspace)
@@ -124,6 +132,8 @@ class Kernel:
             state_version=self.state_version,
             tool_name=spec.name,
             health=self._health,
+            dialogs_scan=self._dialogs_scan,
+            dialogs_respond=self._dialogs_respond,
             dispatch=self.dispatch,
             visibility=self._visibility,
             registry=self._registry,

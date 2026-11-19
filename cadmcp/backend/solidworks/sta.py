@@ -146,16 +146,36 @@ class STAThreadMixin:
 
     def _modal_block(self, *, applied: bool) -> CadMcpError | None:
         try:
+            from cadmcp.dialog_policy import classify_dialog, dialog_context, hint_for_policy
+
             for w in Win32DialogProbe().scan():
                 if w.modal is True:
+                    text = getattr(w, "text", None)
+                    buttons = list(getattr(w, "buttons", None) or [])
+                    policy = classify_dialog(
+                        title=w.title,
+                        text=text or "",
+                        buttons=buttons,
+                    )
+                    # Progress wait UI (e.g. STEP Open Progress) — keep waiting, do not abort.
+                    if not policy.blocks_sta:
+                        continue
+                    dlg = dialog_context(
+                        title=w.title,
+                        text=text,
+                        buttons=buttons,
+                        modal=w.modal,
+                    )
                     return fail(
                         "EXEC_BLOCKED",
                         f"Modal dialog is blocking: {w.title} ({w.class_name})",
-                        "Close modal dialogs in SolidWorks (prompts, warnings, confirmations) and retry",
+                        hint_for_policy(policy),
                         side_effect=SideEffect.APPLIED if applied else SideEffect.NONE,
                         title=w.title,
                         class_name=w.class_name,
                         rect=list(w.rect),
+                        dialog=dlg,
+                        dialog_kind=policy.kind,
                     )
         except Exception:
             log.debug("Modal probe failed: %s", traceback.format_exc())

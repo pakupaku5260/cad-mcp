@@ -66,11 +66,12 @@ def test_stage_n_nongoals_are_not_registered(specs):
     # L1 views/BOM + section/dims/balloons + L3 sheets/GD&T/layers + weld×4
     assert by_set.get("drawing", 0) == 21  # + check_drawing_spec (F18)
     assert by_set.get("export", 0) == 2  # export + export_batch
+    assert by_set.get("verification", 0) == 2  # verify_model + verify_step_readback (P5)
     assert by_set.get("sheetmetal", 0) == 8  # + calc_bend_allowance (F19)
     assert by_set.get("selection", 0) == 6  # faces/edges/vertices/select×2 + get_selection
     assert by_set.get("view", 0) == 2  # set_view + screenshot
     assert by_set.get("rules", 0) == 1  # check_rules
-    assert by_set.get("assembly", 0) == 24  # + check_assembly_dof (F17); ASM-ADV replace/flexible/suppressed (cam BLOCKED)
+    assert by_set.get("assembly", 0) == 26  # + fix_components (P4); list_components_lite (P3); check_assembly_dof (F17)
     assert by_set.get("diagnostics", 0) == 1  # check_doctor_matrix (F20)
     assert by_set.get("design", 0) == 3  # + list_part_strategies (F21)
     assert len(TOOLSET_DEFS) == 15  # diagnostics (F20); F21 reuses design
@@ -180,10 +181,12 @@ def test_list_part_strategies_schema(specs):
 
 
 def test_f16_budget_constants():
-    assert TOTAL_TOKEN_BUDGET == 22400
-    assert PROFILE_TOKEN_BUDGETS["part"] == 15500
+    assert TOTAL_TOKEN_BUDGET == 25000
+    assert PROFILE_TOKEN_BUDGETS["part"] == 17000
     assert TOOLSET_BUDGET_TOKENS["rules"] == 4000
+    assert TOOLSET_BUDGET_TOKENS["core"] == 6500
     assert toolset_headroom_cap("rules") == 3200
+    assert toolset_headroom_cap("core") == 5200
 
 
 def test_toolset_and_timeout_class_are_declared(specs):
@@ -199,7 +202,7 @@ def test_layer_is_declared(specs):
         assert s.layer in TOOL_LAYERS, s.name
         assert "layer" not in (s.input_schema.get("properties") or {}), s.name
     task_names = {s.name for s in specs if s.layer == "task"}
-    assert task_names == {"batch", "design_run", "task_list", "task_status"}
+    assert task_names == {"batch", "design_run", "fix_components", "task_list", "task_status"}
 
 
 def test_design_run_variant_is_optional_additive(specs):
@@ -289,7 +292,8 @@ def test_toolset_budget_unknown_falls_back_to_default():
 
 
 def test_headroom_cap_matches_tier_ratio():
-    assert toolset_headroom_cap("core") == 4800
+    assert toolset_headroom_cap("core") == 5200
+    assert toolset_headroom_cap("features_adv") == 4800
     assert toolset_headroom_cap("drawing") == 3200
 
 

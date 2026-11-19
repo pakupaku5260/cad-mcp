@@ -144,6 +144,28 @@ def list_components(ctx: OpContext, unit: str = "mm", children: bool = False) ->
     return {"count": len(items), "unit": uc.external_unit, "components": items}
 
 
+def list_components_lite(ctx: OpContext, unit: str = "mm", children: bool = False) -> dict:
+    """Fast list: name/path/origin; bbox only when IComponent2.GetBox succeeds (no face walk)."""
+    uc = _unit_ctx(ctx, unit)
+    items = []
+    for ref in ctx.backend.list_components_lite(children=children):
+        origin = ref.origin_m or (0.0, 0.0, 0.0)
+        item = {
+            "name": ref.name,
+            "path": ref.path,
+            "origin": list(uc.tuple_from_m(origin)),
+        }
+        if ref.bbox_m is not None:
+            item["bbox"] = list(uc.tuple_from_m(ref.bbox_m))
+        items.append(item)
+    return {
+        "count": len(items),
+        "unit": uc.external_unit,
+        "components": items,
+        "lite": True,
+    }
+
+
 def get_component(ctx: OpContext, component: str, unit: str = "mm") -> dict:
     uc = _unit_ctx(ctx, unit)
     return _pose_payload(ctx.backend.get_component(component), uc)
@@ -289,23 +311,31 @@ def check_interference(
     component1: str | None = None,
     component2: str | None = None,
     coincident_as_interference: bool = False,
+    unit: str = "mm",
 ) -> dict:
+    uc = _unit_ctx(ctx, unit)
+    volume_unit = f"{uc.external_unit}3"
     pairs, method = ctx.backend.check_interference(
         component1, component2, coincident_as_interference
     )
+    out_pairs: list[dict] = []
+    for p in pairs:
+        row: dict = {
+            "a": p.a,
+            "b": p.b,
+            "status": p.status,
+            "volume": None,
+            "volume_unit": volume_unit,
+        }
+        if p.volume_m3 is not None:
+            row["volume"] = uc.volume_from_m3(p.volume_m3)
+        out_pairs.append(row)
     return {
-        "count": len(pairs),
-        "pairs": [
-            {
-                "a": p.a,
-                "b": p.b,
-                "status": p.status,
-                **({"volume": p.volume_m3} if p.volume_m3 is not None else {}),
-            }
-            for p in pairs
-        ],
+        "count": len(out_pairs),
+        "pairs": out_pairs,
         "method": method,
         "coincident_as_interference": coincident_as_interference,
+        "unit": uc.external_unit,
     }
 
 
@@ -450,6 +480,314 @@ def _dispatch_payload(ctx: OpContext, name: str, args: dict | None = None) -> di
     if not result.ok or result.result is None:
         return None
     return result.result
+
+
+# Datum plane name → unit normal in the component's local frame.
+_FIX_PLANE_LOCAL_N = {
+    "Front Plane": (0.0, 0.0, 1.0),
+    "Top Plane": (0.0, 1.0, 0.0),
+    "Right Plane": (1.0, 0.0, 0.0),
+}
+
+
+def _origin_m(ref) -> tuple[float, float, float]:
+    return tuple(ref.origin_m or (0.0, 0.0, 0.0))  # type: ignore[return-value]
+
+
+def _bbox_m(ref) -> tuple[float, ...] | None:
+    box = getattr(ref, "bbox_m", None)
+    return tuple(box) if box is not None and len(box) == 6 else None
+
+
+def _xf_origin_R(array16: list[float]) -> tuple[tuple[float, float, float], tuple[tuple[float, float, float], ...]]:
+    """SolidWorks Transform2 ArrayData → origin + rows of rotation."""
+    a = list(array16) + [0.0] * max(0, 16 - len(array16))
+    R = (
+        (a[0], a[1], a[2]),
+        (a[3], a[4], a[5]),
+        (a[6], a[7], a[8]),
+    )
+    origin = (a[9], a[10], a[11])
+    return origin, R
+
+
+def _apply_R(R: tuple[tuple[float, float, float], ...], v: tuple[float, float, float]) -> tuple[float, float, float]:
+    return (
+        R[0][0] * v[0] + R[0][1] * v[1] + R[0][2] * v[2],
+        R[1][0] * v[0] + R[1][1] * v[1] + R[1][2] * v[2],
+        R[2][0] * v[0] + R[2][1] * v[1] + R[2][2] * v[2],
+    )
+
+
+def _plane_plane_distance_m(
+    origin_a: tuple[float, float, float],
+    R_a: tuple[tuple[float, float, float], ...],
+    origin_b: tuple[float, float, float],
+    local_n: tuple[float, float, float],
+) -> float:
+    """Distance between parallel datum planes (both share the same local normal kind)."""
+    n = _apply_R(R_a, local_n)
+    nn = math.sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2])
+    if nn <= 1e-15:
+        return 0.0
+    n = (n[0] / nn, n[1] / nn, n[2] / nn)
+    d = (
+        (origin_b[0] - origin_a[0]) * n[0]
+        + (origin_b[1] - origin_a[1]) * n[1]
+        + (origin_b[2] - origin_a[2]) * n[2]
+    )
+    return abs(d)
+
+
+def _pose_shift_mm(
+    before_origin: tuple[float, float, float],
+    after_origin: tuple[float, float, float],
+    before_bbox: tuple[float, ...] | None,
+    after_bbox: tuple[float, ...] | None,
+) -> float:
+    """Max origin / bbox-corner shift in millimetres."""
+    dx = math.sqrt(
+        (after_origin[0] - before_origin[0]) ** 2
+        + (after_origin[1] - before_origin[1]) ** 2
+        + (after_origin[2] - before_origin[2]) ** 2
+    )
+    best = dx
+    if before_bbox is not None and after_bbox is not None:
+        for i in range(6):
+            best = max(best, abs(after_bbox[i] - before_bbox[i]))
+    return best * 1000.0
+
+
+def fix_components(
+    ctx: OpContext,
+    components: list[str],
+    preview_only: bool = True,
+    verify_pose: bool = True,
+    tolerance_mm: float = 0.01,
+) -> dict:
+    """Task-layer helper: plan/apply distance mates that lock current poses (does not change ``mate``)."""
+    names = [str(c).strip() for c in (components or []) if str(c).strip()]
+    if len(names) < 2:
+        raise fail(
+            "INVALID_ARGUMENT",
+            "fix_components needs at least two component instance names",
+            "Pass components from list_components_lite",
+        )
+    if tolerance_mm < 0:
+        raise fail("INVALID_ARGUMENT", "tolerance_mm must be >= 0", "Pass a non-negative tolerance")
+
+    # Snapshot poses + transforms up front.
+    snapshots: dict[str, dict] = {}
+    for name in names:
+        ref = ctx.backend.get_component(name)
+        xf = ctx.backend.get_component_transform(name)
+        origin, R = _xf_origin_R(list(xf))
+        snapshots[name] = {
+            "origin_m": _origin_m(ref),
+            "bbox_m": _bbox_m(ref),
+            "xf": list(xf),
+            "R": R,
+            "xf_origin": origin,
+        }
+
+    anchor = names[0]
+    a = snapshots[anchor]
+    plan: list[dict] = []
+    for name in names[1:]:
+        b = snapshots[name]
+        for plane, local_n in _FIX_PLANE_LOCAL_N.items():
+            dist_m = _plane_plane_distance_m(a["xf_origin"], a["R"], b["xf_origin"], local_n)
+            plan.append(
+                {
+                    "component": name,
+                    "anchor": anchor,
+                    "type": "distance",
+                    "entity1": f"{plane}@{anchor}",
+                    "entity2": f"{plane}@{name}",
+                    "distance_m": dist_m,
+                    "distance_mm": dist_m * 1000.0,
+                    "plane": plane,
+                }
+            )
+
+    if preview_only:
+        return {
+            "ok": True,
+            "preview_only": True,
+            "anchor": anchor,
+            "components": names,
+            "planned_mates": plan,
+            "mate_count": len(plan),
+            "applied": [],
+            "verify_pose": bool(verify_pose),
+            "tolerance_mm": float(tolerance_mm),
+        }
+
+    applied: list[dict] = []
+    created_names: list[str] = []
+    skipped: list[dict] = []
+    # Distance mate defaults to "aligned" which often jumps to the far side of the plane.
+    # Prefer "closest" (matches current pose); fall back to anti_aligned / aligned.
+    _ALIGN_TRIALS = ("closest", "anti_aligned", "aligned")
+
+    def _restore(*comp_names: str) -> None:
+        for name in comp_names:
+            snap = snapshots.get(name)
+            if snap is None:
+                continue
+            try:
+                ctx.backend.set_component_transform(name, snap["xf"])
+            except Exception:
+                pass
+
+    def _restore_all() -> None:
+        _restore(*names)
+
+    def _shift_of(name: str) -> float:
+        after = ctx.backend.get_component(name)
+        before = snapshots[name]
+        return _pose_shift_mm(
+            before["origin_m"],
+            _origin_m(after),
+            before["bbox_m"],
+            _bbox_m(after),
+        )
+
+    def _annotate_row(row: dict, name: str, shift: float) -> None:
+        before = snapshots[name]
+        after = ctx.backend.get_component(name)
+        row["shift_mm"] = shift
+        row["origin_before_mm"] = [c * 1000.0 for c in before["origin_m"]]
+        row["origin_after_mm"] = [c * 1000.0 for c in _origin_m(after)]
+        row["bbox_before_mm"] = (
+            [c * 1000.0 for c in before["bbox_m"]] if before["bbox_m"] else None
+        )
+        row["bbox_after_mm"] = (
+            [c * 1000.0 for c in (_bbox_m(after) or ())] if _bbox_m(after) else None
+        )
+
+    # Apply largest-gap plane first per component (more stable lock); keep at most one
+    # successful mate per floating instance to avoid over-constraint / solver fights.
+    by_comp: dict[str, list[dict]] = {}
+    for step in plan:
+        by_comp.setdefault(step["component"], []).append(step)
+    for steps in by_comp.values():
+        steps.sort(key=lambda s: float(s["distance_m"]), reverse=True)
+
+    try:
+        for steps in by_comp.values():
+            kept_for_comp = False
+            for step in steps:
+                if kept_for_comp:
+                    skipped.append(
+                        {
+                            "component": step["component"],
+                            "plane": step["plane"],
+                            "distance_mm": step["distance_mm"],
+                            "reason": "skipped: one pose-lock mate already kept for component",
+                        }
+                    )
+                    continue
+                kept = False
+                last_err: Exception | None = None
+                for align in _ALIGN_TRIALS:
+                    try:
+                        info = ctx.backend.mate_distance(
+                            step["entity1"],
+                            step["entity2"],
+                            float(step["distance_m"]),
+                            align,
+                        )
+                    except Exception as exc:  # noqa: BLE001 — try next align
+                        last_err = exc
+                        continue
+                    shift = max(_shift_of(step["component"]), _shift_of(anchor))
+                    if verify_pose and shift > float(tolerance_mm):
+                        try:
+                            ctx.backend.delete_mate(info.name)
+                        except Exception:
+                            pass
+                        _restore(step["component"], anchor)
+                        last_err = None
+                        continue
+                    row = {
+                        "component": step["component"],
+                        "mate": info.name,
+                        "plane": step["plane"],
+                        "distance_mm": step["distance_mm"],
+                        "entity1": step["entity1"],
+                        "entity2": step["entity2"],
+                        "align": align,
+                    }
+                    if verify_pose:
+                        _annotate_row(row, step["component"], shift)
+                    created_names.append(info.name)
+                    applied.append(row)
+                    kept = True
+                    kept_for_comp = True
+                    break
+                if not kept:
+                    skipped.append(
+                        {
+                            "component": step["component"],
+                            "plane": step["plane"],
+                            "distance_mm": step["distance_mm"],
+                            "reason": (
+                                "pose shift above tolerance for all align trials"
+                                if last_err is None
+                                else f"mate failed: {last_err}"
+                            ),
+                        }
+                    )
+        if not applied:
+            raise fail(
+                "FEATURE_CREATE_FAILED",
+                "fix_components could not create any pose-preserving distance mate",
+                "Check component datum planes / poses; try preview_only then adjust placement",
+                skipped=skipped,
+                tolerance_mm=float(tolerance_mm),
+            )
+        if verify_pose:
+            offenders: list[dict] = []
+            for name in names:
+                shift = _shift_of(name)
+                for row in applied:
+                    if row["component"] == name:
+                        _annotate_row(row, name, shift)
+                if name != anchor and shift > float(tolerance_mm):
+                    offenders.append({"component": name, "shift_mm": shift})
+            if offenders:
+                raise fail(
+                    "FEATURE_CREATE_FAILED",
+                    (
+                        f"fix_components left {len(offenders)} instance(s) shifted above "
+                        f"tolerance_mm={tolerance_mm}"
+                    ),
+                    "Delete mates / re-place components, or raise tolerance_mm only if intentional",
+                    offenders=offenders,
+                    tolerance_mm=float(tolerance_mm),
+                )
+    except Exception:
+        for mate_name in reversed(created_names):
+            try:
+                ctx.backend.delete_mate(mate_name)
+            except Exception:
+                pass
+        _restore_all()
+        raise
+
+    return {
+        "ok": True,
+        "preview_only": False,
+        "anchor": anchor,
+        "components": names,
+        "planned_mates": plan,
+        "mate_count": len(applied),
+        "applied": applied,
+        "skipped": skipped,
+        "verify_pose": bool(verify_pose),
+        "tolerance_mm": float(tolerance_mm),
+    }
 
 
 def check_assembly_dof(ctx: OpContext) -> dict:
@@ -607,6 +945,27 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
             }
         ),
         handler=list_components,
+        mutating=False,
+        timeout_class="fast",
+    ),
+    ToolSpec(
+        name="list_components_lite",
+        toolset="assembly",
+        description=(
+            "Fast component list: name/path/origin; bbox only via GetBox (no face walk). "
+            "Prefer this for large assemblies; use list_components for flags/full pose."
+        ),
+        input_schema=make_schema(
+            {
+                "unit": {"type": "string", "enum": _UNIT_ENUM, "description": _UNIT_DESC},
+                "children": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Include instances inside subassemblies (p1-1@sub-1).",
+                },
+            }
+        ),
+        handler=list_components_lite,
         mutating=False,
         timeout_class="fast",
     ),
@@ -878,7 +1237,8 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
             "Check component interference in the active assembly. "
             "Omitting component1/component2 checks all pairs. "
             "Returns non-clear pairs with status interfere|contact|unknown. "
-            "AABB overlap is the fallback; live SolidWorks uses InterferenceDetectionManager."
+            "pairs[].volume is in call unit with pairs[].volume_unit (e.g. mm3); "
+            "backend volume_m3 unchanged. AABB fallback; live uses InterferenceDetectionManager."
         ),
         input_schema=make_schema(
             {
@@ -888,6 +1248,11 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
                     "type": "boolean",
                     "default": False,
                     "description": "Treat coincident (zero-volume contact) as interference.",
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": _UNIT_ENUM,
+                    "description": "Unit for pairs[].volume (default mm → volume_unit=mm3).",
                 },
             }
         ),
@@ -905,5 +1270,45 @@ ASSEMBLY_SPECS: list[ToolSpec] = [
         bypass_queue=True,
         timeout_class="fast",
         layer="domain",
+    ),
+    ToolSpec(
+        name="fix_components",
+        toolset="assembly",
+        description=(
+            "Task-layer mate helper: plan/apply distance mates between an anchor "
+            "component and others on Front/Top/Right planes to lock the current pose "
+            "(does not change mate schema). preview_only=true (default) returns the "
+            "plan only; verify_pose rolls back if any instance shifts > tolerance_mm."
+        ),
+        input_schema=make_schema(
+            {
+                "components": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 2,
+                    "description": "Instance names; first is the pose anchor.",
+                },
+                "preview_only": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "If true (default), return plan without creating mates.",
+                },
+                "verify_pose": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Keep only pose-preserving mates (align trials); abort+rollback if final shift > tolerance.",
+                },
+                "tolerance_mm": {
+                    "type": "number",
+                    "default": 0.01,
+                    "description": "Max allowed origin/bbox shift in mm when verify_pose=true.",
+                },
+            },
+            ["components"],
+        ),
+        handler=fix_components,
+        mutating=True,
+        timeout_class="slow",
+        layer="task",
     ),
 ]

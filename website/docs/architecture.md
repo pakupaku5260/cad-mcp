@@ -14,7 +14,7 @@ preserve. This is not an internal agent playbook.
 | **MCP host** | The application that starts or connects to the server and exposes its tools to a model: Cursor, Claude Desktop, VS Code, OpenCode. |
 | **Agent** | The model loop inside the host. It picks a tool, reads the result, and decides the next call. |
 | **Tool** | One typed MCP operation such as `extrude` or `hole_wizard`, with a JSON schema. |
-| **Toolset** | A named group of tools (`core`, `assembly`, `drawing`, …). Nine in total. |
+| **Toolset** | A named group of tools (`core`, `assembly`, `drawing`, …). Fifteen in total. |
 | **Profile** | A preset list of toolsets a session exposes (`part` by default). See [Tools](tools.md). |
 | **Backend** | The implementation behind the protocol: `fake` or `solidworks`. |
 | **Executor** | The one dedicated thread that runs every backend call. Reports `IDLE` / `BUSY` / `STUCK`. |

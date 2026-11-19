@@ -422,3 +422,55 @@
 .cmdx-footer__github:focus {
   color: #fbbf24 !important;
 }
+
+/* ---- oil-tank carousel (homepage) ---- */
+.oil-carousel { position: relative; margin: 1rem 0 1rem; }
+.oil-carousel > input[type="radio"] {
+  position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;
+}
+.oil-carousel__viewport {
+  overflow: hidden; border-radius: .2rem;
+  box-shadow: 0 .1rem .5rem rgba(0,0,0,.14);
+  background: var(--md-default-bg-color);
+}
+.oil-carousel__slides {
+  display: flex; width: 700%; margin: 0; padding: 0;
+  transition: transform .35s ease;
+}
+.oil-carousel__slide {
+  box-sizing: border-box; width: 14.285714%; flex: 0 0 14.285714%;
+  margin: 0; text-align: center;
+}
+.oil-carousel__slide img { display: block; width: 100%; height: auto; }
+.oil-carousel__slide span {
+  display: block; padding: .35rem .5rem .55rem;
+  font-size: .75rem; letter-spacing: .04em;
+  color: var(--md-default-fg-color--light);
+}
+.oil-carousel__nav {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: .6rem; margin-top: .9rem;
+}
+.oil-carousel__nav label {
+  width: .72rem; height: .72rem; border-radius: 50%;
+  background: var(--md-default-fg-color--lighter);
+  cursor: pointer; transition: background .2s, transform .2s;
+}
+.oil-carousel__nav label:hover { transform: scale(1.25); }
+#oilc1:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-0.000000%); }
+#oilc2:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-14.285714%); }
+#oilc3:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-28.571429%); }
+#oilc4:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-42.857143%); }
+#oilc5:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-57.142857%); }
+#oilc6:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-71.428571%); }
+#oilc7:checked ~ .oil-carousel__viewport .oil-carousel__slides { transform: translateX(-85.714286%); }
+#oilc1:checked ~ .oil-carousel__nav label[for="oilc1"],
+#oilc2:checked ~ .oil-carousel__nav label[for="oilc2"],
+#oilc3:checked ~ .oil-carousel__nav label[for="oilc3"],
+#oilc4:checked ~ .oil-carousel__nav label[for="oilc4"],
+#oilc5:checked ~ .oil-carousel__nav label[for="oilc5"],
+#oilc6:checked ~ .oil-carousel__nav label[for="oilc6"],
+#oilc7:checked ~ .oil-carousel__nav label[for="oilc7"] {
+  background: var(--md-primary-fg-color);
+  transform: scale(1.25);
+}

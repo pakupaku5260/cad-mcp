@@ -102,6 +102,7 @@ class FakeBackend(
         fail_on: Sequence[tuple[str, int]] | None = None,
         rebuild_errors: Sequence[str] | None = None,
         revision: str = "33.0",
+        interference_volume_m3: float | None = None,
     ) -> None:
         # Infra state (FakeBackend itself, not Mixin)
         self._fail_on: set[tuple[str, int]] = set(fail_on or ())
@@ -128,6 +129,10 @@ class FakeBackend(
         self._last_doc_snapshot: dict | None = None
         # AP242 / MBD: default True so offline tests can exercise PublishSTEP242File path
         self._mbd_step242 = True
+        # P5: optional SI volume attached to every non-clear interference pair
+        self._interference_volume_m3 = interference_volume_m3
+        # P5: STEP readback fixtures keyed by resolved path
+        self._step_imports: dict[str, dict] = {}
 
         # Each Mixin _init_state (all pass for now; S8i wires order only)
         for mixin in (

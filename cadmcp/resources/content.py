@@ -211,7 +211,9 @@ accept optional `kind` and still return the global `index`. `list_mates` / `dele
 inspect and remove mates by name. `check_interference` reports overlapping components
 (`interfere` / `contact` / `unknown`); coincident faces are not interference unless
 `coincident_as_interference` is true. Thread-mesh contact may be `unknown` when the
-API cannot tell contact from solid overlap.
+API cannot tell contact from solid overlap. Each pair includes `volume` converted with
+the call `unit` plus `volume_unit` (e.g. `mm` → `mm3`); **do not treat raw SI m³ as mm³**
+(before P5, `volume` was m³ without a unit field — 0.000257 m³ ≠ 0.000257 mm³).
 """,
     ),
     "task_layer": Topic(
@@ -573,7 +575,7 @@ Each row also has `description`, `feature_tools` (registered tool names), and
 """,
     ),
     "limits": Topic(
-        description="Out of scope: drawing BOM table insert, Toolbox, axial feed.",
+        description="Out of scope items, tool timeout tiers, CADMCP_TOOL_TIMEOUTS overrides.",
         text="""# Scope limits
 
 This server covers prismatic and revolved parts, solid loft (`loft` / `loft_cut`),
@@ -594,9 +596,102 @@ Still **no tools** in this project (frozen):
 - Toolbox / standard parts
 - A bolt or nut generator; axial feed / screw-in motion
 
+## Tool timeouts
+
+Default executor tiers: `fast` = 10s, `normal` = 60s, `slow` = 300s.
+Set env `CADMCP_TOOL_TIMEOUTS` to a JSON object to override named tools at process
+start (no CLI flag), e.g. `CADMCP_TOOL_TIMEOUTS={"list_components":60}`.
+Each value must be in `[1, 300]` seconds; bad JSON or out-of-range entries are
+skipped with a warning. Unset → identical to the tiers above.
+For large assemblies prefer `list_components_lite` (name/path/origin; bbox only
+when `IComponent2.GetBox` succeeds) before raising `list_components` timeouts.
+Timeout remediation: help topic `errors` (`EXEC_TIMEOUT`).
+`verify_model(..., partial_on_timeout=true, max_retries=0..2)` can continue after a
+group-level COM timeout; **partial results are not verified**.
+
 Note: SW2025 has no COM member named `InsertThread`; geometry threads use
 `create_thread` (official Thread Feature). Call `help` with `workflow` /
 `selectors` for what this server actually does.
+""",
+    ),
+    "mate": Topic(
+        description="Assembly mate tool: types, entity handles, per-type parameter rules.",
+        text="""# Assembly mates (`mate`)
+
+`mate(type, entity1, entity2, ...)` constrains two components in the active assembly.
+Valid types are `coincident`, `concentric`, `distance`, `angle`, `tangent`, `cam`,
+`screw`, `gear`, `width`. `entity1`/`entity2` are plane/face/edge handles from
+`get_entities` / `get_faces` / `get_edges`; re-fetch handles after any geometry change
+because bare indices go stale (`help` topic `selectors`).
+
+Type-specific arguments are exclusive: `distance` needs `distance`, `angle` needs
+`angle_deg`, `screw` needs `pitch`, `gear` needs `ratio_num`/`ratio_den`, and `width`
+needs `entity3`. Supplying another type's argument returns `INVALID_ARGUMENT`.
+`align` is optional. Read back with `list_mates`; `check_assembly_dof` gives only a
+heuristic DOF estimate, not a true solver result.
+""",
+    ),
+    "create_plane": Topic(
+        description="Reference plane creation modes, signed offset/flip semantics, and limits.",
+        text="""# Reference planes (`create_plane`)
+
+`create_plane` returns a logical `PlaneN` name usable by `start_sketch(plane=...)`.
+It supports three modes: `offset` (default, needs `reference`, `offset`, `flip`),
+`angle` (needs `reference`, `axis`, `angle_deg`) and 3-point (`points`, three
+`[x,y,z]` triples). `unit` converts external values to internal metres.
+
+Offset semantics: signed distance to `InsertRefPlane` is `-offset` when `flip=true`,
+otherwise `offset`. Fake mirrors this with `origin = parent_origin + n * signed`.
+
+**Live SW 2025 limit (Q8 accepted for 0.4.0)**: when `signed ≤ 0`, the plane often
+**collapses onto the reference** (not a mirror). Prefer a **positive** `offset`; for
+the other side use `flip=true` + positive offset and verify live; **do not pass a
+negative `offset`**. If flip still collapses, use angle/points. COM not fixed in 0.4.0.
+
+Datum UV→XYZ (tool layer; geom probe): Front `(u,v)→(X,Y)` +Z; Top `(u,v)→(X,Z)` +Y;
+Right `(u,v)→(Y=v, Z=−u)` +X — see `docs/reference/datum-plane-mapping.zh-CN.md`.
+""",
+    ),
+    "verify_model": Topic(
+        description="Read-only verification groups, thresholds, skipped groups, and status.",
+        text="""# Model verification (`verify_model`)
+
+`verify_model(groups=null, thresholds=null, unit='mm', partial_on_timeout=false,
+max_retries=0)` runs read-only checks and returns
+`{verification, doc_type, skipped_groups, groups_run, unit, partial, completed_groups,
+incomplete_groups, retries}` plus a `fingerprint` when geometry was inspected. It never
+changes `OpResult.ok`; a failed check is reported inside `verification.status`/`checks`,
+not as a tool error.
+
+Groups are `geometry`, `features`, `mass_bbox`, `assembly`, `drawing`. Omitting
+`groups` runs only groups applicable to the active document type; inapplicable ones
+appear in `skipped_groups` with a reason. `thresholds` accepts part limits such as
+`volume_min_mm3`, `mass_max_kg`, `bbox_d*_max_mm`, `holes`, and drawing preflight keys.
+`status=verified` requires at least one passing check; unrun checks are never counted
+as verified.
+
+**Partial / retry (P5):** default `partial_on_timeout=false` aborts the tool on group
+`COM_CALL_FAILED` / `EXEC_TIMEOUT` (old behaviour). With `partial_on_timeout=true`, that
+group is recorded in `incomplete_groups` and remaining groups still run — **`partial=true`
+is not a pass**. `max_retries` (0..2; illegal → 0 + warning) retries only those COM/timeout
+codes, never verification failures such as `VERIFY_INTERFERENCE`.
+""",
+    ),
+    "export": Topic(
+        description="Export formats, STEP AP options, sidecar metadata, and path sandbox.",
+        text="""# Export (`export` / `export_batch`)
+
+`export(path, overwrite=false, step_ap=214, stl_quality=null, write_meta=true)` exports
+the active document by file extension: `.step`/`.stp` (part or assembly), `.stl`
+(part/assembly), `.pdf`/`.dxf` (drawing). `step_ap` accepts 203, 214 or 242; AP242
+requires SolidWorks MBD `PublishSTEP242File`. `stl_quality` is `coarse` or `fine`.
+
+Paths are validated against the workspace sandbox; an existing target needs
+`overwrite=true`. For STEP, `write_meta` writes a `*.step.meta.json` sidecar and a
+detected-vs-requested AP mismatch raises `SAVE_FAILED` after the file is written.
+Successful exports attach file evidence (path + sha256) to `OpResult.verification`.
+`export_batch` processes an open→export→close manifest serially and stops on the first
+failure; it is not a parallel job.
 """,
     ),
 }

@@ -48,6 +48,51 @@ def status(ctx: OpContext) -> dict:
     return {"health": data}
 
 
+def session_dialogs(ctx: OpContext) -> dict:
+    """Read-only list of top-level SW windows/dialogs (bypass_queue; readable while STUCK)."""
+    if ctx.dialogs_scan is None:
+        raise fail(
+            "INTERNAL_ERROR",
+            "Dialogs channel not wired (ctx.dialogs_scan is None)",
+            "Incomplete server startup; use build_stack with a DialogProbe",
+            tool="session_dialogs",
+        )
+    windows, error = ctx.dialogs_scan()
+    items = []
+    for w in windows or []:
+        dump = w.model_dump() if hasattr(w, "model_dump") else dict(w)
+        items.append(
+            {
+                "title": dump.get("title"),
+                "text": dump.get("text"),
+                "buttons": list(dump.get("buttons") or []),
+                "modal": dump.get("modal"),
+                "class_name": dump.get("class_name"),
+                "rect": dump.get("rect"),
+            }
+        )
+    return {"count": len(items), "dialogs": items, "detector_error": error}
+
+
+def session_respond(ctx: OpContext, action: str, match: str | None = None) -> dict:
+    """Whitelist dialog respond (yes|no|cancel); fail-closed; side-thread, no COM."""
+    raw = str(action or "").strip().lower()
+    if raw not in {"yes", "no", "cancel"}:
+        raise fail(
+            "INVALID_ARGUMENT",
+            f"action must be yes|no|cancel, got {action!r}",
+            'Pass action explicitly, e.g. session_respond(action="no")',
+        )
+    if ctx.dialogs_respond is None:
+        raise fail(
+            "INTERNAL_ERROR",
+            "Dialogs respond channel not wired (ctx.dialogs_respond is None)",
+            "Incomplete server startup; use build_stack with a DialogProbe that supports respond()",
+            tool="session_respond",
+        )
+    return ctx.dialogs_respond(raw, match)
+
+
 def replay_recipe_tool(ctx: OpContext, path: str) -> dict:
     """Replay a JSON recipe (wave 7 RECIPE). Inner steps use ctx.dispatch on the same kernel."""
     if ctx.dispatch is None:
@@ -118,6 +163,28 @@ SPECS: tuple[ToolSpec, ...] = (
         handler=status,
         timeout_class="fast",
         bypass_queue=True,  # Inline: no queue — readable while STUCK/busy (server docstring)
+    ),
+    ToolSpec(
+        name="session_dialogs",
+        description="List SW dialogs (title/text/buttons); readable while STUCK.",
+        input_schema=make_schema({}),
+        handler=session_dialogs,
+        timeout_class="fast",
+        bypass_queue=True,
+    ),
+    ToolSpec(
+        name="session_respond",
+        description="Whitelist dialog click: yes|no|cancel. Restart=no; Save All=cancel; low-mem=yes.",
+        input_schema=make_schema(
+            {
+                "action": {"type": "string", "enum": ["yes", "no", "cancel"]},
+                "match": {"type": "string"},
+            },
+            ["action"],
+        ),
+        handler=session_respond,
+        timeout_class="fast",
+        bypass_queue=True,
     ),
     ToolSpec(
         name="replay_recipe",

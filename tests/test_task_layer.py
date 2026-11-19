@@ -32,7 +32,13 @@ def test_tool_layers_single_source():
     for s in specs:
         assert s.layer in TOOL_LAYERS
         by_layer[s.layer].append(s.name)
-    assert set(by_layer["task"]) == {"batch", "design_run", "task_list", "task_status"}
+    assert set(by_layer["task"]) == {
+        "batch",
+        "design_run",
+        "fix_components",
+        "task_list",
+        "task_status",
+    }
     assert "new_part" in by_layer["domain"]
     assert by_layer["primitive"] == []  # none declared yet
 

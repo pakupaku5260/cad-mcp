@@ -1,6 +1,6 @@
 [project]
 name = "pycadmcp"
-version = "0.3.0"
+version = "0.4.0"
 description = "CAD MCP server: one process, dedicated STA executor, offline-testable (SolidWorks backend first)"
 readme = "README.md"
 license = "MIT"
@@ -80,7 +80,7 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-exclude = [".refs", ".venv"]
+exclude = [".refs", ".venv", "out"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "UP", "B"]

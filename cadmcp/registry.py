@@ -48,7 +48,9 @@ TOOLSET_DEFS: dict[str, str] = {
 DEFAULT_TOOLSET_BUDGET_TOKENS = 4000
 
 TOOLSET_BUDGET_TOKENS: dict[str, int] = {
-    "core": 6000,
+    # P3-0: core 6000→6500 so floor(0.8*tier)=5200 covers restored descriptions
+    # (measured core≈4808 > prior headroom 4800). Other large tiers stay 6000.
+    "core": 6500,
     "features_adv": 6000,
     "assembly": 6000,
     "drawing": 4000,
@@ -65,7 +67,8 @@ TOOLSET_BUDGET_TOKENS: dict[str, int] = {
     "diagnostics": 4000,
 }
 
-# Soft headroom: --strict requires tokens <= floor(0.8 * tier) (large ≤4800, small ≤3200).
+# Soft headroom: --strict requires tokens <= floor(0.8 * tier)
+# (core ≤5200, other large ≤4800, small ≤3200).
 TOOLSET_HEADROOM_RATIO = 0.8
 
 # Profile caps: ceil(measured_tokens * 1.08) rounded up to 500 (F8 calibration @ TOTAL=18514),
@@ -74,23 +77,31 @@ TOOLSET_HEADROOM_RATIO = 0.8
 # 15000). Raising it further needs the same explicit call, not silent drift.
 # F16 R2: part 14500→15500 by F8 formula on post-F15 measured part≈14247:
 # ceil(14247 * 1.08)=15387 → round up to 500 → 15500 (explicit; not silent drift).
+# P3-0: restore trimmed tool text (user: raise quota, never shrink copy). Measured
+# part≈15564 → ceil(15564*1.08)=16810 → round up to 500 → 17000. Other profiles still fit.
 # ``full`` is warn-only (no hard gate).
+# P4: assembly profile measured 10633 after fix_components →
+# ceil(10633*1.08)=11496 → round up to 500 → 11500 (raise quota, keep text).
+# P5: sheetmetal measured 8589 after help/desc growth →
+# ceil(8589*1.08)=9276 → round up to 500 → 9500.
 PROFILE_TOKEN_BUDGETS: dict[str, int | None] = {
     "full": None,
-    "part": 15500,
-    "assembly": 10500,
+    "part": 17000,
+    "assembly": 11500,
     "drawing": 9500,
-    "sheetmetal": 8500,
+    "sheetmetal": 9500,
 }
 
 # TOTAL hard gate (F8): ceil(18514 * 1.10) → 20400 (hundreds).
 # F16 R1: 20400→22400 by F8 formula on post-F15 measured TOTAL≈20301:
 # ceil(20301 * 1.10)=22332 → round up to hundreds → 22400 (explicit).
-TOTAL_TOKEN_BUDGET = 22400
+# P3-0: after text restore + list_components_lite, measured TOTAL≈22726 →
+# ceil(22726*1.10)=24999 → round up to hundreds → 25000 (explicit; user directive).
+TOTAL_TOKEN_BUDGET = 25000
 
 BUDGET_CARD_TEXT = (
-    "分档 6000/4000，20% 余量上限 4800/3200，"
-    "profile 15500/10500/9500/8500（full 仅告警），TOTAL ≤ 22400"
+    "分档 core 6500 / 大档 6000 / 小档 4000，20% 余量上限 5200/4800/3200，"
+    "profile 17000/11500/9500/9500（full 仅告警），TOTAL ≤ 25000"
 )
 
 

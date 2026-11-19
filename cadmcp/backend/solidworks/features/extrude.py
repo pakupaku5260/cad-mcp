@@ -220,6 +220,13 @@ class ExtrudeMixin:
                     f"No ended sketch available for the feature (requested {sketch!r}, current: {pending})",
                     "Call start_sketch → draw → end_sketch, then run the feature",
                 )
+            from cadmcp.backend.protocol.sketch_profile import raise_if_profile_conflicts
+
+            sk_obj = self._sketch_dispatch(doc, pending)
+            segs = list(_get(sk_obj, "GetSketchSegments") or ())
+            raise_if_profile_conflicts(
+                [self._entity_ref_from_seg(i, seg) for i, seg in enumerate(segs)]
+            )
 
             def _pick() -> None:
                 feat_sk = self._find_feature(doc, pending)
@@ -295,6 +302,13 @@ class ExtrudeMixin:
                 raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
             validate_thin_options(thin, thickness_m, thin_type, direction)
             _sk_feat, sk_name = self._select_pending_sketch(doc, sketch)
+            from cadmcp.backend.protocol.sketch_profile import raise_if_profile_conflicts
+
+            sk_obj = self._sketch_dispatch(doc, sk_name)
+            segs = list(_get(sk_obj, "GetSketchSegments") or ())
+            raise_if_profile_conflicts(
+                [self._entity_ref_from_seg(i, seg) for i, seg in enumerate(segs)]
+            )
             if direction not in EXTRUDE_DEPTHLESS and depth_m <= 0:
                 raise fail(
                     "INVALID_ARGUMENT", f"Cut depth must be positive (internal meters): {depth_m}",

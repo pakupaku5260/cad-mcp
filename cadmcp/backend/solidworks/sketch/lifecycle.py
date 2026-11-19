@@ -310,6 +310,13 @@ class SketchLifecycleMixin:
                 raise fail("NO_ACTIVE_DOCUMENT", "No active document", "Create or open a document first")
 
             self._require_open_sketch()
+            # Read-only profile check while sketch is still open (no geometry mutation).
+            if not self._sketch_3d:
+                from cadmcp.backend.protocol.sketch_profile import raise_if_profile_conflicts
+
+                segs = list(_get(self._sketch_dispatch(doc, None), "GetSketchSegments") or ())
+                refs = [self._entity_ref_from_seg(i, seg) for i, seg in enumerate(segs)]
+                raise_if_profile_conflicts(refs)
 
             try:
                 if self._sketch_3d:

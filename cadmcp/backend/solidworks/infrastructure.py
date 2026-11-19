@@ -362,8 +362,8 @@ class InfrastructureMixin:
             if active is not None and str(_get(active, "GetTitle")) == title:
                 return
         raise self._com_failed(
-            f"Component inserted but could not restore focus to assembly {title}",
-            "Manually switch back to the assembly window in SolidWorks, then continue",
+            f"Could not activate document {title}",
+            "Manually switch to that window in SolidWorks, then retry",
             side_effect=SideEffect.APPLIED,
         )
 

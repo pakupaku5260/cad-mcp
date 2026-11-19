@@ -63,6 +63,17 @@ def test_help_tool_reads_same_content_source():
     assert MIME_TYPE == "text/markdown"
 
 
+def test_p1_tool_topics_registered_in_both_channels():
+    """Q4: per-tool help is content-only—no tool signature or URI-mechanism change."""
+    for name in ("mate", "create_plane", "verify_model", "export"):
+        assert name in TOPICS
+        uri = f"{RESOURCE_SCHEME}://help/{name}"
+        assert uri in known_uris()
+        assert read_resource(uri) == TOPICS[name].text
+        assert len(TOPICS[name].text.strip()) > 200
+        assert core_registry().get("help").handler(None, topic=name)["text"] == TOPICS[name].text
+
+
 def test_help_unknown_topic_is_actionable_error():
     with pytest.raises(CadMcpError) as ei:
         core_registry().get("help").handler(None, topic="nope")

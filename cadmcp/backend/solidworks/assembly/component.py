@@ -59,7 +59,7 @@ from cadmcp.backend.protocol.validators import fail_if_component_mated
 from cadmcp.errors import fail
 
 from .._constants import _DELETE_ABSORBED, _DELETE_CHILDREN
-from .._helpers import _doc_type_for, _get
+from .._helpers import _as_bbox6, _doc_type_for, _get
 
 log = logging.getLogger(__name__)
 
@@ -174,6 +174,48 @@ class ComponentMixin:
                     asm, top_level_only=not children
                 )
             ]
+
+        return self._call(_fn)
+
+    def list_components_lite(self, children: bool = False) -> list[ComponentRef]:
+        """Lite list: Name2 + GetPathName + Transform origin + GetBox only (no body/face walk)."""
+
+        def _fn() -> list[ComponentRef]:
+            asm = self.sw.ActiveDoc
+            self._require_assembly_doc(asm, "Use new_assembly before listing components")
+            out: list[ComponentRef] = []
+            for name, comp in self._assembly_component_objs(asm, top_level_only=not children):
+                resolved = name
+                try:
+                    resolved = str(_get(comp, "Name2") or name)
+                except Exception:
+                    pass
+                path = None
+                try:
+                    path = str(_get(comp, "GetPathName") or "") or None
+                except Exception:
+                    path = None
+                origin = self._comp_point(comp, (0.0, 0.0, 0.0))
+                bbox = None
+                for args in ((False,), (True,), ()):
+                    try:
+                        parsed = _as_bbox6(comp.GetBox(*args))
+                    except TypeError:
+                        continue
+                    except Exception:
+                        parsed = None
+                    if parsed is not None:
+                        bbox = parsed
+                        break
+                out.append(
+                    ComponentRef(
+                        name=resolved,
+                        path=path,
+                        origin_m=origin,
+                        bbox_m=bbox,
+                    )
+                )
+            return out
 
         return self._call(_fn)
 

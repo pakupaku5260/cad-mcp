@@ -22,7 +22,7 @@ document it is working on.
 | `assembly` | `core`, `assembly`, `selection`, `view`, `export` | Assemblies, components, mates |
 | `drawing` | `core`, `drawing`, `view`, `export` | Drawings and annotations |
 | `sheetmetal` | `core`, `sheetmetal`, `selection`, `view`, `export` | Sheet metal parts and flat patterns |
-| `full` | all nine | Exploration; the largest surface |
+| `full` | all fifteen | Exploration; the largest surface |
 
 Smaller surfaces are cheaper for the model and easier to audit. Change the
 surface mid-session with `open_toolbox` / `close_toolbox`, or override the

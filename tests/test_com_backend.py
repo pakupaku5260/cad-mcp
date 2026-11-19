@@ -29,6 +29,7 @@ class _Doc:
         self.doc_type = doc_type
         self.save_result = save_result
         self.saved_path: str | None = None
+        self.save_options: int | None = None
 
     def GetTitle(self):  # noqa: N802
         return self.title
@@ -42,8 +43,14 @@ class _Doc:
     def GetType(self):  # noqa: N802
         return self.doc_type
 
-    def SaveAs3(self, path, options, export_data):  # noqa: N802
+    def SaveAs3(self, path, version, options):  # noqa: N802 — Name, Version, Options
         self.saved_path = str(path)
+        self.save_options = int(options) if options is not None else 0
+        # Silent (1) binds path; Copy (2) writes without updating GetPathName.
+        if (int(options) & 2) == 0:
+            self.path = str(path)
+            self.title = Path(path).stem
+            self.modified = False
         return self.save_result
 
 
@@ -59,6 +66,7 @@ class _Sw:
         open6_error: Exception | None = None,
         open_result: _Doc | None = None,
         open_error: Exception | None = None,
+        documents: list | None = None,
     ) -> None:
         self.folder = folder
         self.template = template
@@ -68,9 +76,11 @@ class _Sw:
         self.open6_error = open6_error
         self.open_result = open_result
         self.open_error = open_error
+        self.documents = list(documents or [])
         self.new_template: str | None = None
         self.closed_title: str | None = None
         self.RevisionNumber = "33.0"
+        self.activated_title: str | None = None
 
     def GetUserPreferenceStringValue(self, code):  # noqa: N802
         assert code == 6
@@ -93,6 +103,28 @@ class _Sw:
             raise self.open_error
         return self.open_result
 
+    def ActivateDoc3(self, title, silent, rebuild_opt, err):  # noqa: N802
+        self.activated_title = str(title)
+        for doc in self.documents:
+            if doc.title == title:
+                self.active_doc = doc
+                return doc
+        if self.open_result is not None and self.open_result.title == title:
+            self.active_doc = self.open_result
+            return self.open_result
+        if self.open6_result is not None and self.open6_result.title == title:
+            self.active_doc = self.open6_result
+            return self.open6_result
+        if self.active_doc is not None and self.active_doc.title == title:
+            return self.active_doc
+        return None
+
+    def ActivateDoc2(self, title, silent, err):  # noqa: N802
+        return self.ActivateDoc3(title, silent, 0, err)
+
+    def GetDocuments(self):  # noqa: N802
+        return list(self.documents)
+
     @property
     def ActiveDoc(self):  # noqa: N802
         return self.active_doc
@@ -106,7 +138,7 @@ def _backend(sw: _Sw) -> ComBackend:
     backend = ComBackend()
     backend.sw = sw
     backend._ready.set()
-    backend._call = lambda fn: fn()  # type: ignore[method-assign]
+    backend._call = lambda fn, timeout=60.0: fn()  # type: ignore[method-assign]
     return backend
 
 
@@ -164,6 +196,9 @@ def test_save_as_accepts_success_values(tmp_path: Path, result):
     target = tmp_path / "part.sldprt"
     _backend(sw).save_as(target)
     assert doc.saved_path == str(target)
+    assert doc.save_options == 1  # Silent, not Copy
+    assert doc.path == str(target)
+    assert doc.modified is False
 
 
 @pytest.mark.parametrize("result", [1, False])
@@ -332,7 +367,14 @@ def test_call_pre_dispatch_com_lost_is_none_side_effect(monkeypatch):
 
 
 def test_call_rejects_when_modal_dialog_present(monkeypatch):
-    modal = SimpleNamespace(title="警告", class_name="#32770", rect=(0, 0, 1, 1), modal=True)
+    modal = SimpleNamespace(
+        title="警告",
+        class_name="#32770",
+        rect=(0, 0, 1, 1),
+        modal=True,
+        text="系统内存极低。是否要继续？",
+        buttons=["是", "否"],
+    )
 
     class _Blocked:
         def scan(self):
@@ -344,6 +386,8 @@ def test_call_rejects_when_modal_dialog_present(monkeypatch):
         backend._call(lambda: None)
     assert exc.value.code == "EXEC_BLOCKED"
     assert exc.value.side_effect is SideEffect.NONE  # blocked before dispatch
+    assert exc.value.context.get("dialog", {}).get("title") == "警告"
+    assert "session_respond" in exc.value.hint
 
 
 def test_as_bbox6_accepts_six_and_eight_corners():

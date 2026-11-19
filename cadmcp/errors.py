@@ -148,6 +148,14 @@ CATALOG: dict[str, ErrorDef] = {
         ),
     ),
     "SKETCH_OP_FAILED": _def("Sketch operation failed"),
+    "SKETCH_PROFILE_CONFLICT": _def(
+        "Closed sketch profiles overlap or share edges (rect/circle)",
+        auto=False,
+        action=(
+            "Split conflicting contours into separate sketches/features; "
+            "inspect error.context.conflicts for entity kinds and coordinates."
+        ),
+    ),
     # --- Feature ---
     "FEATURE_NOT_FOUND": _def("Feature not found"),
     "FEATURE_NOT_AVAILABLE": _def(
@@ -296,6 +304,17 @@ Frequent codes: `INVALID_ARGUMENT` (fix the argument per hint), `NO_ACTIVE_DOCUM
 `REF_AMBIGUOUS` (refresh handles via `get_entities`), `PATH_OUTSIDE_SANDBOX` /
 `PATH_OVERWRITE_DENIED` (workspace sandbox: file paths stay inside the workspace,
 overwrite only with explicit `overwrite=true`).
+
+## Tool timeouts (`EXEC_TIMEOUT`)
+
+Default tiers: `fast` 10s / `normal` 60s / `slow` 300s (per-tool `timeout_class`).
+Optional env `CADMCP_TOOL_TIMEOUTS` is a JSON object that overrides named tools at
+executor start, e.g. `{"list_components": 60}`. Values must be in `[1, 300]` seconds;
+invalid JSON/entries are ignored with a warning. When unset, behavior matches the
+tiers above. Prefer `list_components_lite` for large assemblies before raising timeouts.
+`verify_model(partial_on_timeout=true, max_retries=0..2)` may continue after a group
+`COM_CALL_FAILED`/`EXEC_TIMEOUT`; **`partial=true` is not verified**. See help
+`verify_model` / `limits`. See also help topic `limits`.
 
 ## Remediation catalog (F3)
 

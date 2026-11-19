@@ -201,6 +201,20 @@ class FakeAssemblyComponentMixin:
                 out.extend(self._component_ref(doc, c) for c in doc.nested_children.get(parent, []))
         return out
 
+    def list_components_lite(self, children: bool = False) -> list[ComponentRef]:
+        """Same instances as list_components; omits lightweight/suppressed/flexible flags."""
+        self._enter("list_components_lite", children=children)
+        doc = self._require_assembly("Create an assembly with new_assembly, then list components")
+        names = list(doc.components)
+        if children:
+            for parent in list(doc.components):
+                names.extend(doc.nested_children.get(parent, []))
+        out: list[ComponentRef] = []
+        for n in names:
+            r = self._component_ref(doc, n)
+            out.append(ComponentRef(name=r.name, path=r.path, origin_m=r.origin_m, bbox_m=r.bbox_m))
+        return out
+
     def get_component(self, name: str) -> ComponentRef:
         self._enter("get_component", name=name)
         doc = self._require_assembly("Create an assembly with new_assembly, then get a component")

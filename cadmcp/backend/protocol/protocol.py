@@ -68,6 +68,10 @@ class CADBackend(Protocol):
 
     def active_document(self) -> DocInfo | None: ...
 
+    def set_active_document(self, path_or_title: str) -> DocInfo:
+        """Activate an already-open document by path or title; returns the new ActiveDoc snapshot."""
+        ...
+
     def list_open_documents(self) -> list[DocInfo]:
         """Snapshot of currently open documents (order not significant to callers; tools sort stably)."""
         ...
@@ -750,6 +754,10 @@ class CADBackend(Protocol):
 
         Top level by default. children=True includes subassembly instances as ``p1-1@sub-1``.
         """
+        ...
+
+    def list_components_lite(self, children: bool = False) -> list[ComponentRef]:
+        """Fast component list: name/path/origin and optional GetBox bbox only (no face walk)."""
         ...
 
     def get_component(self, name: str) -> ComponentRef:

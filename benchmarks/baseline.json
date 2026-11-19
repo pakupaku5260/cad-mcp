@@ -181,6 +181,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -519,6 +522,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -812,6 +818,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -1103,6 +1112,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -1454,6 +1466,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -1716,6 +1731,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -2044,6 +2062,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -2458,6 +2479,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -2565,6 +2589,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -2969,6 +2996,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -3305,6 +3335,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -3444,6 +3477,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -3724,6 +3760,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -4021,6 +4060,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -4432,6 +4474,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -4751,6 +4796,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -4941,6 +4989,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -5258,6 +5309,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -5519,6 +5573,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -5857,6 +5914,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -6525,6 +6585,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -6664,6 +6727,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -6833,6 +6899,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -6943,7 +7012,8 @@
               "coincident_as_interference",
               "count",
               "method",
-              "pairs"
+              "pairs",
+              "unit"
             ],
             "delta_changed": null,
             "rebuild_ok": null,
@@ -7064,7 +7134,8 @@
               "coincident_as_interference",
               "count",
               "method",
-              "pairs"
+              "pairs",
+              "unit"
             ],
             "delta_changed": null,
             "rebuild_ok": null,
@@ -7353,6 +7424,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -7492,6 +7566,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -7852,6 +7929,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -8134,6 +8214,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -9958,6 +10041,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -10181,6 +10267,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -10465,6 +10554,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -10768,6 +10860,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -10868,8 +10963,12 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "completed_groups",
               "doc_type",
               "groups_run",
+              "incomplete_groups",
+              "partial",
+              "retries",
               "skipped_groups",
               "unit",
               "verification"
@@ -10918,8 +11017,12 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "completed_groups",
               "doc_type",
               "groups_run",
+              "incomplete_groups",
+              "partial",
+              "retries",
               "skipped_groups",
               "unit",
               "verification"
@@ -11101,6 +11204,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -11323,6 +11429,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -11619,6 +11728,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -12027,6 +12139,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -12435,6 +12550,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -12574,6 +12692,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -17434,6 +17555,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -17573,6 +17697,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -17680,6 +17807,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -18116,6 +18246,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -29900,6 +30033,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -30039,6 +30175,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -30146,6 +30285,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -36060,6 +36202,9 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "active_modified",
+              "active_path",
+              "active_saved",
               "path",
               "saved"
             ],
@@ -36135,9 +36280,13 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "completed_groups",
               "doc_type",
               "fingerprint",
               "groups_run",
+              "incomplete_groups",
+              "partial",
+              "retries",
               "skipped_groups",
               "unit",
               "verification"
@@ -36289,9 +36438,13 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "completed_groups",
               "doc_type",
               "fingerprint",
               "groups_run",
+              "incomplete_groups",
+              "partial",
+              "retries",
               "skipped_groups",
               "unit",
               "verification"
@@ -36443,9 +36596,13 @@
             "error_code": null,
             "error_side_effect": null,
             "result_keys": [
+              "completed_groups",
               "doc_type",
               "fingerprint",
               "groups_run",
+              "incomplete_groups",
+              "partial",
+              "retries",
               "skipped_groups",
               "unit",
               "verification"

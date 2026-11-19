@@ -18,14 +18,17 @@ Read `cadmcp://help/errors` for the OpResult envelope.
 ## Check first
 
 1. Call `status` — if busy, wait; if stuck/blocker, do not keep mutating.
-2. If the tool name is missing from `tools/list`, call `list_toolboxes` / `open_toolbox`
+2. Call `session_dialogs` to read title/text/buttons; use `session_respond(action=...)`
+   only for whitelist cases (restart→`no`, Save All→`cancel`, low-memory→`yes`).
+3. If the tool name is missing from `tools/list`, call `list_toolboxes` / `open_toolbox`
    (default profile is `part`; assembly/drawing tools may be closed).
-3. `get_active_document` — confirm doc type and that the expected file is still active.
-4. `get_geometry` + `list_features` — establish ground truth after any `applied` failure.
-5. Refresh selectors: `get_entities` / `get_faces` / `get_edges` with current
+4. `active_document` / `get_active_document` — confirm doc type and active file; use
+   `set_active_document` when multi-doc focus drifted.
+5. `get_geometry` + `list_features` — establish ground truth after any `applied` failure.
+6. Refresh selectors: `get_entities` / `get_faces` / `get_edges` with current
    coordinates; never reuse bare indexes after a mutation — pass `x,y,z`.
-6. For sketch trouble: `sketch_status`, `list_sketch_entities`, or `edit_sketch` then fix.
-7. For path errors: stay inside the workspace; use `overwrite=true` only when intended.
+7. For sketch trouble: `sketch_status`, `list_sketch_entities`, or `edit_sketch` then fix.
+8. For path errors: stay inside the workspace; use `overwrite=true` only when intended.
 
 ## Common errors
 
@@ -33,7 +36,7 @@ Read `cadmcp://help/errors` for the OpResult envelope.
 |---|---|
 | `EXECUTOR_BUSY` / `QUEUE_FULL` | Wait, then retry once |
 | `EXEC_TIMEOUT` / `EXEC_STUCK` | Call `status`; do not launch parallel mutating tools |
-| `EXEC_BLOCKED` | Modal dialog — user must dismiss in SolidWorks GUI |
+| `EXEC_BLOCKED` | Call `session_dialogs`; whitelist `session_respond(action=...)` or dismiss in GUI |
 | `COM_CALL_FAILED` / `COM_ATTACH_FAILED` | Check SolidWorks is running; run `cadmcp doctor` |
 | `STATE_VERSION_MISMATCH` | Re-read state; do not replay an old mutation sequence |
 | `DOCUMENT_CHANGED_EXTERNALLY` | GUI edit detected — re-fingerprint with `get_geometry` |

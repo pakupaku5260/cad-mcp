@@ -17,7 +17,9 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import itertools
+import json
 import logging
+import os
 import queue
 import threading
 import time
@@ -39,6 +41,46 @@ TimeoutClass = Literal["fast", "normal", "slow"]
 DEFAULT_TIERS_S: dict[str, float] = {"fast": 10.0, "normal": 60.0, "slow": 300.0}
 DEFAULT_QUEUE_SIZE = 8
 DEFAULT_DETECTOR_TIMEOUT_S = 0.5
+_TOOL_TIMEOUT_ENV = "CADMCP_TOOL_TIMEOUTS"
+_TOOL_TIMEOUT_MIN_S = 1.0
+_TOOL_TIMEOUT_MAX_S = 300.0
+
+
+def parse_tool_timeouts(raw: str | None = None) -> dict[str, float]:
+    """Parse CADMCP_TOOL_TIMEOUTS JSON object; invalid entries are skipped with a warning."""
+    text = raw if raw is not None else os.environ.get(_TOOL_TIMEOUT_ENV)
+    if not text or not str(text).strip():
+        return {}
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        log.warning("%s ignored: invalid JSON (%s)", _TOOL_TIMEOUT_ENV, exc)
+        return {}
+    if not isinstance(data, dict):
+        log.warning("%s ignored: expected a JSON object", _TOOL_TIMEOUT_ENV)
+        return {}
+    out: dict[str, float] = {}
+    for key, value in data.items():
+        name = str(key).strip()
+        if not name:
+            continue
+        try:
+            secs = float(value)
+        except (TypeError, ValueError):
+            log.warning("%s: skip %r (not a number)", _TOOL_TIMEOUT_ENV, key)
+            continue
+        if secs < _TOOL_TIMEOUT_MIN_S or secs > _TOOL_TIMEOUT_MAX_S:
+            log.warning(
+                "%s: skip %s=%r (must be in [%.0f, %.0f]s)",
+                _TOOL_TIMEOUT_ENV,
+                name,
+                value,
+                _TOOL_TIMEOUT_MIN_S,
+                _TOOL_TIMEOUT_MAX_S,
+            )
+            continue
+        out[name] = secs
+    return out
 
 
 class HealthReport(BaseModel):
@@ -88,6 +130,7 @@ class Executor:
         self._factory = backend_factory
         self._queue: queue.Queue[_Job | None] = queue.Queue(maxsize=queue_size)
         self._tiers = dict(DEFAULT_TIERS_S) if tiers_s is None else dict(tiers_s)
+        self._tool_timeouts = parse_tool_timeouts()
         self._probe = probe
         self._detector_timeout_s = detector_timeout_s
 
@@ -156,8 +199,9 @@ class Executor:
                     fail(
                         "EXEC_STUCK",
                         f"Executor STUCK: {self._stuck_reason}",
-                        "COM cannot be interrupted; clear dialogs in SolidWorks, then "
-                        "cadmcp doctor (resolve_stuck) and retry",
+                        "COM cannot be interrupted; clear dialogs in SolidWorks, then check "
+                        "status/dialogs and retry. resolve_stuck() is an internal recovery "
+                        "method invoked by the host/client, not a CLI command",
                         stuck_reason=self._stuck_reason,
                     )
                 )
@@ -191,7 +235,12 @@ class Executor:
                     )
                 )
 
-        limit = timeout if timeout is not None else self._tiers.get(timeout_class, 60.0)
+        if timeout is not None:
+            limit = timeout
+        elif tool in self._tool_timeouts:
+            limit = self._tool_timeouts[tool]
+        else:
+            limit = self._tiers.get(timeout_class, 60.0)
         try:
             return await asyncio.wait_for(asyncio.wrap_future(job.future), limit)
         except TimeoutError:
@@ -219,16 +268,47 @@ class Executor:
                 )
             )
         windows = self._scan_windows()
+        dialog_ctx = None
+        hint = (
+            "COM cannot be interrupted; check SolidWorks dialogs/status, then "
+            "resolve_stuck() (internal recovery invoked by the host/client, not a "
+            "CLI command)—do not retry blindly"
+        )
+        if windows:
+            from cadmcp.dialog_policy import classify_dialog, dialog_context, hint_for_policy
+            from cadmcp.probe import primary_modal_dialog
+
+            primary = primary_modal_dialog(windows)
+            if primary is not None:
+                policy = classify_dialog(
+                    title=primary.title,
+                    text=primary.text or "",
+                    buttons=list(primary.buttons or []),
+                )
+                dialog_ctx = dialog_context(
+                    title=primary.title,
+                    text=primary.text,
+                    buttons=list(primary.buttons or []),
+                    modal=primary.modal,
+                )
+                hint = (
+                    f"{hint_for_policy(policy)}; then resolve_stuck() "
+                    "(internal host/client recovery, not a CLI command)—do not retry blindly"
+                )
+        ctx: dict = {
+            "tool": tool,
+            "timeout_s": limit,
+            "windows": [w.model_dump() for w in windows] if windows else [],
+        }
+        if dialog_ctx is not None:
+            ctx["dialog"] = dialog_ctx
         return fail_result(
             fail(
                 "EXEC_TIMEOUT",
                 f"{tool} did not return within {limit}s; executor marked STUCK",
-                "COM cannot be interrupted; check SolidWorks for dialogs, then "
-                "cadmcp doctor (resolve_stuck)—do not retry blindly",
+                hint,
                 side_effect=SideEffect.APPLIED,
-                tool=tool,
-                timeout_s=limit,
-                windows=[w.model_dump() for w in windows] if windows else [],
+                **ctx,
             )
         )
 
@@ -468,6 +548,52 @@ class Executor:
     def _scan_windows(self) -> list[WindowInfo]:
         windows, _ = self._scan_windows_with_error()
         return windows
+
+    def scan_dialogs(self) -> tuple[list[WindowInfo] | None, str | None]:
+        """Public side-thread scan for session_dialogs (bypass_queue tools)."""
+        return self._scan_windows_with_error()
+
+    def respond_dialog(self, action: str, match: str | None = None) -> dict:
+        """Whitelist respond on side thread (no COM / STA)."""
+        if self._probe is None:
+            raise fail(
+                "INTERNAL_ERROR",
+                "Dialog probe not wired",
+                "Start the server with a DialogProbe (Win32 or Fake)",
+            )
+        respond = getattr(self._probe, "respond", None)
+        if not callable(respond):
+            raise fail(
+                "INTERNAL_ERROR",
+                "Dialog probe does not support respond()",
+                "Use Win32DialogProbe or FakeDialogProbe",
+            )
+        box: dict = {}
+
+        def _target() -> None:
+            try:
+                box["r"] = respond(action, match)  # type: ignore[misc]
+            except CadMcpError as exc:
+                box["err"] = exc
+            except Exception as exc:  # noqa: BLE001 — surface as INTERNAL
+                box["err"] = fail(
+                    "INTERNAL_ERROR",
+                    f"{type(exc).__name__}: {exc}",
+                    "session_respond failed; inspect session_dialogs and retry or dismiss manually",
+                )
+
+        t = threading.Thread(target=_target, name="cadmcp-dialog-respond", daemon=True)
+        t.start()
+        t.join(self._detector_timeout_s)
+        if t.is_alive():
+            raise fail(
+                "EXEC_TIMEOUT",
+                f"session_respond did not return within {self._detector_timeout_s}s",
+                "Dialog UI may be hung; dismiss manually in SolidWorks",
+            )
+        if "err" in box:
+            raise box["err"]
+        return box["r"]
 
     def _scan_windows_with_error(self) -> tuple[list[WindowInfo] | None, str | None]:
         if self._probe is None:

@@ -513,3 +513,33 @@ def test_help_tool_matches_resource_channel(served: _Served):
                 assert "selectors" in err["error"]["hint"]
 
     asyncio.run(main())
+
+
+def test_non_ascii_result_text_is_parseable(served: _Served):
+    """R5 contract: non-ASCII (sha256-detail style) survives MCP text serialization."""
+    from cadmcp.server import _result_text
+
+    detail = "sha256 校验：完整性 ✓"
+
+    async def main():
+        async with streamable_http_client(served.mcp_url) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                new = await session.call_tool("new_part", {})
+                assert json.loads(new.content[0].text)["ok"]
+                written = await session.call_tool(
+                    "set_properties", {"entries": [{"key": "Note", "value": detail}]}
+                )
+                text = written.content[0].text
+                assert detail in text  # literal UTF-8, not GBK mojibake or \uXXXX
+                assert json.loads(text)["result"]["written"]["Note"] == detail
+                got = await session.call_tool("get_properties", {"keys": ["Note"]})
+                assert json.loads(got.content[0].text)["result"]["properties"]["Note"] == detail
+
+    asyncio.run(main())
+
+    # Direct helper contract: explicit ensure_ascii=False, byte-compatible with Pydantic.
+    from cadmcp.result import ok_result
+
+    payload = {"detail": detail}
+    assert _result_text(ok_result(payload)) == ok_result(payload).model_dump_json()

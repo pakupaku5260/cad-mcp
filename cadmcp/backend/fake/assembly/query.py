@@ -92,5 +92,8 @@ class FakeAssemblyQueryMixin:
             )
             if status == "clear":
                 continue
-            pairs_out.append(InterferencePair(a=a, b=b, status=status))
+            vol = getattr(self, "_interference_volume_m3", None)
+            pairs_out.append(
+                InterferencePair(a=a, b=b, status=status, volume_m3=vol)
+            )
         return pairs_out, "aabb"

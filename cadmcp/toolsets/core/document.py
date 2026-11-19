@@ -25,7 +25,17 @@ def open_document(ctx: OpContext, path: str) -> dict:
 def save_document(ctx: OpContext, path: str, overwrite: bool = False) -> dict:
     resolved = ensure_output_path(path, roots=ctx.workspace, extensions=_DOC_EXTS, overwrite=overwrite)
     ctx.backend.save_as(resolved)
-    return {"saved": True, "path": str(resolved)}
+    out = {"saved": True, "path": str(resolved)}
+    # Additive readback: the requested path above stays byte-compatible; the actual
+    # active-document state comes from the backend (Fake updates _doc, real reads COM).
+    info = ctx.backend.active_document()
+    if info is not None:
+        out.update(
+            active_path=info.path,
+            active_saved=info.saved,
+            active_modified=info.modified,
+        )
+    return out
 
 
 def list_configurations(ctx: OpContext) -> dict:
@@ -110,6 +120,16 @@ def get_active_document(ctx: OpContext) -> dict:
     return _doc_payload(info)
 
 
+def active_document(ctx: OpContext) -> dict:
+    """Additive alias of get_active_document (0.4.0 R3)."""
+    return get_active_document(ctx)
+
+
+def set_active_document(ctx: OpContext, path_or_title: str) -> dict:
+    info = ctx.backend.set_active_document(str(path_or_title))
+    return _doc_payload(info)
+
+
 def list_open_documents(ctx: OpContext) -> dict:
     """Enumerate open documents; mark the active one. Stable sort by title."""
     active = ctx.backend.active_document()
@@ -177,9 +197,27 @@ SPECS: tuple[ToolSpec, ...] = (
     ),
     ToolSpec(
         name="get_active_document",
-        description="Title, path, modified/saved flags, configuration and epoch of the active document.",
+        description="Title, path, modified/saved flags, configuration and epoch of the active document. Equivalent to active_document.",
         input_schema=make_schema({}),
         handler=get_active_document,
+    ),
+    ToolSpec(
+        name="active_document",
+        description="Active DocInfo; equivalent alias of get_active_document.",
+        input_schema=make_schema({}),
+        handler=active_document,
+        timeout_class="fast",
+    ),
+    ToolSpec(
+        name="set_active_document",
+        description="Activate open doc by path or title; returns DocInfo.",
+        input_schema=make_schema(
+            {"path_or_title": {"type": "string"}},
+            ["path_or_title"],
+        ),
+        handler=set_active_document,
+        mutating=True,
+        timeout_class="fast",
     ),
     ToolSpec(
         name="list_open_documents",

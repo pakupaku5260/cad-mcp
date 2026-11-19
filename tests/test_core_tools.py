@@ -501,6 +501,11 @@ def test_subassembly_insert_lists_nested_children(kernel: Kernel):
     assert flat.ok and flat.result["count"] == 6
     flat_names = [c["name"] for c in flat.result["components"]]
     assert "p1-1@sub-1" in flat_names and "p2-1@sub-1" in flat_names
+    lite = kernel.dispatch("list_components_lite", {})
+    assert lite.ok and lite.result["lite"] is True and lite.result["count"] == 2
+    lite_item = lite.result["components"][0]
+    assert set(lite_item) >= {"name", "path", "origin"}
+    assert "lightweight" not in lite_item
     child = kernel.dispatch("get_component", {"component": "p1-1@sub-1"})
     assert child.ok, child.error
     missing_asm = kernel.dispatch("insert_component", {"path": "nope.sldasm"})

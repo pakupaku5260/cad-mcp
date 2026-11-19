@@ -107,6 +107,19 @@ def test_saved_true_after_save_document(kernel: Kernel, tmp_path: Path):
     assert info.result["modified"] is False
 
 
+def test_save_document_exposes_additive_active_metadata(kernel: Kernel, tmp_path: Path):
+    kernel.dispatch("new_part")
+    path = str(tmp_path / "additive.sldprt")
+    saved = kernel.dispatch("save_document", {"path": path, "overwrite": True})
+    assert saved.ok
+    # Existing keys keep their exact meaning/value; readback fields are additive.
+    assert saved.result["saved"] is True
+    assert saved.result["path"] == path
+    assert saved.result["active_path"] == path
+    assert saved.result["active_saved"] is True
+    assert saved.result["active_modified"] is False
+
+
 def test_configuration_empty_on_drawing(kernel: Kernel):
     r = kernel.dispatch("new_drawing")
     assert r.ok

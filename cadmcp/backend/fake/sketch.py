@@ -83,6 +83,9 @@ class FakeSketchMixin:
                 "No sketch is open",
                 "Call start_sketch on a reference plane and draw a profile",
             )
+        from cadmcp.backend.protocol.sketch_profile import raise_if_profile_conflicts
+
+        raise_if_profile_conflicts([self._entity_ref(i, e) for i, e in enumerate(sk.entities)])
         if sk not in doc.ended_sketches:
             doc.ended_sketches.append(sk)
         doc.open_sketch = None
@@ -1001,6 +1004,11 @@ class FakeSketchMixin:
                 "Call start_sketch → draw → end_sketch, then run the feature",
                 requested=sketch,
             )
+        from cadmcp.backend.protocol.sketch_profile import raise_if_profile_conflicts
+
+        raise_if_profile_conflicts(
+            [self._entity_ref(i, e) for i, e in enumerate(pending.entities)]
+        )
         return doc, pending
 
     @staticmethod

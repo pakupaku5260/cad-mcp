@@ -57,6 +57,44 @@ For real geometry, run SolidWorks 2025 on Windows and switch the backend to
 
 </div>
 
+## Featured case
+
+A horizontal oil-tank assembly built end to end through MCP: 16 part models,
+21 mates and seven views. Use the dots to switch views.
+
+<div class="oil-carousel">
+  <input type="radio" name="oilc" id="oilc1" checked>
+  <input type="radio" name="oilc" id="oilc2">
+  <input type="radio" name="oilc" id="oilc3">
+  <input type="radio" name="oilc" id="oilc4">
+  <input type="radio" name="oilc" id="oilc5">
+  <input type="radio" name="oilc" id="oilc6">
+  <input type="radio" name="oilc" id="oilc7">
+  <div class="oil-carousel__viewport">
+    <div class="oil-carousel__slides">
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/iso.png" alt="Isometric view"><span>Isometric</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/front.png" alt="Front view"><span>Front</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/back.png" alt="Back view"><span>Back</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/left.png" alt="Left view"><span>Left</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/right.png" alt="Right view"><span>Right</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/top.png" alt="Top view"><span>Top</span></div>
+      <div class="oil-carousel__slide"><img src="assets/images/oil-tank/bottom.png" alt="Bottom view"><span>Bottom</span></div>
+    </div>
+  </div>
+  <div class="oil-carousel__nav">
+    <label for="oilc1" title="Isometric view"></label>
+    <label for="oilc2" title="Front view"></label>
+    <label for="oilc3" title="Back view"></label>
+    <label for="oilc4" title="Left view"></label>
+    <label for="oilc5" title="Right view"></label>
+    <label for="oilc6" title="Top view"></label>
+    <label for="oilc7" title="Bottom view"></label>
+  </div>
+</div>
+
+[Read the full case study →](showcase/oil-tank.md) — with the capability matrix
+and the disclosed 0.4.0 STEP-readback environment limitation.
+
 ## Two ways to work
 
 <div class="grid cards" markdown>
